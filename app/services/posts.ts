@@ -6,7 +6,7 @@ export async function getPosts(page = 1, limit = 10) {
 }
 
 export async function getPost(id: string) {
-  const response = await fetch(`/api/posts/${id}`);
+  const response = await fetch(`/api/posts?id=${id}`);
   return response.json();
 }
 
@@ -22,7 +22,7 @@ export async function createPost(post: CreatePostInput) {
 }
 
 export async function updatePost(id: string, post: UpdatePostInput) {
-  const response = await fetch(`/api/posts/${id}`, {
+  const response = await fetch(`/api/posts?id=${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export async function updatePost(id: string, post: UpdatePostInput) {
 }
 
 export async function deletePost(id: string) {
-  const response = await fetch(`/api/posts/${id}`, {
+  const response = await fetch(`/api/posts?id=${id}`, {
     method: 'DELETE',
   });
   return response.json();

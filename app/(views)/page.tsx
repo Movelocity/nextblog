@@ -1,4 +1,7 @@
+import { redirect } from 'next/navigation';
 
 export default function Posts() {
-  return <div>Posts</div>;
+  // redirect to /posts
+  redirect('/posts');
+  return <div>index</div>;
 }

@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blog Management System
 
-## Getting Started
+A modern blog management system built with Next.js that uses a file-based storage system. Each blog is stored as a separate folder containing an `index.md` for content and an assets directory for related files.
 
-First, run the development server:
+## Project Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+app/
+├── (views)/          # Frontend page components
+├── api/             # Backend API routes
+├── components/      # Reusable React components
+├── services/        # Frontend API services
+├── common/          # Shared types and configs
+├── hooks/          # React hooks
+├── lib/            # Core libraries
+└── store/          # State management
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Current Progress
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### ✅ Completed Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Core Storage System**
+   - File-based blog storage with folder per blog
+   - Metadata caching for performance
+   - Asset management support
+   - Full CRUD operations
 
-## Learn More
+2. **Type System**
+   - Comprehensive TypeScript interfaces
+   - Type-safe blog operations
+   - Proper error handling
 
-To learn more about Next.js, take a look at the following resources:
+### 🔧 Storage Interface Usage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```typescript
+import blogStorage from '@/app/lib/blog-instance';
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+// Create a new blog
+const blog = await blogStorage.createBlog({
+  id: 'my-first-blog',
+  title: 'My First Blog',
+  description: 'This is my first blog post',
+  content: '# Hello World\n\nThis is my first blog post.',
+  published: true,
+  tags: ['first', 'hello']
+});
 
-## Deploy on Vercel
+// Get a blog
+const blog = await blogStorage.getBlog('my-first-blog');
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+// Update a blog
+const updated = await blogStorage.updateBlog('my-first-blog', {
+  title: 'Updated Title',
+  content: 'Updated content'
+});
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+// Delete a blog
+await blogStorage.deleteBlog('my-first-blog');
+
+// List all blogs
+const allBlogs = await blogStorage.listBlogs();
+
+// List published blogs only
+const publishedBlogs = await blogStorage.listBlogs({ published: true });
+
+// Add an asset (e.g., image)
+const assetPath = await blogStorage.addAsset(
+  'my-first-blog',
+  'image.png',
+  imageBuffer
+);
+
+// Delete an asset
+await blogStorage.deleteAsset('my-first-blog', 'image.png');
+```
+
+### 📁 Blog Directory Structure
+
+```
+blogs/                  # Root directory for all blogs
+├── meta.json          # Metadata cache for all blogs
+├── my-first-blog/     # Individual blog folder
+│   ├── index.md      # Main content file
+│   └── assets/       # Blog assets directory
+│       └── image.png # Blog assets
+└── another-blog/
+    ├── index.md
+    └── assets/
+```
+
+## 📝 TODO
+
+1. **API Layer**
+   - [ ] Update API routes to use the new storage system
+   - [ ] Add proper error handling and validation
+   - [ ] Implement file upload endpoints for assets
+
+2. **Frontend Updates**
+   - [ ] Update components to match new blog structure
+   - [ ] Add markdown editor with preview
+   - [ ] Add image upload UI
+   - [ ] Add tag management UI
+
+3. **Features**
+   - [ ] Add search functionality
+   - [ ] Add tag filtering
+   - [ ] Add blog drafts
+   - [ ] Add blog categories
+   - [ ] Add blog series support
+
+4. **Improvements**
+   - [ ] Add proper logging
+   - [ ] Add unit tests
+   - [ ] Add blog content validation
+   - [ ] Add image optimization
+   - [ ] Add backup system
+
+## 🚀 Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn
+   ```
+
+3. Set up environment variables:
+   ```env
+   BLOG_ROOT_DIR=blogs  # Directory where blogs will be stored
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+## 📚 Environment Variables
+
+- `BLOG_ROOT_DIR`: Root directory for blog storage (default: 'blogs')
+
+## 🛠️ Tech Stack
+
+- Next.js 14
+- TypeScript
+- File-based Storage
+- Markdown Processing
+- Tailwind CSS

@@ -10,14 +10,31 @@ import {
   BlogMetaCache
 } from '../common/config';
 
+/**
+ * BlogStorage class handles all blog-related file operations
+ * including creating, reading, updating, and deleting blogs and their assets.
+ */
 export class BlogStorage {
   private rootDir: string;
   private metaFile: string;
   private metaCache: BlogMetaCache | null = null;
+  private static instance: BlogStorage | null = null;
 
-  constructor(rootDir?: string) {
+  private constructor(rootDir?: string) {
     this.rootDir = rootDir || BLOG_CONFIG.ROOT_DIR;
     this.metaFile = path.join(this.rootDir, BLOG_CONFIG.META_FILE);
+  }
+
+  /**
+   * Get the singleton instance of BlogStorage
+   */
+  public static getInstance(): BlogStorage {
+    if (!BlogStorage.instance) {
+      BlogStorage.instance = new BlogStorage();
+      // Initialize the storage
+      BlogStorage.instance.init().catch(console.error);
+    }
+    return BlogStorage.instance;
   }
 
   // Initialize storage - create necessary directories
@@ -250,4 +267,7 @@ export class BlogStorage {
       throw new Error(`Failed to delete asset from blog ${blogId}: ${error}`);
     }
   }
-} 
+}
+
+// Export the singleton instance
+export default BlogStorage.getInstance(); 
