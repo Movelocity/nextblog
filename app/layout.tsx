@@ -31,6 +31,12 @@ function Navigation() {
               >
                 Posts
               </Link>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center px-1 pt-1 text-gray-500 hover:text-gray-900"
+              >
+                Dashboard
+              </Link>
             </div>
           </div>
         </div>
