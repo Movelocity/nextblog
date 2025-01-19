@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UpdatePostInput, Post } from '@/app/common/config';
 
-// This should be imported from a shared store/database in production
+// This should be imported from file systemin production
 declare let posts: Post[];
 
 export async function GET(
