@@ -63,4 +63,17 @@ export interface UpdateBlogInput {
 export interface BlogMetaCache {
   lastUpdated: string;
   blogs: Record<string, BlogMeta>;  // Key is blog id (folder name)
-} 
+}
+
+export const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+export const JWT_EXPIRES_IN = '24h';
+
+export const ADMIN_CREDENTIALS = {
+    email: 'hollway@example.com',
+    password: 'hollway123'
+};
+
+export const API_ROUTES = {
+    LOGIN: '/api/auth/login',
+    POSTS: '/api/posts'
+} as const; 

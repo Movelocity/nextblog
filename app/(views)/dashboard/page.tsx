@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getPosts } from '@/app/services/posts';
 import LoginModal from '@/app/components/LoginModal';
+import { login, setAuthToken, isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/auth';
 
 interface DashboardStats {
   totalPosts: number;
@@ -20,10 +21,14 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Check if user is already authenticated
+    const authStatus = checkAuth();
+    setIsAuthenticated(authStatus);
+    if (authStatus) {
+      setIsLoginModalOpen(false);
       fetchStats();
     }
-  }, [isAuthenticated]);
+  }, []);
 
   const fetchStats = async () => {
     try {
@@ -42,12 +47,19 @@ export default function DashboardPage() {
   };
 
   const handleLogin = async (email: string, password: string) => {
-    // TODO: Implement actual authentication
-    if (email === 'admin@example.com' && password === 'password') {
+    try {
+      const response = await login({ email, password });
+      setAuthToken(response.token);
       setIsAuthenticated(true);
-      return true;
+    } catch (error) {
+      throw new Error('Invalid credentials');
     }
-    throw new Error('Invalid credentials');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setIsLoginModalOpen(true);
+    removeAuthToken();
   };
 
   if (!isAuthenticated) {
@@ -97,7 +109,7 @@ export default function DashboardPage() {
             Create New Post
           </a>
           <button
-            onClick={() => setIsAuthenticated(false)}
+            onClick={handleLogout}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Logout

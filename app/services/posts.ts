@@ -1,40 +1,73 @@
 import { CreatePostInput, Post, UpdatePostInput } from '../common/config';
+import { getAuthToken } from './auth';
 
-export async function getPosts(page = 1, limit = 10) {
-  const response = await fetch(`/api/posts?page=${page}&limit=${limit}`);
+const getAuthHeaders = () => {
+  const token = getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
+export const getPosts = async (page: number = 1, limit: number = 10): Promise<Post[]> => {
+  const response = await fetch(`/api/posts?page=${page}&limit=${limit}`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch posts');
+  }
+
   return response.json();
-}
+};
 
-export async function getPost(id: string) {
-  const response = await fetch(`/api/posts?id=${id}`);
+export const getPost = async (id: string): Promise<Post> => {
+  const response = await fetch(`/api/posts/${id}`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch post');
+  }
+
   return response.json();
-}
+};
 
-export async function createPost(post: CreatePostInput) {
+export const createPost = async (input: CreatePostInput): Promise<Post> => {
   const response = await fetch('/api/posts', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(post),
+    headers: getAuthHeaders(),
+    body: JSON.stringify(input),
   });
-  return response.json();
-}
 
-export async function updatePost(id: string, post: UpdatePostInput) {
-  const response = await fetch(`/api/posts?id=${id}`, {
+  if (!response.ok) {
+    throw new Error('Failed to create post');
+  }
+
+  return response.json();
+};
+
+export const updatePost = async (id: string, input: UpdatePostInput): Promise<Post> => {
+  const response = await fetch(`/api/posts/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(post),
+    headers: getAuthHeaders(),
+    body: JSON.stringify(input),
   });
-  return response.json();
-}
 
-export async function deletePost(id: string) {
-  const response = await fetch(`/api/posts?id=${id}`, {
-    method: 'DELETE',
-  });
+  if (!response.ok) {
+    throw new Error('Failed to update post');
+  }
+
   return response.json();
-}
+};
+
+export const deletePost = async (id: string): Promise<void> => {
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete post');
+  }
+};

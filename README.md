@@ -152,28 +152,25 @@ blogs/                  # Root directory for all blogs
 1. Clone the repository
 2. Install dependencies:
    ```bash
-   npm install
-   # or
    yarn
    ```
 
 3. Set up environment variables:
    ```env
    BLOG_ROOT_DIR=blogs  # Directory where blogs will be stored
+   JWT_SECRET=your-super-secret-jwt-key
    ```
 
 4. Run the development server:
    ```bash
-   npm run dev
-   # or
    yarn dev
    ```
 
 5. Access the dashboard:
    ```
    URL: http://localhost:3000/dashboard
-   Email: admin@example.com
-   Password: password
+   Email: hollway@example.com
+   Password: hollway123
    ```
 
 ## 📚 Environment Variables
