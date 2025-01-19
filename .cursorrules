@@ -1,0 +1,10 @@
+Next.js的app目录结构
+
+app/(views)/ 用于前端页面入口
+app/api/ 用于后端API,
+app/components/ 用于React组件
+app/services/ 统一管理前端准备发往后端端请求
+app/common/ 用于存放前后端公共类型，常量，工具函数等
+app/hooks/ 用于存放React hooks
+app/lib/ 用于存放一些通用的库
+app/store/ 用于存放Redux store
