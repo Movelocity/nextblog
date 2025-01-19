@@ -22,6 +22,7 @@ export class BlogStorage {
 
   private constructor(rootDir?: string) {
     this.rootDir = rootDir || BLOG_CONFIG.ROOT_DIR;
+    console.log('rootDir', this.rootDir);
     this.metaFile = path.join(this.rootDir, BLOG_CONFIG.META_FILE);
   }
 

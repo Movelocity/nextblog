@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreatePostInput, UpdatePostInput, Post } from '@/app/common/config';
-import blogStorage from '@/app/lib/blog-storage';
+import blogStorage from '@/app/lib/BlogStorage';
 
 // Convert Blog to Post interface
 function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post {

@@ -7,6 +7,14 @@ interface PostsListProps {
 }
 
 export default function PostsList({ posts, onDelete }: PostsListProps) {
+  if (!Array.isArray(posts)) {
+    return <div className="text-gray-600">Loading posts...</div>;
+  }
+
+  if (posts.length === 0) {
+    return <div className="text-gray-600">No posts available.</div>;
+  }
+
   return (
     <div className="space-y-4">
       {posts.map((post) => (
