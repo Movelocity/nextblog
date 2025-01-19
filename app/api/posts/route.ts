@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreatePostInput, UpdatePostInput, Post } from '@/app/common/config';
 import blogStorage from '@/app/lib/BlogStorage';
+import { requireAuth } from '@/app/lib/auth';
 
 // Convert Blog to Post interface
 function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post {
@@ -15,6 +16,7 @@ function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post
   };
 }
 
+// GET is public - no auth required
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
@@ -49,7 +51,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+// Protected routes using requireAuth
+export const POST = requireAuth(async (request: NextRequest) => {
   try {
     const body: CreatePostInput = await request.json();
     
@@ -66,9 +69,9 @@ export async function POST(request: NextRequest) {
     console.error('Error creating post:', error);
     return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
   }
-}
+});
 
-export async function PUT(request: NextRequest) {
+export const PUT = requireAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -90,9 +93,9 @@ export async function PUT(request: NextRequest) {
     console.error('Error updating post:', error);
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = requireAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -107,4 +110,4 @@ export async function DELETE(request: NextRequest) {
     console.error('Error deleting post:', error);
     return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });
   }
-} 
+}); 

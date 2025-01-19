@@ -14,9 +14,9 @@ export default function PostsPage() {
 
   const fetchPosts = async () => {
     try {
-      const data = await getPosts(page);
-      setPosts(data.posts);
-      setTotal(data.total);
+      const data = await getPosts(page, 10, true);
+      setPosts(data);
+      setTotal(data.length);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {

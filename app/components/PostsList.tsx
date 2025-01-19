@@ -3,16 +3,31 @@ import Link from 'next/link';
 
 interface PostsListProps {
   posts: Post[];
+  isLoading?: boolean;
   onDelete?: (id: string) => void;
 }
 
-export default function PostsList({ posts, onDelete }: PostsListProps) {
-  if (!Array.isArray(posts)) {
-    return <div className="text-gray-600">Loading posts...</div>;
+export default function PostsList({ posts, isLoading = false, onDelete }: PostsListProps) {
+  if (isLoading) {
+    return (
+      <div className="animate-pulse space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className="p-4 border rounded-lg shadow-sm">
+            <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
-  if (posts.length === 0) {
-    return <div className="text-gray-600">No posts available.</div>;
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="text-gray-600 p-4 text-center border rounded-lg">
+        No posts available.
+      </div>
+    );
   }
 
   return (
@@ -35,6 +50,7 @@ export default function PostsList({ posts, onDelete }: PostsListProps) {
               <button
                 onClick={() => onDelete(post.id)}
                 className="text-red-500 hover:text-red-700"
+                aria-label="Delete post"
               >
                 Delete
               </button>

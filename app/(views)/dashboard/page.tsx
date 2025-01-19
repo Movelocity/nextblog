@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getPosts } from '@/app/services/posts';
+import { getPosts, deletePost } from '@/app/services/posts';
 import LoginModal from '@/app/components/LoginModal';
 import { login, setAuthToken, isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/auth';
+import PostsList from '@/app/components/PostsList';
+import Link from 'next/link';
+import { Post } from '@/app/common/config';
 
 interface DashboardStats {
   totalPosts: number;
@@ -14,11 +17,13 @@ interface DashboardStats {
 export default function DashboardPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalPosts: 0,
     publishedPosts: 0,
     draftPosts: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -26,15 +31,17 @@ export default function DashboardPage() {
     setIsAuthenticated(authStatus);
     if (authStatus) {
       setIsLoginModalOpen(false);
-      fetchStats();
+      fetchPosts();
     }
   }, []);
 
-  const fetchStats = async () => {
+  const fetchPosts = async () => {
     try {
+      setLoading(true);
       const posts = await getPosts(1, 100); // Fetch up to 100 posts
-      const publishedPosts = posts.filter((post: any) => post.published);
-      const draftPosts = posts.filter((post: any) => !post.published);
+      setPosts(posts);
+      const publishedPosts = posts.filter((post) => post.published);
+      const draftPosts = posts.filter((post) => !post.published);
 
       setStats({
         totalPosts: posts.length,
@@ -42,7 +49,9 @@ export default function DashboardPage() {
         draftPosts: draftPosts.length,
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,9 +83,17 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 text-red-600 border border-red-600 rounded hover:bg-red-50"
+        >
+          Logout
+        </button>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h3 className="text-lg font-medium text-gray-900">Total Posts</h3>
           <p className="mt-2 text-3xl font-semibold text-blue-600">
@@ -99,22 +116,28 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div className="flex space-x-4">
-          <a
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Manage Posts</h2>
+          <Link
             href="/posts/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            Create New Post
-          </a>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Logout
-          </button>
+            New Post
+          </Link>
         </div>
+        
+        {loading ? (
+          <div className="text-center py-4">Loading posts...</div>
+        ) : (
+          <PostsList 
+            posts={posts} 
+            onDelete={async (id) => {
+              await deletePost(id);
+              fetchPosts();
+            }} 
+          />
+        )}
       </div>
     </div>
   );
