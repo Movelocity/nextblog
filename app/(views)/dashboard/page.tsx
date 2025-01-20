@@ -6,7 +6,7 @@ import LoginModal from '@/app/components/LoginModal';
 import { login, setAuthToken, isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/auth';
 import PostsList from '@/app/components/PostsList';
 import Link from 'next/link';
-import { Post } from '@/app/common/config';
+import { Post } from '@/app/common/types';
 
 interface DashboardStats {
   totalPosts: number;
@@ -38,7 +38,8 @@ export default function DashboardPage() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const posts = await getPosts(1, 100); // Fetch up to 100 posts
+      const posts = await getPosts(1, 100, true); // Fetch up to 100 posts
+      console.log("posts", posts);
       setPosts(posts);
       const publishedPosts = posts.filter((post) => post.published);
       const draftPosts = posts.filter((post) => !post.published);
@@ -60,6 +61,7 @@ export default function DashboardPage() {
       const response = await login({ email, password });
       setAuthToken(response.token);
       setIsAuthenticated(true);
+      fetchPosts();
     } catch (error) {
       throw new Error('Invalid credentials');
     }

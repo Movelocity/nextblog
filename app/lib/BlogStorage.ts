@@ -3,12 +3,11 @@ import path from 'path';
 import { 
   BLOG_CONFIG, 
   BlogMeta, 
-  BlogContent, 
   Blog, 
   CreateBlogInput,
   UpdateBlogInput,
   BlogMetaCache
-} from '../common/config';
+} from '../common/types';
 
 /**
  * BlogStorage class handles all blog-related file operations
@@ -222,12 +221,15 @@ export class BlogStorage {
   }
 
   // List all blogs
-  async listBlogs(options: { published?: boolean } = {}): Promise<BlogMeta[]> {
+  async listBlogs(options: { page?: number, page_size?: number, published_only?: boolean } = {}): Promise<BlogMeta[]> {
     const meta = await this.loadMeta();
     let blogs = Object.values(meta.blogs);
 
-    if (options.published !== undefined) {
-      blogs = blogs.filter(blog => blog.published === options.published);
+    if (options.published_only) {
+      blogs = blogs.filter(blog => blog.published === true);
+    }
+    if (options.page && options.page_size) {
+      blogs = blogs.slice((options.page - 1) * options.page_size, options.page * options.page_size);
     }
 
     return blogs;

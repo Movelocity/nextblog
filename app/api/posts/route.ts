@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CreatePostInput, UpdatePostInput, Post } from '@/app/common/config';
+import { CreatePostInput, UpdatePostInput, Post, BlogMeta } from '@/app/common/types';
 import blogStorage from '@/app/lib/BlogStorage';
-import { requireAuth } from '@/app/lib/auth';
+import { requireAuth, authenticateRequest } from '@/app/lib/auth';
 
 // Convert Blog to Post interface
 function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post {
@@ -20,7 +20,10 @@ function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = parseInt(searchParams.get('limit') || '10', 10);
+  const published_only = searchParams.get('getAll') === 'true';
+  
   try {
     // If id is provided, return single post
     if (id) {
@@ -28,17 +31,23 @@ export async function GET(request: NextRequest) {
       if (!blog) {
         return NextResponse.json({ error: 'Post not found' }, { status: 404 });
       }
+      if(!blog.published && authenticateRequest(request)==null) {
+        return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+      }
       return NextResponse.json(blogToPost(blog));
     }
-
-    // Otherwise return all posts
-    const published = searchParams.get('published') === 'true';
-    const blogMetas = await blogStorage.listBlogs({ published });
+    // Paged posts
+    let blogMetas: BlogMeta[];
+    if(published_only && authenticateRequest(request)!=null) {
+      // get all posts, admin only
+      blogMetas = await blogStorage.listBlogs({ page, page_size: limit, published_only: false });
+    } else {
+      // published posts only
+      blogMetas = await blogStorage.listBlogs({ page, page_size: limit, published_only: true });
+    }
     
     // Fetch full blog content for each meta
-    const blogs = await Promise.all(
-      blogMetas.map(meta => blogStorage.getBlog(meta.id))
-    );
+    const blogs = await Promise.all(blogMetas.map(meta => blogStorage.getBlog(meta.id)));
     const posts = blogs.map(blogToPost);
     
     return NextResponse.json({

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Post } from '@/app/common/config';
+import { Post } from '@/app/common/types';
 import { getPosts, deletePost } from '@/app/services/posts';
 import PostsList from '@/app/components/PostsList';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ export default function PostsPage() {
 
   const fetchPosts = async () => {
     try {
-      const data = await getPosts(page, 10, true);
+      const data = await getPosts(page, 10, false);
       setPosts(data);
       setTotal(data.length);
     } catch (error) {
@@ -45,12 +45,6 @@ export default function PostsPage() {
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Blog Posts</h1>
-        <Link
-          href="/posts/new"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          New Post
-        </Link>
       </div>
 
       <PostsList posts={posts} onDelete={handleDelete} />

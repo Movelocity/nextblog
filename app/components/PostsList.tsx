@@ -1,13 +1,14 @@
-import { Post } from '../common/config';
+import { Post } from '../common/types';
 import Link from 'next/link';
 
 interface PostsListProps {
   posts: Post[];
   isLoading?: boolean;
+  editable?: boolean;
   onDelete?: (id: string) => void;
 }
 
-export default function PostsList({ posts, isLoading = false, onDelete }: PostsListProps) {
+export default function PostsList({ posts, isLoading = false, editable = false, onDelete }: PostsListProps) {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">
@@ -46,7 +47,7 @@ export default function PostsList({ posts, isLoading = false, onDelete }: PostsL
                 {post.content.substring(0, 200)}...
               </p>
             </div>
-            {onDelete && (
+            {onDelete && editable && (
               <button
                 onClick={() => onDelete(post.id)}
                 className="text-red-500 hover:text-red-700"

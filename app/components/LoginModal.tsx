@@ -19,7 +19,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
     setError('');
     
     try {
-      await onLogin(email, password);
+      onLogin(email, password);
       onClose();
     } catch (err) {
       setError('Invalid email or password');
