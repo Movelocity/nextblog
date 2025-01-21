@@ -11,6 +11,24 @@ const getAuthHeaders = () => {
 };
 
 /**
+ * Fetches all available categories and tags from the API.
+ *
+ * @returns {Promise<{ categories: string[]; tags: string[] }>} A promise that resolves to categories and tags
+ * @throws {Error} Throws an error if the fetch operation fails
+ */
+export const getTaxonomy = async (): Promise<{ categories: string[]; tags: string[] }> => {
+  const response = await fetch(API_ROUTES.TAXONOMY, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch taxonomy');
+  }
+
+  return response.json();
+};
+
+/**
  * Fetches a list of posts from the API with optional search parameters.
  *
  * @param {SearchParams} params - Search parameters including query, categories, tags, pagination, etc.

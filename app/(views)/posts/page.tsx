@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Post, SearchParams } from '@/app/common/types';
-import { getPosts, deletePost } from '@/app/services/posts';
+import { getPosts, deletePost, getTaxonomy } from '@/app/services/posts';
 import PostsList from '@/app/components/PostsList';
 import Link from 'next/link';
 import SearchPosts from '@/app/components/SearchPosts';
@@ -11,29 +11,12 @@ export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [topLevelCategories, setTopLevelCategories] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   const fetchPosts = async (searchParams?: SearchParams) => {
     try {
       setLoading(true);
       const response = await getPosts(searchParams);
       setPosts(response.posts);
-
-      // Extract unique top-level categories and tags
-      const categories = new Set<string>();
-      const tags = new Set<string>();
-      
-      response.posts.forEach(post => {
-        post.categories?.forEach(cat => {
-          // Only add top-level categories
-          const topLevel = cat.split('/')[0];
-          categories.add(topLevel);
-        });
-        post.tags?.forEach(tag => tags.add(tag));
-      });
-
-      setTopLevelCategories(Array.from(categories));
-      setAvailableTags(Array.from(tags));
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -42,7 +25,24 @@ export default function PostsPage() {
   };
 
   useEffect(() => {
-    fetchPosts();
+    // Fetch initial posts and taxonomy
+    const init = async () => {
+      try {
+        const { categories } = await getTaxonomy();
+        // Get unique top-level categories
+        const topLevel = new Set<string>();
+        categories.forEach(cat => {
+          const topLevelCat = cat.split('/')[0];
+          topLevel.add(topLevelCat);
+        });
+        setTopLevelCategories(Array.from(topLevel));
+      } catch (error) {
+        console.error('Error fetching taxonomy:', error);
+      }
+      fetchPosts();
+    };
+
+    init();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -71,31 +71,23 @@ export default function PostsPage() {
                 className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
               >
                 <h3 className="text-lg font-medium text-gray-800">{category}</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  {posts.filter(post => 
-                    post.categories?.some(cat => cat.startsWith(category + '/') || cat === category)
-                  ).length} posts
-                </p>
               </Link>
             ))}
           </div>
         </div>
       )}
-      
+
       <div className="mb-8">
-        <SearchPosts
-          onSearch={handleSearch}
-          availableCategories={[]}
-          availableTags={availableTags}
-        />
+        <SearchPosts onSearch={handleSearch} />
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
+        <div className="text-center py-4">Loading posts...</div>
       ) : (
-        <PostsList posts={posts} onDelete={handleDelete} />
+        <PostsList 
+          posts={posts} 
+          onDelete={handleDelete}
+        />
       )}
     </div>
   );

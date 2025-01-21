@@ -1,18 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { SearchParams } from '../common/types';
 import debounce from 'lodash/debounce';
+import { getTaxonomy } from '../services/posts';
 
 interface SearchPostsProps {
   onSearch: (params: SearchParams) => void;
-  availableCategories: string[];
-  availableTags: string[];
   initialCategory?: string;
 }
 
 export default function SearchPosts({ 
   onSearch, 
-  availableCategories, 
-  availableTags,
   initialCategory 
 }: SearchPostsProps) {
   const [query, setQuery] = useState('');
@@ -20,6 +17,26 @@ export default function SearchPosts({
     initialCategory ? [initialCategory] : []
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch available categories and tags
+  useEffect(() => {
+    const fetchTaxonomy = async () => {
+      try {
+        const { categories, tags } = await getTaxonomy();
+        setAvailableCategories(categories);
+        setAvailableTags(tags);
+      } catch (error) {
+        console.error('Error fetching taxonomy:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTaxonomy();
+  }, []);
 
   // Update selected categories when initialCategory changes
   useEffect(() => {
@@ -70,6 +87,10 @@ export default function SearchPosts({
     });
     handleSearch();
   };
+
+  if (loading) {
+    return <div className="text-center py-4">Loading filters...</div>;
+  }
 
   return (
     <div className="space-y-4 p-4 bg-white rounded-lg shadow">

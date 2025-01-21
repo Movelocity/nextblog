@@ -15,5 +15,6 @@ export const ADMIN_CREDENTIALS = {
 
 export const API_ROUTES = {
     LOGIN: '/api/auth/login',
-    POSTS: '/api/posts'
+    POSTS: '/api/posts',
+    TAXONOMY: '/api/taxonomy'
 };
