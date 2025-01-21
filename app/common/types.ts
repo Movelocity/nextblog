@@ -60,9 +60,21 @@ export interface UpdateBlogInput {
   categories?: string[];
 }
 
+export interface BlogConfig {
+  title: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  published: boolean;
+  tags: string[];
+  categories: string[];
+}
+
 export interface BlogMetaCache {
   lastUpdated: string;
   blogs: Record<string, BlogMeta>;  // Key is blog id (folder name)
+  categories: string[];  // List of all categories across all blogs
+  tags: string[];       // List of all tags across all blogs
 }
 
 export interface SearchParams {

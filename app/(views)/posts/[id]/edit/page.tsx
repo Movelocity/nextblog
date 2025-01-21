@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Post } from '@/app/common/types';
 import { getPost, updatePost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
 

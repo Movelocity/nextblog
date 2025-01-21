@@ -1,12 +1,15 @@
 import fs from 'fs/promises';
 import path from 'path';
+import yaml from 'yaml';
+import { existsSync } from 'fs';
 import { 
   BLOG_CONFIG, 
   BlogMeta, 
   Blog, 
   CreateBlogInput,
   UpdateBlogInput,
-  BlogMetaCache
+  BlogMetaCache,
+  BlogConfig
 } from '../common/types';
 
 /**
@@ -21,7 +24,7 @@ export class BlogStorage {
 
   private constructor(rootDir?: string) {
     this.rootDir = rootDir || BLOG_CONFIG.ROOT_DIR;
-    console.log('rootDir', this.rootDir);
+    console.log('rootDir: ', this.rootDir);
     this.metaFile = path.join(this.rootDir, BLOG_CONFIG.META_FILE);
   }
 
@@ -37,7 +40,7 @@ export class BlogStorage {
     return BlogStorage.instance;
   }
 
-  // Initialize storage - create necessary directories
+  // Initialize storage - create necessary directories and scan existing blogs
   async init(): Promise<void> {
     try {
       await fs.mkdir(this.rootDir, { recursive: true });
@@ -46,10 +49,65 @@ export class BlogStorage {
       try {
         await fs.access(this.metaFile);
       } catch {
-        await this.saveMeta({ lastUpdated: new Date().toISOString(), blogs: {} });
+        await this.saveMeta({ 
+          lastUpdated: new Date().toISOString(), 
+          blogs: {},
+          categories: [],
+          tags: []
+        });
       }
+
+      // Scan existing blogs and update meta
+      await this.scanAndUpdateMeta();
     } catch (error) {
       throw new Error(`Failed to initialize blog storage: ${error}`);
+    }
+  }
+
+  // Scan all blogs and update meta file
+  private async scanAndUpdateMeta(): Promise<void> {
+    try {
+      // const meta = await this.loadMeta();
+      const blogDirs = await fs.readdir(this.rootDir);
+      
+      const newMeta: BlogMetaCache = {
+        lastUpdated: new Date().toISOString(),
+        blogs: {},
+        categories: [],
+        tags: []
+      };
+
+      for (const dir of blogDirs) {
+        // Skip non-directory items and meta.json
+        if (dir === BLOG_CONFIG.META_FILE) continue;
+        
+        const stat = await fs.stat(path.join(this.rootDir, dir));
+        if (!stat.isDirectory()) continue;
+
+        try {
+          const configPath = path.join(this.rootDir, dir, 'config.yaml');
+          if(!existsSync(configPath)) continue;
+          const configContent = await fs.readFile(configPath, 'utf-8');
+          const config: BlogConfig = yaml.parse(configContent);
+
+          const blogMeta: BlogMeta = {
+            id: dir,
+            ...config
+          };
+
+          newMeta.blogs[dir] = blogMeta;
+          
+          // Update categories and tags
+          newMeta.categories = [...new Set([...newMeta.categories, ...(config.categories || [])])];
+          newMeta.tags = [...new Set([...newMeta.tags, ...(config.tags || [])])];
+        } catch (err) {
+          console.error(`Error reading config for blog ${dir}:`, err);
+        }
+      }
+
+      await this.saveMeta(newMeta);
+    } catch (error) {
+      throw new Error(`Failed to scan and update meta: ${error}`);
     }
   }
 
@@ -96,8 +154,18 @@ export class BlogStorage {
       createdAt: now,
       updatedAt: now,
       published: input.published ?? false,
-      tags: input.tags ?? [],
-      categories: input.categories ?? []
+      tags: Array.isArray(input.tags) ? input.tags : [],
+      categories: Array.isArray(input.categories) ? input.categories : []
+    };
+
+    const blogConfig: BlogConfig = {
+      title: input.title,
+      description: input.description,
+      createdAt: now,
+      updatedAt: now,
+      published: input.published ?? false,
+      tags: Array.isArray(input.tags) ? input.tags : [],
+      categories: Array.isArray(input.categories) ? input.categories : []
     };
 
     try {
@@ -111,8 +179,16 @@ export class BlogStorage {
         input.content
       );
 
-      // Update meta cache
+      // Write config file
+      await fs.writeFile(
+        path.join(blogDir, 'config.yaml'),
+        yaml.stringify(blogConfig)
+      );
+
+      // Update meta cache with new categories and tags
       meta.blogs[input.id] = blogMeta;
+      meta.categories = [...new Set([...meta.categories, ...(input.categories || [])])];
+      meta.tags = [...new Set([...meta.tags, ...(input.tags || [])])];
       meta.lastUpdated = now;
       await this.saveMeta(meta);
 
@@ -175,9 +251,19 @@ export class BlogStorage {
       title: input.title ?? blogMeta.title,
       description: input.description ?? blogMeta.description,
       published: input.published ?? blogMeta.published,
-      tags: input.tags ?? blogMeta.tags,
-      categories: input.categories ?? blogMeta.categories,
+      tags: input.tags ?? blogMeta.tags ?? [],
+      categories: input.categories ?? blogMeta.categories ?? [],
       updatedAt: now,
+    };
+
+    const updatedConfig: BlogConfig = {
+      title: updatedMeta.title,
+      description: updatedMeta.description,
+      createdAt: blogMeta.createdAt,
+      updatedAt: now,
+      published: updatedMeta.published,
+      tags: updatedMeta.tags ?? [],
+      categories: updatedMeta.categories ?? []
     };
 
     try {
@@ -189,9 +275,24 @@ export class BlogStorage {
         );
       }
 
+      // Update config file
+      await fs.writeFile(
+        path.join(this.rootDir, id, 'config.yaml'),
+        yaml.stringify(updatedConfig)
+      );
+
       // Update meta cache
       meta.blogs[id] = updatedMeta;
       meta.lastUpdated = now;
+
+      // Update categories and tags lists
+      if (input.categories) {
+        meta.categories = [...new Set([...meta.categories, ...input.categories])];
+      }
+      if (input.tags) {
+        meta.tags = [...new Set([...meta.tags, ...input.tags])];
+      }
+
       await this.saveMeta(meta);
 
       // Return updated blog

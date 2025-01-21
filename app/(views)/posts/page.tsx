@@ -60,8 +60,6 @@ export default function PostsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Blog Posts</h1>
-
       {topLevelCategories.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Categories</h2>
