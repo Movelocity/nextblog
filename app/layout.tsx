@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 function Navigation() {
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -54,7 +54,7 @@ export default function RootLayout({
     <html lang="en" className={geist.className}>
       <body className="min-h-screen bg-gray-50 text-gray-900">
         <Navigation />
-        <main className="py-6">
+        <main className="py-6 mt-16">
           {children}
         </main>
       </body>
