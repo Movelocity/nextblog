@@ -5,7 +5,6 @@ import { Post, SearchParams } from '@/app/common/types';
 import { getPosts, deletePost, getTaxonomy } from '@/app/services/posts';
 import PostsList from '@/app/components/PostsList';
 import Link from 'next/link';
-import SearchPosts from '@/app/components/SearchPosts';
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -54,10 +53,6 @@ export default function PostsPage() {
     }
   };
 
-  const handleSearch = (params: SearchParams) => {
-    fetchPosts(params);
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
       {topLevelCategories.length > 0 && (
@@ -76,10 +71,6 @@ export default function PostsPage() {
           </div>
         </div>
       )}
-
-      <div className="mb-8">
-        <SearchPosts onSearch={handleSearch} />
-      </div>
 
       {loading ? (
         <div className="text-center py-4">Loading posts...</div>

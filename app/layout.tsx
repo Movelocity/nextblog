@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
+import SearchModal from "./components/SearchModal";
 import "./globals.css";
 
 const geist = Geist({
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 
 function Navigation() {
   return (
-    <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
+    <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -39,6 +40,9 @@ function Navigation() {
               </Link>
             </div>
           </div>
+          <div className="flex items-center">
+            <SearchModal />
+          </div>
         </div>
       </div>
     </nav>
@@ -54,7 +58,7 @@ export default function RootLayout({
     <html lang="en" className={geist.className}>
       <body className="min-h-screen bg-gray-50 text-gray-900">
         <Navigation />
-        <main className="py-6 mt-16">
+        <main className="py-6 mt-12">
           {children}
         </main>
       </body>
