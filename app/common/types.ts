@@ -6,6 +6,8 @@ export interface Post {
   updatedAt: string;
   slug: string;
   published: boolean;
+  categories: string[];
+  tags: string[];
 }
 
 export type CreatePostInput = Omit<Post, 'id' | 'createdAt' | 'updatedAt'>;
@@ -26,6 +28,7 @@ export interface BlogMeta {
   updatedAt: string;
   published: boolean;
   tags?: string[];
+  categories?: string[];
 }
 
 export interface BlogContent {
@@ -45,6 +48,7 @@ export interface CreateBlogInput {
   content: string;
   published?: boolean;
   tags?: string[];
+  categories?: string[];
 }
 
 export interface UpdateBlogInput {
@@ -53,9 +57,19 @@ export interface UpdateBlogInput {
   content?: string;
   published?: boolean;
   tags?: string[];
+  categories?: string[];
 }
 
 export interface BlogMetaCache {
   lastUpdated: string;
   blogs: Record<string, BlogMeta>;  // Key is blog id (folder name)
+}
+
+export interface SearchParams {
+  query?: string;
+  categories?: string[];
+  tags?: string[];
+  page?: number;
+  limit?: number;
+  getAll?: boolean;
 }

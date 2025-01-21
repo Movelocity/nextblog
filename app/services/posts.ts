@@ -1,5 +1,5 @@
 import { API_ROUTES } from '../common/config';
-import { CreatePostInput, Post, UpdatePostInput } from "../common/types"
+import { CreatePostInput, Post, UpdatePostInput, SearchParams } from "../common/types"
 import { getAuthToken } from './auth';
 
 const getAuthHeaders = () => {
@@ -11,30 +11,23 @@ const getAuthHeaders = () => {
 };
 
 /**
- * Fetches a list of posts from the API.
+ * Fetches a list of posts from the API with optional search parameters.
  *
- * @param {number} [page=1] - The page number to retrieve. Defaults to 1.
- * @param {number} [limit=10] - The number of posts to retrieve per page. Defaults to 10.
- * @param {boolean} [getAll] - If false, fetch only published posts. If true, include draft posts.
- * @returns {Promise<Post[]>} A promise that resolves to an array of Post objects.
- * @throws {Error} Throws an error if the fetch operation fails or if the response is not ok.
- *
- * @example
- * // Fetch the first page of posts with a limit of 5
- * const posts = await getPosts(1, 5);
- *
- * @example
- * // Fetch draft posts
- * const draftPosts = await getPosts(1, 10, true);
+ * @param {SearchParams} params - Search parameters including query, categories, tags, pagination, etc.
+ * @returns {Promise<{ posts: Post[]; total: number }>} A promise that resolves to posts and total count
+ * @throws {Error} Throws an error if the fetch operation fails
  */
-export const getPosts = async (page: number = 1, limit: number = 10, getAll?: boolean): Promise<Post[]> => {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    limit: limit.toString(),
-    getAll: getAll ? 'true' : 'false',
-  });
+export const getPosts = async (params: SearchParams = {}): Promise<{ posts: Post[]; total: number }> => {
+  const searchParams = new URLSearchParams();
+  
+  if (params.query) searchParams.set('query', params.query);
+  if (params.categories?.length) searchParams.set('categories', JSON.stringify(params.categories));
+  if (params.tags?.length) searchParams.set('tags', JSON.stringify(params.tags));
+  if (params.page) searchParams.set('page', params.page.toString());
+  if (params.limit) searchParams.set('limit', params.limit.toString());
+  if (params.getAll) searchParams.set('getAll', params.getAll.toString());
 
-  const response = await fetch(`${API_ROUTES.POSTS}?${params.toString()}`, {
+  const response = await fetch(`${API_ROUTES.POSTS}?${searchParams.toString()}`, {
     headers: getAuthHeaders(),
   });
 
@@ -42,8 +35,7 @@ export const getPosts = async (page: number = 1, limit: number = 10, getAll?: bo
     throw new Error('Failed to fetch posts');
   }
 
-  const data = await response.json();
-  return data.posts;
+  return response.json();
 };
 
 export const getPost = async (id: string): Promise<Post> => {

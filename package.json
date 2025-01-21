@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.7",
+    "@types/lodash": "^4.17.14",
     "classnames": "^2.5.1",
     "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
     "next": "15.1.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

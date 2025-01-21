@@ -12,7 +12,9 @@ function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post
     createdAt: blog.createdAt,
     updatedAt: blog.updatedAt,
     slug: blog.id, // Using id as slug
-    published: blog.published
+    published: blog.published,
+    categories: blog.categories || [],
+    tags: blog.tags || []
   };
 }
 
@@ -22,7 +24,10 @@ export async function GET(request: NextRequest) {
   const id = searchParams.get('id');
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = parseInt(searchParams.get('limit') || '10', 10);
-  const published_only = searchParams.get('getAll') === 'true';
+  const getAll = searchParams.get('getAll') === 'true';
+  const query = searchParams.get('query') || '';
+  const categories = JSON.parse(searchParams.get('categories') || '[]');
+  const tags = JSON.parse(searchParams.get('tags') || '[]');
   
   try {
     // If id is provided, return single post
@@ -36,9 +41,10 @@ export async function GET(request: NextRequest) {
       }
       return NextResponse.json(blogToPost(blog));
     }
-    // Paged posts
+
+    // Get all blog metas based on visibility
     let blogMetas: BlogMeta[];
-    if(published_only && authenticateRequest(request)!=null) {
+    if(getAll && authenticateRequest(request)!=null) {
       // get all posts, admin only
       blogMetas = await blogStorage.listBlogs({ page, page_size: limit, published_only: false });
     } else {
@@ -48,7 +54,27 @@ export async function GET(request: NextRequest) {
     
     // Fetch full blog content for each meta
     const blogs = await Promise.all(blogMetas.map(meta => blogStorage.getBlog(meta.id)));
-    const posts = blogs.map(blogToPost);
+    let posts = blogs.map(blogToPost);
+    
+    // Apply search filters
+    if (query || categories.length || tags.length) {
+      posts = posts.filter(post => {
+        const matchesQuery = query ? 
+          post.title.toLowerCase().includes(query.toLowerCase()) || 
+          post.content.toLowerCase().includes(query.toLowerCase()) 
+          : true;
+          
+        const matchesCategories = categories.length ? 
+          categories.some((cat: string) => post.categories.includes(cat))
+          : true;
+          
+        const matchesTags = tags.length ? 
+          tags.some((tag: string) => post.tags.includes(tag))
+          : true;
+          
+        return matchesQuery && matchesCategories && matchesTags;
+      });
+    }
     
     return NextResponse.json({
       posts,

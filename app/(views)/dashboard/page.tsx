@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const posts = await getPosts(1, 100, true); // Fetch up to 100 posts
+      const { posts, total } = await getPosts({ page: 1, limit: 100, getAll: true });
       console.log("posts", posts);
       setPosts(posts);
       const publishedPosts = posts.filter((post) => post.published);
