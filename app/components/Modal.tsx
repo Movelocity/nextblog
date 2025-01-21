@@ -2,15 +2,25 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import classNames from 'classnames';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+const sizeClasses = {
+  sm: 'max-w-md',
+  md: 'max-w-lg',
+  lg: 'max-w-3xl',
+  xl: 'max-w-5xl',
+  full: 'max-w-[90vw] h-[90vh]'
+};
+
+export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -45,19 +55,24 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:p-6 md:p-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 id="modal-title" className="text-xl font-semibold">
+      <div 
+        className={classNames(
+          'bg-white rounded-lg shadow-xl w-full overflow-hidden flex flex-col',
+          sizeClasses[size]
+        )}
+      >
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b">
+          <h2 id="modal-title" className="text-xl font-semibold text-gray-900">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-1"
             aria-label="Close modal"
           >
             <svg
@@ -75,7 +90,9 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             </svg>
           </button>
         </div>
-        {children}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {children}
+        </div>
       </div>
     </div>,
     document.body
