@@ -97,6 +97,7 @@ export class BlogStorage {
       updatedAt: now,
       published: input.published ?? false,
       tags: input.tags ?? [],
+      categories: input.categories ?? []
     };
 
     try {
@@ -175,6 +176,7 @@ export class BlogStorage {
       description: input.description ?? blogMeta.description,
       published: input.published ?? blogMeta.published,
       tags: input.tags ?? blogMeta.tags,
+      categories: input.categories ?? blogMeta.categories,
       updatedAt: now,
     };
 

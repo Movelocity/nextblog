@@ -96,7 +96,9 @@ export const POST = requireAuth(async (request: NextRequest) => {
       title: body.title,
       description: body.title, // Using title as description for now
       content: body.content,
-      published: body.published
+      published: body.published,
+      categories: body.categories || [],
+      tags: body.tags || []
     });
     
     return NextResponse.json(blogToPost(newBlog), { status: 201 });
@@ -120,7 +122,9 @@ export const PUT = requireAuth(async (request: NextRequest) => {
       title: body.title,
       description: body.title, // Using title as description for now
       content: body.content,
-      published: body.published
+      published: body.published,
+      categories: body.categories,
+      tags: body.tags
     });
     
     return NextResponse.json(blogToPost(updatedBlog));

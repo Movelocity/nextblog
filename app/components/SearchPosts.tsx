@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { SearchParams } from '../common/types';
 import debounce from 'lodash/debounce';
 
@@ -6,12 +6,29 @@ interface SearchPostsProps {
   onSearch: (params: SearchParams) => void;
   availableCategories: string[];
   availableTags: string[];
+  initialCategory?: string;
 }
 
-export default function SearchPosts({ onSearch, availableCategories, availableTags }: SearchPostsProps) {
+export default function SearchPosts({ 
+  onSearch, 
+  availableCategories, 
+  availableTags,
+  initialCategory 
+}: SearchPostsProps) {
   const [query, setQuery] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialCategory ? [initialCategory] : []
+  );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Update selected categories when initialCategory changes
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategories([initialCategory]);
+    } else {
+      setSelectedCategories([]);
+    }
+  }, [initialCategory]);
 
   const debouncedSearch = useCallback(
     debounce((searchParams: SearchParams) => {
