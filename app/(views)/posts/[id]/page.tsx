@@ -96,18 +96,7 @@ export default function PostPage() {
 
       {/* Post Header */}
       <header className="mb-8">
-        <div className="flex justify-between items-start">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{post.title}</h1>
-          {editable && (
-            <Link
-              href={`/posts/${post.id}/edit`}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Edit Post
-            </Link>
-          )}
-        </div>
-        
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{post.title}</h1>
         {/* Post Metadata */}
         <div className="flex items-center space-x-6 text-sm text-gray-600">
           <time dateTime={new Date(post.updatedAt).toISOString()} className="flex items-center">
@@ -122,6 +111,14 @@ export default function PostPage() {
             </svg>
             {wordCount} words
           </span>
+          {editable && (
+            <Link
+              href={`/posts/${post.id}/edit`}
+              className="px-4 py-2 hover:text-blue-600"
+            >
+              Edit Post
+            </Link>
+          )}
           {post.tags && post.tags.length > 0 && (
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

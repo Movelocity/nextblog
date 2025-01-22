@@ -56,7 +56,7 @@ export default function PostsList({ posts, isLoading = false, editable = false, 
               </div>
               
               <p className="text-gray-600 text-base leading-relaxed line-clamp-2">
-                {post.content.substring(0, 200)}...
+                {post.content.replace(/<[^>]*>?/gm, '').replace(/[#`-]/g, '').substring(0, 200)}...
               </p>
               
               <div className="flex flex-wrap items-center gap-6 text-sm">
