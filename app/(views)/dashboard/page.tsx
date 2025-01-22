@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { getPosts, deletePost } from '@/app/services/posts';
 import LoginModal from '@/app/components/LoginModal';
 import { login, setAuthToken, isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/auth';
-import PostsList from '@/app/components/PostsList';
+import PostsTable from '@/app/components/PostsTable';
 import Link from 'next/link';
 import { Post } from '@/app/common/types';
+import { updatePost } from '@/app/services/posts';
 
 interface DashboardStats {
   totalPosts: number;
@@ -132,15 +133,23 @@ export default function DashboardPage() {
         {loading ? (
           <div className="text-center py-4">Loading posts...</div>
         ) : (
-          <PostsList 
+          <PostsTable 
             posts={posts} 
             onDelete={async (id) => {
               await deletePost(id);
               fetchPosts();
-            }} 
+            }}
+            onTogglePublish={async (id, currentStatus) => {
+              try {
+                await updatePost(id, { published: !currentStatus });
+                fetchPosts();
+              } catch (error) {
+                console.error('Error toggling post status:', error);
+              }
+            }}
           />
         )}
       </div>
     </div>
   );
-} 
+}
