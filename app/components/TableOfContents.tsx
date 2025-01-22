@@ -11,9 +11,10 @@ interface Heading {
 interface TableOfContentsProps {
   content: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export const TableOfContents = ({ content, className }: TableOfContentsProps) => {
+export const TableOfContents = ({ content, className, style }: TableOfContentsProps) => {
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -47,7 +48,7 @@ export const TableOfContents = ({ content, className }: TableOfContentsProps) =>
   if (headings.length === 0) return null;
 
   return (
-    <div className={classNames("p-4", className)}>
+    <div className={classNames("p-4", className)} style={style}>
       <div 
         className="flex items-center justify-between mb-2 cursor-pointer select-none"
         onClick={() => setIsCollapsed(!isCollapsed)}

@@ -4,7 +4,6 @@ import classNames from 'classnames';
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { PostSidePanel } from './PostSidePanel';
-import { TableOfContents } from './TableOfContents';
 import { PrettyEditor } from './PrettyEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 
@@ -28,7 +27,6 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
    } = useEditPostStore();
 
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
-  const [showRightSidebar, setShowRightSidebar] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
@@ -74,9 +72,6 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
         if (!target.closest('.sidebar-left') && !target.closest('.sidebar-toggle-left')) {
           setShowLeftSidebar(false);
         }
-        if (!target.closest('.sidebar-right') && !target.closest('.sidebar-toggle-right')) {
-          setShowRightSidebar(false);
-        }
       }
     };
 
@@ -85,25 +80,24 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
   }, []);
 
   return (
-    <div className="relative flex h-[calc(100vh-4rem)]">
-      {/* Left Sidebar Toggle Button - Mobile */}
-      <button
-        onClick={() => setShowLeftSidebar(!showLeftSidebar)}
-        className="sidebar-toggle-left md:hidden fixed left-0 top-1/2 -translate-y-1/2 p-2 z-10 bg-white dark:bg-gray-800 rounded-r-lg shadow-lg"
-        aria-label="Toggle categories and tags panel"
-      >
-        {showLeftSidebar ? <FaChevronLeft /> : <FaChevronRight />}
-      </button>
-
+    <div className="relative min-h-[calc(100vh-6rem)] mx-auto">
       {/* Left Sidebar - Categories & Tags */}
+      <div className="fixed top-24 left-4 w-72 hidden lg:block">
+        <PostSidePanel
+          availableCategories={availableCategories}
+          availableTags={availableTags}
+        />
+      </div>
+
+      {/* Mobile Left Sidebar */}
       <div
         className={classNames(
-          "sidebar-left fixed md:static left-0 top-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-20",
+          "fixed lg:hidden left-0 top-0 h-screen w-72 transform transition-transform duration-300 ease-in-out z-30",
           {
-            "-translate-x-full md:translate-x-0": !showLeftSidebar,
+            "-translate-x-full": !showLeftSidebar,
             "translate-x-0": showLeftSidebar
           },
-          "bg-white dark:bg-gray-800 md:bg-transparent md:dark:bg-transparent pt-16 md:pt-0"
+          "bg-white dark:bg-gray-800 pt-16"
         )}
       >
         <PostSidePanel
@@ -112,34 +106,18 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
         />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-0">
-        <PrettyEditor
-          onSubmit={handleSubmit}
-        />
-      </div>
-
-      {/* Right Sidebar Toggle Button - Mobile */}
+      {/* Mobile Toggle Button */}
       <button
-        onClick={() => setShowRightSidebar(!showRightSidebar)}
-        className="sidebar-toggle-right md:hidden fixed right-0 top-1/2 -translate-y-1/2 p-2 z-10 bg-white dark:bg-gray-800 rounded-l-lg shadow-lg"
-        aria-label="Toggle table of contents"
+        onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+        className="lg:hidden fixed left-0 top-1/2 -translate-y-1/2 p-2 z-40 bg-white dark:bg-gray-800 rounded-r-lg shadow-lg"
+        aria-label="Toggle categories and tags panel"
       >
-        {showRightSidebar ? <FaChevronRight /> : <FaChevronLeft />}
+        {showLeftSidebar ? <FaChevronLeft /> : <FaChevronRight />}
       </button>
 
-      {/* Right Sidebar - Table of Contents */}
-      <div
-        className={classNames(
-          "sidebar-right fixed md:static right-0 top-0 h-full w-64 transform transition-transform duration-300 ease-in-out z-20",
-          {
-            "translate-x-full md:translate-x-0": !showRightSidebar,
-            "translate-x-0": showRightSidebar
-          },
-          "bg-white dark:bg-gray-800 md:bg-transparent md:dark:bg-transparent pt-16 md:pt-0"
-        )}
-      >
-        <TableOfContents content={post.content} />
+      {/* Main Content */}
+      <div className="mx-auto px-4 lg:px-0 lg:ml-80">
+        <PrettyEditor onSubmit={handleSubmit} />
       </div>
     </div>
   );

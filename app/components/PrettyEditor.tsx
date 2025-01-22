@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Markdown } from './Markdown';
-import { calculateReadingTime } from '../services/utils';
+import { TableOfContents } from './TableOfContents';
 import classNames from 'classnames';
 import { useEditPostStore } from '../stores/EditPostStore';
 
@@ -17,7 +17,6 @@ export const PrettyEditor = ({
   } = useEditPostStore();
   const [isPreview, setIsPreview] = useState(false);
   const wordCount = post.content.trim().split(/\s+/).length;
-  const readingTime = calculateReadingTime(post.content);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -43,8 +42,8 @@ export const PrettyEditor = ({
     <form onSubmit={onSubmit} className="h-full">
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
-        <div className="flex flex-col pb-4">
-          <div className="px-4 pt-4">
+        <div className="flex flex-col pb-4 max-w-[780px] w-full">
+          <div className="pt-4">
             <input
               type="text"
               id="title"
@@ -58,39 +57,27 @@ export const PrettyEditor = ({
               required
             />
           </div>
-          
-          <div className="flex items-center justify-between px-6 mt-4">
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4">
             <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-              <span className="flex items-center px-2.5">
+              <span className="flex items-center px-2.5 ml-1">
                 {isPreview ? "Preview" : "Edit"}
               </span>
               <span className="flex items-center">
-                {wordCount} words · {readingTime} min read
+                {wordCount} words
               </span>
               <span className="italic">
                 {isSaving ? 'Saving...' : lastSaved ? `Last saved ${lastSaved.toLocaleTimeString()}` : ''}
               </span>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 gap-4">
               <button
                 type="button"
                 onClick={() => setIsPreview(!isPreview)}
                 className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
                 {isPreview ? 'Edit' : 'Preview'}
-              </button>
-              
-              <button
-                type="button"
-                onClick={onSubmit}
-                className={classNames(
-                  "px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors",
-                  "dark:bg-blue-500 dark:hover:bg-blue-600",
-                  { "opacity-50 cursor-not-allowed": loading }
-                )}
-              >
-                {loading ? 'Saving...' : 'Save'}
               </button>
 
               <div className="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-gray-700">
@@ -111,12 +98,32 @@ export const PrettyEditor = ({
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 border-gray-300 rounded transition-colors cursor-pointer"
                 />
               </div>
+
+              <button
+                type="button"
+                onClick={onSubmit}
+                className={classNames(
+                  "px-3 py-1.5 text-sm font-medium hover:text-blue-500 rounded-md transition-colors",
+                  { "opacity-50 cursor-not-allowed": loading }
+                )}
+              >
+                {loading ? 'Saving...' : 'Save'}
+              </button>
             </div>
           </div>
         </div>
 
+        {/* Table of Contents */}
+        <div className="sticky top-24 mx-auto w-full z-50">
+          <TableOfContents 
+            content={post.content} 
+            className='absolute min-w-[10rem] max-w-[15rem]'
+            style={{ insetInlineStart: '800px' }}
+          />
+        </div>
+
         {/* Content Area */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 max-w-[780px] w-full mt-4">
           <div className={classNames(isPreview ? 'hidden' : '')}>
             <textarea
               id="content"
