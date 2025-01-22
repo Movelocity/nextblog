@@ -292,6 +292,48 @@ function _MarkDownContent(props: { content: string }) {
         pre: PreCode as any,
         code: CustomCode as any,
         p: (pProps) => <p {...pProps} dir="auto" />,
+        h1: (props) => {
+          const id = props.children?.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+          return <h1 id={id} {...props} />;
+        },
+        h2: (props) => {
+          const id = props.children?.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+          return <h2 id={id} {...props} />;
+        },
+        h3: (props) => {
+          const id = props.children?.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+          return <h3 id={id} {...props} />;
+        },
+        h4: (props) => {
+          const id = props.children?.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+          return <h4 id={id} {...props} />;
+        },
+        h5: (props) => {
+          const id = props.children?.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+          return <h5 id={id} {...props} />;
+        },
+        h6: (props) => {
+          const id = props.children?.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+          return <h6 id={id} {...props} />;
+        },
         a: (aProps) => {
           const href = aProps.href || "";
           if (/\.(aac|mp3|opus|wav)$/.test(href)) {

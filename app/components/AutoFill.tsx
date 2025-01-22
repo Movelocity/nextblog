@@ -84,7 +84,7 @@ export const AutoFill = ({
         onFocus={() => setShowSuggestions(true)}
         onKeyDown={handleKeyDown}
         className={classNames(
-          "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+          "w-full px-2 outline-none",
           className
         )}
         placeholder={placeholder}
