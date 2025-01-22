@@ -3,19 +3,27 @@ import { Markdown } from './Markdown';
 import { TableOfContents } from './TableOfContents';
 import classNames from 'classnames';
 import { useEditPostStore } from '../stores/EditPostStore';
+import { FaTags } from 'react-icons/fa';
+import Modal from './Modal';
 
 type PrettyEditorProps = {
   onSubmit: () => void;
+  availableCategories: string[];
+  availableTags: string[];
 }
 
 export const PrettyEditor = ({ 
-  onSubmit, 
+  onSubmit,
+  availableCategories,
+  availableTags,
 }: PrettyEditorProps) => {
   const { 
     post, setPostTitle, setPostContent, setPostPublished, 
-    isSaving, lastSaved, loading, setIsDirty
+    isSaving, lastSaved, loading, setIsDirty,
+    setPostCategories, setPostTags
   } = useEditPostStore();
   const [isPreview, setIsPreview] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const wordCount = post.content.trim().split(/\s+/).length;
 
   // Keyboard shortcuts
@@ -42,9 +50,29 @@ export const PrettyEditor = ({
     e.preventDefault();
     onSubmit();
   }
+
+  const handleCategoryChange = (category: string) => {
+    const newCategories = post.categories.includes(category)
+      ? post.categories.filter(c => c !== category)
+      : [...post.categories, category];
+    setPostCategories(newCategories);
+    setIsDirty(true);
+  };
+
+  const handleTagChange = (tag: string) => {
+    const newTags = post.tags.includes(tag)
+      ? post.tags.filter(t => t !== tag)
+      : [...post.tags, tag];
+    setPostTags(newTags);
+    setIsDirty(true);
+  };
   
   return (
-    <form onSubmit={handleSave} className="h-full">
+    <form 
+      onSubmit={handleSave} 
+      className="h-full"
+      style={{ paddingInlineStart: '20rem' }}
+    >
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full">
@@ -77,6 +105,16 @@ export const PrettyEditor = ({
             </div>
 
             <div className="flex items-center space-x-3 gap-4">
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(true)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors flex items-center gap-2"
+                aria-label="Edit categories and tags"
+              >
+                <FaTags className="w-4 h-4" />
+                <span>Categories & Tags</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setIsPreview(!isPreview)}
@@ -153,6 +191,58 @@ export const PrettyEditor = ({
           </div>
         </div>
       </div>
+
+      {/* Category Modal */}
+      <Modal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        title="Categories & Tags"
+        size="md"
+      >
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Categories</h3>
+            <div className="flex flex-wrap gap-2">
+              {availableCategories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryChange(category)}
+                  type="button"
+                  className={classNames(
+                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors",
+                    post.categories.includes(category)
+                      ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  )}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Tags</h3>
+            <div className="flex flex-wrap gap-2">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => handleTagChange(tag)}
+                  type="button"
+                  className={classNames(
+                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors",
+                    post.tags.includes(tag)
+                      ? "bg-green-100 text-green-800 hover:bg-green-200"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  )}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
     </form>  
   )
 };
