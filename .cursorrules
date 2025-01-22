@@ -25,3 +25,4 @@ Follow these rules when you write code:
 - No frontend component should execute a single fetch, all api fetching should be done at services, and make easy to use functions for components to use.
 - Use classnames library for conditional classes.
 - Do not use middleware in nextjs, implement wrappers instead.
+- Use only react-icons for icons.
