@@ -1,8 +1,10 @@
 import { Post } from '../common/types';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
-import { FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { FaSort, FaSortUp, FaSortDown, FaEdit, FaTrash } from 'react-icons/fa';
+import { MdPublish, MdUnpublished } from 'react-icons/md';
 import classNames from 'classnames';
+import Modal from './Modal';
 
 // Types
 type SortField = 'title' | 'updatedAt' | 'published';
@@ -15,6 +17,40 @@ interface PostsTableProps {
 }
 
 // Components
+const DeleteConfirmationModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  postTitle 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  postTitle: string; 
+}) => (
+  <Modal isOpen={isOpen} onClose={onClose} title="Confirm Delete" size="sm">
+    <div className="space-y-4">
+      <p className="text-gray-700">
+        Are you sure you want to delete the post "<span className="font-medium">{postTitle}</span>"? This action cannot be undone.
+      </p>
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onConfirm}
+          className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </Modal>
+);
+
 const StatusBadge = ({ published }: { published: boolean }) => (
   <span
     className={classNames(
@@ -47,32 +83,67 @@ const SortIcon = ({ field, currentField, direction }: { field: SortField; curren
   </span>
 );
 
-const ActionButtons = ({ post, onTogglePublish, onDelete }: { post: Post } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => (
-  <div className="flex justify-end items-center space-x-3">
-    <Link
-      href={`/posts/${post.id}/edit`}
-      className="text-blue-600 hover:text-blue-900"
-    >
-      Edit
-    </Link>
-    {onTogglePublish && (
-      <button
-        onClick={() => onTogglePublish(post.id, post.published)}
-        className={post.published ? 'text-amber-600 hover:text-amber-900' : 'text-green-600 hover:text-green-900'}
-      >
-        {post.published ? 'Unpublish' : 'Publish'}
-      </button>
-    )}
-    {onDelete && (
-      <button
-        onClick={() => onDelete(post.id)}
-        className="text-red-600 hover:text-red-900"
-      >
-        Delete
-      </button>
-    )}
-  </div>
-);
+const ActionButtons = ({ post, onTogglePublish, onDelete }: { post: Post } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  return (
+    <>
+      <div className="flex justify-end items-center space-x-2">
+        <Link
+          href={`/posts/${post.id}/edit`}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+        >
+          <FaEdit className="w-4 h-4" />
+          <span>Edit</span>
+        </Link>
+        {onTogglePublish && (
+          <button
+            onClick={() => onTogglePublish(post.id, post.published)}
+            className={classNames(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors",
+              post.published 
+                ? "text-amber-700 bg-amber-50 hover:bg-amber-100"
+                : "text-green-700 bg-green-50 hover:bg-green-100"
+            )}
+          >
+            {post.published ? (
+              <>
+                <MdUnpublished className="w-4 h-4" />
+                <span>Unpublish</span>
+              </>
+            ) : (
+              <>
+                <MdPublish className="w-4 h-4" />
+                <span>Publish</span>
+              </>
+            )}
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+          >
+            <FaTrash className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
+        )}
+      </div>
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          if (onDelete) {
+            onDelete(post.id);
+          }
+          setShowDeleteModal(false);
+        }}
+        postTitle={post.title}
+      />
+    </>
+  );
+};
 
 const TableHeader = ({
   selectedPosts,
