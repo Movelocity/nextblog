@@ -127,7 +127,7 @@ export default function PostPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
               </svg>
               <div className="flex space-x-2">
-                {post.tags.slice(0, 3).map(tag => (
+                {post.tags.slice(0, 3).map((tag: string) => (
                   <span
                     key={tag}
                     className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
