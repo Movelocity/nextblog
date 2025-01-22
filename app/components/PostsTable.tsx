@@ -1,8 +1,7 @@
 import { Post } from '../common/types';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
-import { useMediaQuery } from 'react-responsive';
 
 interface PostsTableProps {
   posts: Post[];
@@ -16,7 +15,20 @@ export default function PostsTable({ posts, onDelete, onTogglePublish }: PostsTa
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>('updatedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    
+    // 初始化
+    handleChange(mediaQuery);
+    
+    // 监听变化
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedPosts(e.target.checked ? posts.map(post => post.id) : []);
