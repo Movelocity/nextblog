@@ -97,7 +97,7 @@ export default function PostPage() {
       {/* Post Header */}
       <header className="mb-8">
         <div className="flex justify-between items-start">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{post.title}</h1>
           {editable && (
             <Link
               href={`/posts/${post.id}/edit`}
@@ -131,7 +131,7 @@ export default function PostPage() {
                 {post.tags.slice(0, 3).map((tag: string) => (
                   <span
                     key={tag}
-                    className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                    className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white rounded-full"
                   >
                     {tag}
                   </span>

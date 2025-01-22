@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import "katex/dist/katex.min.css";
+import "./Markdown.css";
 import RemarkMath from "remark-math";
 import RemarkBreaks from "remark-breaks";
 import RehypeKatex from "rehype-katex";
@@ -82,7 +83,7 @@ export function PreCode(props: { children: any }) {
 //   const chatStore = useChatStore();
 //   const session = chatStore.currentSession();
 
-  const renderArtifacts = useDebouncedCallback(() => {
+  const _renderArtifacts = useDebouncedCallback(() => {
     if (!ref.current) return;
     const mermaidDom = ref.current.querySelector("code.language-mermaid");
     if (mermaidDom) {
@@ -128,7 +129,7 @@ export function PreCode(props: { children: any }) {
           codeElement.style.whiteSpace = "pre-wrap";
         }
       });
-      setTimeout(renderArtifacts, 1);
+      // setTimeout(renderArtifacts, 1);
     }
   }, []);
 
@@ -335,7 +336,7 @@ export function Markdown(
 
   return (
     <div
-      className="prose"
+      className="mkd-body prose dark:prose-invert"
       style={{
         fontSize: `${props.fontSize ?? 14}px`,
         fontFamily: props.fontFamily || "inherit",
