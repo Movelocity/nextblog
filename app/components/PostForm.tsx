@@ -50,6 +50,28 @@ export const PostForm = ({
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    console.log("content", content);
+    try {
+      setIsSaving(true);
+      await onSubmit({
+        title,
+        content,
+        published,
+        categories,
+        tags,
+      });
+      setLastSaved(new Date());
+      setIsSaving(false);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Autosave functionality. Currently disabled, but reserved for future use.
   // Don't submit all the time at dev environment.
   // const debouncedSave = useCallback(
@@ -108,27 +130,7 @@ export const PostForm = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      await onSubmit({
-        title,
-        content,
-        published,
-        categories,
-        tags,
-      });
-      setLastSaved(new Date());
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [content, handleSubmit]);
 
   const handleAddCategory = () => {
     if (categoryInput.trim() && !categories.includes(categoryInput.trim())) {

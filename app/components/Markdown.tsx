@@ -134,10 +134,10 @@ export function PreCode(props: { children: any }) {
   }, []);
 
   return (
-    <>
-      <pre ref={ref}>
+    <>{/** group hover and show copy button*/}
+      <pre ref={ref} className="group relative">
         <span
-          className="copy-code-button"
+          className="group-hover:opacity-100 opacity-0 absolute top-2 right-2 cursor-pointer"
           onClick={() => {
             if (ref.current) {
               copyToClipboard(
@@ -145,7 +145,7 @@ export function PreCode(props: { children: any }) {
               );
             }
           }}
-        ></span>
+        >copy</span>
         {props.children}
       </pre>
       {mermaidCode.length > 0 && (

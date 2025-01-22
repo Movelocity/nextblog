@@ -19,13 +19,14 @@ function Navigation() {
     <nav className="bg-white dark:bg-gray-800 shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
-            <Link 
-              href="/" 
-              className="flex items-center px-2 text-gray-900 dark:text-white font-semibold"
-            >
-              Blog Manager
-            </Link>
+          <Link 
+            href="/" 
+            className="flex items-center px-2 text-gray-900 dark:text-white font-semibold"
+          >
+            Blog
+          </Link>
+          <div className="flex flex-1 justify-end">
+            
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link
                 href="/posts"
