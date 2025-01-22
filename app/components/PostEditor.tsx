@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { getTaxonomy } from '@/app/services/posts';
+import { getTaxonomy, updatePost } from '@/app/services/posts';
 import classNames from 'classnames';
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { PostSidePanel } from './PostSidePanel';
 import { TableOfContents } from './TableOfContents';
 import { PrettyEditor } from './PrettyEditor';
+import { useEditPostStore } from '@/app/stores/EditPostStore';
+
 export interface PostEditorData {
   title: string;
   content: string;
@@ -15,81 +17,43 @@ export interface PostEditorData {
 }
 
 interface PostEditorProps {
-  initialData?: PostEditorData;
-  onSubmit: (data: PostEditorData) => Promise<void>;
+  id?: string;
+  onCreate?: (data: PostEditorData) => void;
 }
 
-export const PostEditor = ({
-  initialData,
-  onSubmit
-}: PostEditorProps) => {
-  const [title, setTitle] = useState(initialData?.title ?? '');
-  const [content, setContent] = useState(initialData?.content ?? '');
-  const [published, setPublished] = useState(initialData?.published ?? false);
+export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
+  const { 
+    post, setPostCategories, setPostTags, setIsSaving, setLastSaved, setLoading,
+    setIsDirty, setError
+   } = useEditPostStore();
 
   const [categoryInput, setCategoryInput] = useState('');
-  const [categories, setCategories] = useState<string[]>(initialData?.categories ?? []);
   const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
-
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
   const [showRightSidebar, setShowRightSidebar] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
-    console.log("content", content);
     try {
-      setIsSaving(true);
-      await onSubmit({
-        title,
-        content,
-        published,
-        categories,
-        tags,
-      });
-      setLastSaved(new Date());
-      setIsSaving(false);
+      if (id) {
+        setIsSaving(true);
+        console.log("submitting", post);
+        await updatePost(id as string, post);
+        setIsDirty(false);
+        setLastSaved(new Date());
+        setIsSaving(false);
+      } else if (onCreate) {
+        onCreate(post);
+      }  
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error updating post:', error);
+      setError('Failed to update post. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-
-  // Autosave functionality. Currently disabled, but reserved for future use.
-  // Don't submit all the time at dev environment.
-  // const debouncedSave = useCallback(
-  //   debounce(async (data: PostFormData) => {
-  //     try {
-  //       setIsSaving(true);
-  //       await onSubmit(data);
-  //       setLastSaved(new Date());
-  //     } catch (error) {
-  //       console.error('Error autosaving:', error);
-  //     } finally {
-  //       setIsSaving(false);
-  //     }
-  //   }, 2000),
-  //   [onSubmit]
-  // );
-  // useEffect(() => {
-  //   if (initialData) {
-  //     debouncedSave({
-  //       title,
-  //       content,
-  //       published,
-  //       categories,
-  //       tags,
-  //     });
-  //   }
-  //   onChange?.();
-  // }, [title, content, published, categories, tags]);
 
   useEffect(() => {
     const loadTaxonomy = async () => {
@@ -104,31 +68,27 @@ export const PostEditor = ({
     loadTaxonomy();
   }, []);
 
-  
-
   const handleAddCategory = () => {
-    if (categoryInput.trim() && !categories.includes(categoryInput.trim())) {
-      setCategories([...categories, categoryInput.trim()]);
+    if (categoryInput.trim() && !post.categories.includes(categoryInput.trim())) {
+      setPostCategories([...post.categories, categoryInput.trim()]);
       setCategoryInput('');
     }
   };
 
   const handleRemoveCategory = (category: string) => {
-    setCategories(categories.filter(c => c !== category));
+    setPostCategories(post.categories.filter(c => c !== category));
   };
 
   const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+    if (tagInput.trim() && !post.tags.includes(tagInput.trim())) {
+      setPostTags([...post.tags, tagInput.trim()]);
       setTagInput('');
     }
   };
 
   const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
+    setPostTags(post.tags.filter(t => t !== tag));
   };
-
-
 
   // Close sidebars when clicking outside on mobile
   useEffect(() => {
@@ -171,16 +131,6 @@ export const PostEditor = ({
         )}
       >
         <PostSidePanel
-          categoryInput={categoryInput}
-          setCategoryInput={setCategoryInput}
-          categories={categories}
-          handleAddCategory={handleAddCategory}
-          handleRemoveCategory={handleRemoveCategory}
-          tagInput={tagInput}
-          setTagInput={setTagInput}
-          tags={tags}
-          handleAddTag={handleAddTag}
-          handleRemoveTag={handleRemoveTag}
           availableCategories={availableCategories}
           availableTags={availableTags}
         />
@@ -189,16 +139,7 @@ export const PostEditor = ({
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto px-4 md:px-0">
         <PrettyEditor
-          title={title}
-          content={content}
-          published={published}
-          onChangeTitle={setTitle}
-          onChangeContent={setContent}
-          onChangePublished={setPublished}
           onSubmit={handleSubmit}
-          isSaving={isSaving}
-          lastSaved={lastSaved}
-          loading={loading}
         />
       </div>
 
@@ -222,7 +163,7 @@ export const PostEditor = ({
           "bg-white dark:bg-gray-800 md:bg-transparent md:dark:bg-transparent pt-16 md:pt-0"
         )}
       >
-        <TableOfContents content={content} />
+        <TableOfContents content={post.content} />
       </div>
     </div>
   );

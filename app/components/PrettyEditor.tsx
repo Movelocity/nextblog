@@ -2,29 +2,22 @@ import { useEffect, useState } from 'react';
 import { Markdown } from './Markdown';
 import { calculateReadingTime } from '../services/utils';
 import classNames from 'classnames';
+import { useEditPostStore } from '../stores/EditPostStore';
 
 type PrettyEditorProps = {
-  title: string;
-  content: string;
-  published: boolean;
-  onChangeTitle: (title: string) => void;
-  onChangeContent: (content: string) => void;
-  onChangePublished: (published: boolean) => void;
-  onSubmit: (e: any) => void;
-
-  isSaving: boolean;
-  lastSaved: Date | null;
-  loading: boolean;
+  onSubmit: () => void;
 }
 
 export const PrettyEditor = ({ 
-  title, content, published, 
-  onChangeTitle, onChangeContent, onChangePublished, onSubmit, 
-  isSaving, lastSaved, loading 
+  onSubmit, 
 }: PrettyEditorProps) => {
+  const { 
+    post, setPostTitle, setPostContent, setPostPublished, 
+    isSaving, lastSaved, loading, setIsDirty
+  } = useEditPostStore();
   const [isPreview, setIsPreview] = useState(false);
-  const wordCount = content.trim().split(/\s+/).length;
-  const readingTime = calculateReadingTime(content);
+  const wordCount = post.content.trim().split(/\s+/).length;
+  const readingTime = calculateReadingTime(post.content);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -32,7 +25,10 @@ export const PrettyEditor = ({
       if (e.metaKey || e.ctrlKey) {
         if (e.key === 's') {
           e.preventDefault();
-          onSubmit(e);
+          const form = document.querySelector('form');
+          if (form) {
+            onSubmit();
+          }
         } else if (e.key === 'p') {
           e.preventDefault();
           setIsPreview(prev => !prev);
@@ -41,7 +37,7 @@ export const PrettyEditor = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [content, onSubmit]);
+  }, [onSubmit]);
   
   return (
     <form onSubmit={onSubmit} className="h-full">
@@ -51,8 +47,11 @@ export const PrettyEditor = ({
           <input
             type="text"
             id="title"
-            value={title}
-            onChange={(e) => onChangeTitle(e.target.value)}
+            value={post.title}
+            onChange={(e) => {
+              setPostTitle(e.target.value);
+              setIsDirty(true);
+            }}
             className="my-4 block w-full border-gray-300 outline-none bg-transparent text-3xl font-bold"
             placeholder="Post title"
             required
@@ -88,8 +87,11 @@ export const PrettyEditor = ({
               <input
                 type="checkbox"
                 id="published"
-                checked={published}
-                onChange={(e) => onChangePublished(e.target.checked)}
+                checked={post.published}
+                onChange={(e) => {
+                  setPostPublished(e.target.checked);
+                  setIsDirty(true);
+                }}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
             </div>
@@ -101,8 +103,11 @@ export const PrettyEditor = ({
           <div className={classNames(isPreview ? 'hidden' : '')}>
             <textarea
               id="content"
-              value={content}
-              onChange={(e) => onChangeContent(e.target.value)}
+              value={post.content}
+              onChange={(e) => {
+                setPostContent(e.target.value);
+                setIsDirty(true);
+              }}
               className="w-full h-full min-h-[500px] border-gray-300 outline-none font-mono resize-none"
               placeholder="Write your post content here..."
               required
@@ -110,7 +115,7 @@ export const PrettyEditor = ({
           </div>
           <div className={classNames(!isPreview ? 'hidden' : '')}>
             <div className="prose max-w-none">
-              <Markdown content={content} />
+              <Markdown content={post.content} />
             </div>
           </div>
         </div>

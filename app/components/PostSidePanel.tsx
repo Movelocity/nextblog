@@ -2,40 +2,48 @@ import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { AutoFill } from './AutoFill';
 import classNames from 'classnames';
 import { useState } from 'react';
+import { useEditPostStore } from '../stores/EditPostStore';
 
 interface PostSidePanelProps {
-  categoryInput: string;
-  setCategoryInput: (value: string) => void;
-  categories: string[];
-  handleAddCategory: () => void;
-  handleRemoveCategory: (category: string) => void;
-  tagInput: string;
-  setTagInput: (value: string) => void;
-  tags: string[];
-  handleAddTag: () => void;
-  handleRemoveTag: (tag: string) => void;
   availableCategories: string[];
   availableTags: string[];
   className?: string;
 }
 
 export const PostSidePanel = ({
-  categoryInput,
-  setCategoryInput,
-  categories,
-  handleAddCategory,
-  handleRemoveCategory,
-  tagInput,
-  setTagInput,
-  tags,
-  handleAddTag,
-  handleRemoveTag,
   availableCategories,
   availableTags,
   className
 }: PostSidePanelProps) => {
   const [isCategoriesCollapsed, setIsCategoriesCollapsed] = useState(false);
   const [isTagsCollapsed, setIsTagsCollapsed] = useState(false);
+  const [categoryInput, setCategoryInput] = useState('');
+  const [tagInput, setTagInput] = useState('');
+
+  const { post, setPostCategories, setPostTags } = useEditPostStore();
+  const { categories, tags } = post;
+
+  const handleAddCategory = () => {
+    if (categoryInput.trim() && !categories.includes(categoryInput.trim())) {
+      setPostCategories([...categories, categoryInput.trim()]);
+      setCategoryInput('');
+    }
+  };
+
+  const handleRemoveCategory = (category: string) => {
+    setPostCategories(categories.filter(c => c !== category));
+  };
+
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setPostTags([...tags, tagInput.trim()]);
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setPostTags(tags.filter(t => t !== tag));
+  };
 
   return (
     <div className={classNames("p-4 space-y-6", className)}>
@@ -76,6 +84,7 @@ export const PostSidePanel = ({
                     type="button"
                     onClick={() => handleRemoveCategory(category)}
                     className="text-blue-600 hover:text-blue-800"
+                    aria-label={`Remove category ${category}`}
                   >
                     ×
                   </button>
@@ -123,6 +132,7 @@ export const PostSidePanel = ({
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
                     className="text-green-600 hover:text-green-800"
+                    aria-label={`Remove tag ${tag}`}
                   >
                     ×
                   </button>

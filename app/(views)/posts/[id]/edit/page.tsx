@@ -1,19 +1,16 @@
 'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getPost, updatePost } from '@/app/services/posts';
+import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
-import { PostEditor, PostEditorData } from '@/app/components/PostEditor';
+import { PostEditor } from '@/app/components/PostEditor';
 import { MdArrowBack } from 'react-icons/md';
+import { useEditPostStore } from '@/app/stores/EditPostStore';
 
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [initialData, setInitialData] = useState<PostEditorData | undefined>();
-  const [isDirty, setIsDirty] = useState(false);
+  const { isDirty, loading, error, setPost, setError, setLoading } = useEditPostStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -45,7 +42,7 @@ export default function EditPostPage() {
   const fetchPost = async () => {
     try {
       const post = await getPost(params.id as string);
-      setInitialData({
+      setPost({
         title: post.title,
         content: post.content,
         published: post.published,
@@ -58,25 +55,6 @@ export default function EditPostPage() {
       setError('Failed to load post');
       setLoading(false);
     }
-  };
-
-      const handleSubmit = async (data: PostEditorData) => {
-    try {
-      console.log("submitting", data);
-      await updatePost(params.id as string, {
-        ...data,
-        slug: data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      });
-      setIsDirty(false);
-      // router.push('/posts/' + params.id);
-    } catch (error) {
-      console.error('Error updating post:', error);
-      setError('Failed to update post. Please try again.');
-    }
-  };
-
-  const handleFormChange = () => {
-    setIsDirty(true);
   };
 
   if (loading) {
@@ -118,8 +96,7 @@ export default function EditPostPage() {
 
   return (
     <PostEditor
-      initialData={initialData}
-      onSubmit={handleSubmit}
+      id={params.id as string}
     />
   );
 } 
