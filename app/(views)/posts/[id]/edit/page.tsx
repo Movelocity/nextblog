@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getPost, updatePost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
-import { PostForm, PostFormData } from '@/app/components/PostForm';
+import { PostEditor, PostEditorData } from '@/app/components/PostEditor';
 import { MdArrowBack } from 'react-icons/md';
 
 export default function EditPostPage() {
@@ -12,7 +12,7 @@ export default function EditPostPage() {
   const params = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [initialData, setInitialData] = useState<PostFormData | undefined>();
+  const [initialData, setInitialData] = useState<PostEditorData | undefined>();
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function EditPostPage() {
     }
   };
 
-  const handleSubmit = async (data: PostFormData) => {
+      const handleSubmit = async (data: PostEditorData) => {
     try {
       console.log("submitting", data);
       await updatePost(params.id as string, {
@@ -117,16 +117,9 @@ export default function EditPostPage() {
   }
 
   return (
-    <PostForm
+    <PostEditor
       initialData={initialData}
       onSubmit={handleSubmit}
-      submitLabel="Save Changes"
-      onCancel={() => {
-        if (!isDirty || window.confirm('Are you sure you want to discard your changes?')) {
-          router.back();
-        }
-      }}
-      onChange={handleFormChange}
     />
   );
 } 
