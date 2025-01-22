@@ -7,6 +7,7 @@ import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
 import Link from 'next/link';
 import classNames from 'classnames';
+import { Markdown } from '@/app/components/Markdown';
 
 export default function PostPage() {
   const params = useParams();
@@ -145,8 +146,8 @@ export default function PostPage() {
       </header>
 
       {/* Post Content */}
-      <div className="prose max-w-none mb-8">
-        <p className="whitespace-pre-wrap">{post.content}</p>
+      <div className="max-w-none mb-8">
+        <Markdown content={post.content} />
       </div>
 
       {/* Post Footer */}
