@@ -37,9 +37,14 @@ export const PrettyEditor = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onSubmit]);
+
+  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit();
+  }
   
   return (
-    <form onSubmit={onSubmit} className="h-full">
+    <form onSubmit={handleSave} className="h-full">
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full">
