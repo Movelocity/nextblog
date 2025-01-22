@@ -8,6 +8,8 @@ import { isAuthenticated } from '@/app/services/auth';
 import Link from 'next/link';
 import classNames from 'classnames';
 import { Markdown } from '@/app/components/Markdown';
+import { TableOfContents } from '@/app/components/TableOfContents';
+import { FaTags, FaEdit } from 'react-icons/fa';
 
 export default function PostPage() {
   const params = useParams();
@@ -66,92 +68,104 @@ export default function PostPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex mb-6 text-sm text-gray-600" aria-label="Breadcrumb">
-        <ol className="flex items-center space-x-2">
-          <li>
-            <Link href="/posts" className="hover:text-gray-900">
-              Posts
-            </Link>
-          </li>
-          {post.categories?.map((category, index) => (
-            <li key={category} className="flex items-center">
-              <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-              <Link 
-                href={`/posts/category/${category}`}
-                className={classNames(
-                  "hover:text-gray-900",
-                  { "text-gray-900 font-medium": index === post.categories.length - 1 }
-                )}
-              >
-                {category}
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </nav>
+    <div className="h-full" style={{ paddingInlineStart: '20rem' }}>
+      <div className="flex flex-col h-full">
+        {/* Title and Controls */}
+        <div className="flex flex-col pb-4 max-w-[780px] w-full">
+          <div className="pt-4">
+            <h1 className="block w-full px-0 text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white">
+              {post.title}
+            </h1>
+          </div>
 
-      {/* Post Header */}
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{post.title}</h1>
-        {/* Post Metadata */}
-        <div className="flex items-center space-x-6 text-sm text-gray-600">
-          <time dateTime={new Date(post.updatedAt).toISOString()} className="flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Updated {new Date(post.updatedAt).toLocaleDateString()}
-          </time>
-          <span className="flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-            </svg>
-            {wordCount} words
-          </span>
-          {editable && (
-            <Link
-              href={`/posts/${post.id}/edit`}
-              className="px-4 py-2 hover:text-blue-600"
-            >
-              Edit Post
-            </Link>
-          )}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4">
+            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+              <span className="flex items-center px-2.5 ml-1">
+                {wordCount} words
+              </span>
+              <time dateTime={post.updatedAt} className="flex items-center">
+                Updated {new Date(post.updatedAt).toLocaleDateString()}
+              </time>
+            </div>
+
+            <div className="flex items-center space-x-3 gap-4">
+              {post.categories && post.categories.length > 0 && (
+                <div className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md flex items-center gap-2">
+                  <FaTags className="w-4 h-4" />
+                  <div className="flex gap-2">
+                    {post.categories.map((category) => (
+                      <Link
+                        key={category}
+                        href={`/posts/category/${category}`}
+                        className="hover:text-blue-600 transition-colors"
+                      >
+                        {category}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+                <span className={classNames(
+                  "px-2.5 py-0.5 text-xs font-medium rounded-full",
+                  post.published 
+                    ? "bg-green-100 text-green-800" 
+                    : "bg-amber-100 text-amber-800"
+                )}>
+                  {post.published ? 'Published' : 'Draft'}
+                </span>
+              </div>
+
+              {editable && (
+                <Link
+                  href={`/posts/${post.id}/edit`}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors flex items-center gap-2"
+                >
+                  <FaEdit className="w-4 h-4" />
+                  <span>Edit</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Table of Contents */}
+        <div className="sticky top-24 mx-auto w-full z-50">
+          <TableOfContents 
+            content={post.content} 
+            className="absolute min-w-[10rem] max-w-[15rem]"
+            style={{ insetInlineStart: '800px' }}
+          />
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 max-w-[780px] w-full mt-4">
+          <div className="prose max-w-none">
+            <Markdown content={post.content} />
+          </div>
+        </div>
+
+        {/* Post Footer */}
+        <footer className="mt-8 pt-4 border-t text-sm text-gray-500 max-w-[780px]">
           {post.tags && post.tags.length > 0 && (
-            <div className="flex items-center space-x-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              <div className="flex space-x-2">
-                {post.tags.slice(0, 3).map((tag: string) => (
+            <div className="flex items-center gap-2 mb-4">
+              <FaTags className="w-4 h-4" />
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
                   <span
                     key={tag}
                     className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white rounded-full"
                   >
-                    {tag}
+                    #{tag}
                   </span>
                 ))}
-                {post.tags.length > 3 && (
-                  <span className="text-xs text-gray-500">+{post.tags.length - 3}</span>
-                )}
               </div>
             </div>
           )}
-        </div>
-      </header>
-
-      {/* Post Content */}
-      <div className="max-w-none mb-8">
-        <Markdown content={post.content} />
+          <p>Created: {new Date(post.createdAt).toLocaleString()}</p>
+        </footer>
       </div>
-
-      {/* Post Footer */}
-      <footer className="mt-8 pt-4 border-t text-sm text-gray-500">
-        <p>Status: {post.published ? 'Published' : 'Draft'}</p>
-        <p>Created: {new Date(post.createdAt).toLocaleString()}</p>
-      </footer>
     </div>
   );
 } 
