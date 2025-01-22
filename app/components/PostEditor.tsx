@@ -23,12 +23,10 @@ interface PostEditorProps {
 
 export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
   const { 
-    post, setPostCategories, setPostTags, setIsSaving, setLastSaved, setLoading,
+    post, setIsSaving, setLastSaved, setLoading,
     setIsDirty, setError
    } = useEditPostStore();
 
-  const [categoryInput, setCategoryInput] = useState('');
-  const [tagInput, setTagInput] = useState('');
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
   const [showRightSidebar, setShowRightSidebar] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
@@ -67,28 +65,6 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
     };
     loadTaxonomy();
   }, []);
-
-  const handleAddCategory = () => {
-    if (categoryInput.trim() && !post.categories.includes(categoryInput.trim())) {
-      setPostCategories([...post.categories, categoryInput.trim()]);
-      setCategoryInput('');
-    }
-  };
-
-  const handleRemoveCategory = (category: string) => {
-    setPostCategories(post.categories.filter(c => c !== category));
-  };
-
-  const handleAddTag = () => {
-    if (tagInput.trim() && !post.tags.includes(tagInput.trim())) {
-      setPostTags([...post.tags, tagInput.trim()]);
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setPostTags(post.tags.filter(t => t !== tag));
-  };
 
   // Close sidebars when clicking outside on mobile
   useEffect(() => {

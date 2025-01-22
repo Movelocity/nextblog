@@ -10,7 +10,7 @@ import { useEditPostStore } from '@/app/stores/EditPostStore';
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
-  const { isDirty, loading, error, setPost, setError, setLoading } = useEditPostStore();
+  const { isDirty, loading, error, setPost, setError, setLoading, setLastSaved } = useEditPostStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -49,6 +49,7 @@ export default function EditPostPage() {
         categories: post.categories || [],
         tags: post.tags || [],
       });
+      setLastSaved(new Date());
       setLoading(false);
     } catch (error) {
       console.error('Error fetching post:', error);

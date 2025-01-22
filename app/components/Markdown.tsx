@@ -380,7 +380,7 @@ export function Markdown(
     <div
       className="mkd-body prose dark:prose-invert"
       style={{
-        fontSize: `${props.fontSize ?? 14}px`,
+        fontSize: `${props.fontSize ?? 16}px`,
         fontFamily: props.fontFamily || "inherit",
       }}
       ref={mdRef}

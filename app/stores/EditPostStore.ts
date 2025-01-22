@@ -4,12 +4,12 @@ import { PostEditorData } from '../components/PostEditor';
 export interface EditPostStore {
   isDirty: boolean;
   isSaving: boolean;
-  lastSaved: Date;
+  lastSaved: Date | null;
   loading: boolean;
   error: string | null;
   setIsDirty: (isDirty: boolean) => void;
   setIsSaving: (isSaving: boolean) => void;
-  setLastSaved: (lastSaved: Date) => void;
+  setLastSaved: (lastSaved: Date | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 
@@ -26,7 +26,7 @@ export const useEditPostStore = create<EditPostStore>()((set) => ({
   // Editor state
   isDirty: false,
   isSaving: false,
-  lastSaved: new Date(),
+  lastSaved: null,
   loading: false,
   error: null,
   setIsDirty: (isDirty) => set({ isDirty }),

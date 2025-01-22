@@ -43,57 +43,74 @@ export const PrettyEditor = ({
     <form onSubmit={onSubmit} className="h-full">
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
-        <div className="flex flex-col pb-2 border-b border-gray-200 dark:border-gray-700 p-4">
-          <input
-            type="text"
-            id="title"
-            value={post.title}
-            onChange={(e) => {
-              setPostTitle(e.target.value);
-              setIsDirty(true);
-            }}
-            className="my-4 block w-full border-gray-300 outline-none bg-transparent text-3xl font-bold"
-            placeholder="Post title"
-            required
-          />
-          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400">
-            <span>
-              {isPreview ? "[Preview mode]" : "[Editing mode]"}
-            </span>
-            <span>
-              {wordCount} words · {readingTime} min read
-            </span>
-            <span>
-              {isSaving ? 'Saving...' : lastSaved ? `Last saved ${lastSaved.toLocaleTimeString()}` : ''}
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsPreview(!isPreview)}
-              className="w-24 px-2 text-sm text-gray-500"
-            >
-              {isPreview ? 'Edit' : 'Preview'}
-            </button>
-            <button
-              type="button"
-              onClick={onSubmit}
-              className={classNames("px-2 text-sm text-gray-500", { "opacity-50 cursor-not-allowed": loading })}
-            >
-              {loading ? 'Saving...' : 'Save'}
-            </button>
-            <div className="flex items-center">
-              <label htmlFor="published" className="block text-sm text-gray-900 dark:text-gray-100">
-                {'Publish: '}
-              </label>
-              <input
-                type="checkbox"
-                id="published"
-                checked={post.published}
-                onChange={(e) => {
-                  setPostPublished(e.target.checked);
-                  setIsDirty(true);
-                }}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
+        <div className="flex flex-col pb-4">
+          <div className="px-4 pt-4">
+            <input
+              type="text"
+              id="title"
+              value={post.title}
+              onChange={(e) => {
+                setPostTitle(e.target.value);
+                setIsDirty(true);
+              }}
+              className="block w-full px-0 text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              placeholder="Post title"
+              required
+            />
+          </div>
+          
+          <div className="flex items-center justify-between px-6 mt-4">
+            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+              <span className="flex items-center px-2.5">
+                {isPreview ? "Preview" : "Edit"}
+              </span>
+              <span className="flex items-center">
+                {wordCount} words · {readingTime} min read
+              </span>
+              <span className="italic">
+                {isSaving ? 'Saving...' : lastSaved ? `Last saved ${lastSaved.toLocaleTimeString()}` : ''}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => setIsPreview(!isPreview)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                {isPreview ? 'Edit' : 'Preview'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={onSubmit}
+                className={classNames(
+                  "px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors",
+                  "dark:bg-blue-500 dark:hover:bg-blue-600",
+                  { "opacity-50 cursor-not-allowed": loading }
+                )}
+              >
+                {loading ? 'Saving...' : 'Save'}
+              </button>
+
+              <div className="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+                <label
+                  htmlFor="published"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Published
+                </label>
+                <input
+                  type="checkbox"
+                  id="published"
+                  checked={post.published}
+                  onChange={(e) => {
+                    setPostPublished(e.target.checked);
+                    setIsDirty(true);
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 border-gray-300 rounded transition-colors cursor-pointer"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -108,7 +125,11 @@ export const PrettyEditor = ({
                 setPostContent(e.target.value);
                 setIsDirty(true);
               }}
-              className="w-full h-full min-h-[500px] border-gray-300 outline-none font-mono resize-none"
+              style={{
+                minHeight: '500px',
+                height: '1080px',
+              }}
+              className="w-full h-full bg-transparent outline-none font-mono resize-none"
               placeholder="Write your post content here..."
               required
             />
