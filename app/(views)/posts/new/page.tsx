@@ -21,11 +21,11 @@ export default function NewPostPage() {
   }, [setPost]);
 
   const handleSubmit = async (data: PostEditorData) => {
-    await createPost({
+    const newPost = await createPost({
       ...data,
       slug: data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     });
-    router.push('/dashboard');
+    router.push(`/posts/${newPost.id}/edit`);
   };
 
   return (

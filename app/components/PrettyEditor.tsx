@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { useEditPostStore } from '../stores/EditPostStore';
 import { FaTags } from 'react-icons/fa';
 import Modal from './Modal';
-
+import PublishHint from './PubilshHint';
 type PrettyEditorProps = {
   onSubmit: () => void;
   availableCategories: string[];
@@ -61,10 +61,7 @@ export const PrettyEditor = ({
       if (e.metaKey || e.ctrlKey) {
         if (e.key === 's') {
           e.preventDefault();
-          const form = document.querySelector('form');
-          if (form) {
-            onSubmit();
-          }
+          onSubmit();
         }
       }
     };
@@ -146,9 +143,13 @@ export const PrettyEditor = ({
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4">
             <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-              <span className="flex items-center px-2.5 ml-1">
-                {isPreview ? "Preview" : "Edit"}
-              </span>
+              <button
+                type="button"
+                onClick={() => setIsPreview(!isPreview)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                {isPreview ? 'Edit' : 'Preview'}
+              </button>
               <span className="flex items-center">
                 {wordCount} words
               </span>
@@ -168,32 +169,10 @@ export const PrettyEditor = ({
                 <span>Labels</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setIsPreview(!isPreview)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-              >
-                {isPreview ? 'Edit' : 'Preview'}
-              </button>
-
-              <div className="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-gray-700">
-                <label
-                  htmlFor="published"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-200"
-                >
-                  Published
-                </label>
-                <input
-                  type="checkbox"
-                  id="published"
-                  checked={post.published}
-                  onChange={(e) => {
-                    setPostPublished(e.target.checked);
-                    setIsDirty(true);
-                  }}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 border-gray-300 rounded transition-colors cursor-pointer"
-                />
-              </div>
+              <PublishHint published={post.published} onClick={() => {
+                setPostPublished(!post.published);
+                setIsDirty(true);
+              }} />
 
               <button
                 onClick={onSubmit}

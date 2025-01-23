@@ -10,7 +10,7 @@ import classNames from 'classnames';
 import { Markdown } from '@/app/components/Markdown';
 import { TableOfContents } from '@/app/components/TableOfContents';
 import { FaTags, FaEdit } from 'react-icons/fa';
-
+import PublishHint from '@/app/components/PubilshHint';
 export default function PostPage() {
   const params = useParams();
   // const router = useRouter();
@@ -106,16 +106,7 @@ export default function PostPage() {
                 </div>
               )}
 
-              <div className="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-gray-700">
-                <span className={classNames(
-                  "px-2.5 py-0.5 text-xs font-medium rounded-full",
-                  post.published 
-                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
-                    : "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-                )}>
-                  {post.published ? 'Published' : 'Draft'}
-                </span>
-              </div>
+              <PublishHint published={post.published} />
 
               {editable && (
                 <Link
