@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
 import { PostEditor } from '@/app/components/PostEditor';
-import { MdArrowBack } from 'react-icons/md';
+import { MdArrowBack, MdLogin } from 'react-icons/md';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 
 export default function EditPostPage() {
@@ -83,10 +83,19 @@ export default function EditPostPage() {
               <h3 className="text-sm font-medium text-red-800">Error</h3>
               <p className="mt-2 text-sm text-red-700">{error}</p>
               <button
-                // onClick={() => router.back()}
+                onClick={() => router.back()}
                 className="mt-4 inline-flex items-center text-sm font-medium text-red-600 hover:text-red-500"
               >
                 <MdArrowBack className="mr-1" /> Go Back
+              </button>
+              <button
+                onClick={() => {
+                  localStorage?.setItem("authToken", "");  // clear deprecated auth token
+                  router.push("/dashboard");
+                }}
+                className="ml-4 mt-4 inline-flex items-center text-sm font-medium text-red-600 hover:text-red-500"
+              >
+                <MdLogin className="mr-1" /> Login
               </button>
             </div>
           </div>

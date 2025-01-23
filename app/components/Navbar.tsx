@@ -10,7 +10,7 @@ export const Navigation = () => {
           <SidePanel />
           <Link 
             href="/" 
-            className="flex items-center px-2 text-gray-900 dark:text-white font-semibold"
+            className="flex items-center ml-2 px-2 text-gray-900 dark:text-white font-semibold"
           >
             Blog
           </Link>

@@ -51,15 +51,28 @@ const DeleteConfirmationModal = ({
   </Modal>
 );
 
-const StatusBadge = ({ published }: { published: boolean }) => (
-  <span
+const StatusBadge = ({ published, onClick }: { published: boolean; onClick?: () => void }) => (
+  <button
+    onClick={onClick}
+    type="button"
     className={classNames(
-      'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
-      published ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+      'px-2 py-1 lg:py-0 inline-flex text-xs leading-5 font-semibold rounded-full transition-all duration-200',
+      published 
+        ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+        : 'bg-amber-100 text-amber-800 hover:bg-amber-200',
+      onClick && 'cursor-pointer'
     )}
+    aria-label={`${published ? 'Published' : 'Draft'} - Click to toggle status`}
   >
-    {published ? 'Published' : 'Draft'}
-  </span>
+    <span className="flex items-center gap-1">
+      {published ? (
+        <MdPublish className="w-3 h-3" />
+      ) : (
+        <MdUnpublished className="w-3 h-3" />
+      )}
+      {published ? 'Published' : 'Draft'}
+    </span>
+  </button>
 );
 
 const CategoryTags = ({ categories }: { categories?: string[] }) => (
@@ -83,7 +96,7 @@ const SortIcon = ({ field, currentField, direction }: { field: SortField; curren
   </span>
 );
 
-const ActionButtons = ({ post, onTogglePublish, onDelete }: { post: Post } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => {
+const ActionButtons = ({ post, onDelete }: { post: Post } & Pick<PostsTableProps, 'onDelete'>) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
@@ -91,41 +104,18 @@ const ActionButtons = ({ post, onTogglePublish, onDelete }: { post: Post } & Pic
       <div className="flex justify-end items-center space-x-2">
         <Link
           href={`/posts/${post.id}/edit`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-transparent dark:hover:bg-gray-600 dark:text-blue-400 rounded-lg transition-colors"
         >
           <FaEdit className="w-4 h-4" />
           <span>Edit</span>
         </Link>
-        {onTogglePublish && (
-          <button
-            onClick={() => onTogglePublish(post.id, post.published)}
-            className={classNames(
-              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors",
-              post.published 
-                ? "text-amber-700 bg-amber-50 hover:bg-amber-100"
-                : "text-green-700 bg-green-50 hover:bg-green-100"
-            )}
-          >
-            {post.published ? (
-              <>
-                <MdUnpublished className="w-4 h-4" />
-                <span>Unpublish</span>
-              </>
-            ) : (
-              <>
-                <MdPublish className="w-4 h-4" />
-                <span>Publish</span>
-              </>
-            )}
-          </button>
-        )}
+        
         {onDelete && (
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 text-red-700 bg-red-50 dark:bg-transparent hover:bg-red-100 dark:hover:bg-gray-600 dark:text-red-400 rounded-lg transition-colors"
           >
             <FaTrash className="w-4 h-4" />
-            <span>Delete</span>
           </button>
         )}
       </div>
@@ -161,8 +151,8 @@ const TableHeader = ({
   };
 
   return (
-    <div className="px-6 py-4 border-b flex justify-between items-center">
-      <h2 className="text-lg font-semibold text-gray-900">Manage Posts</h2>
+    <div className="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Posts</h2>
       <div className="flex items-center gap-3">
         {selectedPosts.length > 0 && (
           <>
@@ -199,7 +189,7 @@ const TableHeader = ({
         )}
         <Link
           href="/posts/new"
-          className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-blue-500 dark:bg-transparent dark:border dark:border-blue-500 text-white dark:text-blue-400 text-sm font-medium rounded-md hover:bg-blue-600 transition-colors"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -209,6 +199,16 @@ const TableHeader = ({
       </div>
     </div>
   );
+};
+
+// Add this helper function at the top level
+const getToggleHandler = (
+  onTogglePublish: ((id: string, currentStatus: boolean) => void) | undefined,
+  postId: string,
+  published: boolean
+) => {
+  if (!onTogglePublish) return undefined;
+  return () => onTogglePublish(postId, published);
 };
 
 // Mobile View Component
@@ -225,12 +225,17 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
     />
     <div className="px-4">
       <div className="text-sm text-gray-700 mb-4">
-        {selectedPosts.length} selected
+        {selectedPosts.length > 0 ? (
+          <span>{selectedPosts.length} selected</span>
+        ) : (
+          <span></span>
+        )}
       </div>
       {posts.map((post) => (
-        <div key={post.id} className="bg-white rounded-lg shadow-sm border p-4 space-y-3 transition-all hover:shadow-md mb-4">
+        <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-4 space-y-3 transition-all hover:shadow-md mb-4 dark:border-gray-700">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
+              {/* Checkbox */}
               <input
                 type="checkbox"
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -242,16 +247,21 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 )}
               />
               <div>
-                <div className="font-medium text-gray-900">{post.title}</div>
+                <Link href={`/posts/${post.slug}`}>
+                  <div className="font-medium text-gray-900 dark:text-white hover:text-blue-500">{post.title}</div>
+                </Link>
                 <div className="text-sm text-gray-500 mt-1">
                   Updated {new Date(post.updatedAt).toLocaleDateString()}
                 </div>
               </div>
             </div>
-            <StatusBadge published={post.published} />
+            <StatusBadge 
+              published={post.published} 
+              onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
+            />
           </div>
           {post.categories && <CategoryTags categories={post.categories} />}
-          <div className="flex justify-end items-center gap-3 pt-2 border-t">
+          <div className="flex justify-end items-center gap-3 pt-2 border-t dark:border-gray-700">
             <ActionButtons post={post} {...props} />
           </div>
         </div>
@@ -300,8 +310,8 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
         {...props}
       />
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th scope="col" className="px-6 py-3 text-left">
                 <input
@@ -319,7 +329,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 <th
                   key={field}
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer group"
                   onClick={() => handleSort(field)}
                 >
                   <div className="flex items-center gap-2">
@@ -328,21 +338,22 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                   </div>
                 </th>
               ))}
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Categories
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y dark:divide-gray-700 divide-gray-200">
             {sortedPosts.map((post) => (
-              <tr key={post.id} className="hover:bg-gray-50">
+              <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                {/* Checkbox */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:text-white"
                     checked={selectedPosts.includes(post.id)}
                     onChange={() => setSelectedPosts(
                       selectedPosts.includes(post.id)
@@ -352,18 +363,23 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                   />
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900 truncate max-w-md">
-                    {post.title}
-                  </div>
+                  <Link href={`/posts/${post.slug}`}>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-md cursor-pointer hover:text-blue-500">
+                      {post.title}
+                    </div>
+                  </Link>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge published={post.published} />
+                  <StatusBadge 
+                    published={post.published} 
+                    onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
+                  />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {new Date(post.updatedAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4">
                   <CategoryTags categories={post.categories} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(post.updatedAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <ActionButtons post={post} {...props} />

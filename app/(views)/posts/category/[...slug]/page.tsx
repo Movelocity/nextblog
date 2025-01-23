@@ -80,8 +80,8 @@ export default function CategoryPage() {
           href={`/posts/category/${path}`}
           className={`${
             index === categoryPath.length - 1
-              ? 'text-gray-800 font-semibold'
-              : 'text-blue-500 hover:text-blue-700'
+              ? 'text-gray-800 dark:text-gray-300 font-semibold'
+              : 'text-blue-500 dark:text-blue-400 hover:text-blue-700'
           }`}
         >
           {segment}
@@ -108,7 +108,7 @@ export default function CategoryPage() {
               <Link
                 key={subCategory}
                 href={`/posts/category/${currentCategory}/${subCategory}`}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-200 transition-colors"
               >
                 {subCategory}
               </Link>

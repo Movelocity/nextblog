@@ -2,6 +2,7 @@
 import classnames from 'classnames';
 import { useState, useEffect, useRef } from 'react';
 import { getTaxonomy } from '../services/posts';
+import { RiMenuFill } from 'react-icons/ri'
 import Link from 'next/link';
 
 export default function SidePanel() {
@@ -39,7 +40,9 @@ export default function SidePanel() {
   }, []);
   return (
     <div className="flex items-center">
-      <div className="cursor-pointer select-none" ref={triggerRef} onClick={() => setShow(!show)}>Trigger</div>
+      <div className="cursor-pointer select-none" ref={triggerRef} onClick={() => setShow(!show)}>
+        <RiMenuFill className="text-2xl" />
+      </div>
 
       {/* Backdrop overlay */}
       <div 
@@ -53,7 +56,7 @@ export default function SidePanel() {
 
       <div 
         className={classnames(
-          "fixed top-0 left-0 p-4 h-full w-64 bg-white shadow-lg",
+          "fixed top-0 left-0 p-4 h-full w-64 bg-white dark:bg-gray-900 shadow-lg",
           "transition-all duration-300 ease-in-out transform",
           show ? "translate-x-0" : "-translate-x-full",
           // "md:transition-none md:transform-none"
@@ -68,9 +71,9 @@ export default function SidePanel() {
                 <Link
                   key={category}
                   href={`/posts/category/${category}`}
-                  className="py-2 px-6 bg-white shadow rounded-lg hover:shadow-md transition-shadow"
+                  className="py-2 px-6 bg-white dark:bg-gray-900 shadow rounded-lg hover:shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-shadow"
                 >
-                  <h3 className="text-lg font-medium text-gray-800">{category}</h3>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">{category}</h3>
                 </Link>
               ))}
             </div>

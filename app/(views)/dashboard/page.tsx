@@ -87,16 +87,15 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-
         <button
           onClick={handleLogout}
-          className="px-3 py-1.5 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50 transition-colors"
+          className="px-3 py-1.5 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50 dark:hover:bg-transparent transition-colors"
         >
           Logout
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

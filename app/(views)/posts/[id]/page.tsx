@@ -68,7 +68,7 @@ export default function PostPage() {
   }
 
   return (
-    <div className="h-full" style={{ paddingInlineStart: '20rem' }}>
+    <div className="h-full ps-4 md:ps-20">
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full">
@@ -97,7 +97,7 @@ export default function PostPage() {
                       <Link
                         key={category}
                         href={`/posts/category/${category}`}
-                        className="hover:text-blue-600 transition-colors"
+                        className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       >
                         {category}
                       </Link>
@@ -110,8 +110,8 @@ export default function PostPage() {
                 <span className={classNames(
                   "px-2.5 py-0.5 text-xs font-medium rounded-full",
                   post.published 
-                    ? "bg-green-100 text-green-800" 
-                    : "bg-amber-100 text-amber-800"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" 
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
                 )}>
                   {post.published ? 'Published' : 'Draft'}
                 </span>

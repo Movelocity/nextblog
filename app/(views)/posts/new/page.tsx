@@ -3,21 +3,33 @@
 import { useRouter } from 'next/navigation';
 import { createPost } from '@/app/services/posts';
 import { PostEditor, PostEditorData } from '@/app/components/PostEditor';
+import { useEditPostStore } from '@/app/stores/EditPostStore';
+import { useEffect } from 'react';
 
 export default function NewPostPage() {
   const router = useRouter();
+  const {setPost} = useEditPostStore();
+
+  useEffect(() => {
+    setPost({
+      title: '',
+      content: '',
+      categories: [],
+      tags: [],
+      published: false,
+    });
+  }, []);
 
   const handleSubmit = async (data: PostEditorData) => {
     await createPost({
       ...data,
       slug: data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     });
-    router.push('/posts');
+    router.push('/dashboard');
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Create New Post</h1>
       <PostEditor
         onCreate={handleSubmit}
       />

@@ -54,17 +54,12 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Table of Contents
+          TOC
         </h3>
-        {isCollapsed ? (
-          <FaChevronRight className="w-4 h-4 text-gray-300" />
-        ) : (
-          <FaChevronDown className="w-4 h-4 text-gray-300" />
-        )}
       </div>
       
       {!isCollapsed && (
-        <nav className="space-y-1">
+        <nav className="space-y-1 border-l-2 pl-1 border-gray-300">
           {headings.map((heading, index) => (
             <button
               key={index}

@@ -9,24 +9,13 @@ import RehypeHighlight from "rehype-highlight";
 import { useRef, useState, RefObject, useEffect, useMemo } from "react";
 import { copyToClipboard } from "../services/utils";
 import mermaid from "mermaid";
-// import Locale from "../locales";
-// import LoadingIcon from "../icons/three-dots.svg";
 import { RiLoader4Line } from "react-icons/ri";
-// import ReloadButtonIcon from "../icons/reload.svg";
 import React from "react";
 import { useDebouncedCallback } from "use-debounce";
-// import { showImageModal, FullScreen } from "./ui-lib";
-// import {
-//   ArtifactsShareButton,
-//   HTMLPreview,
-//   HTMLPreviewHander,
-// } from "./artifacts";
-// import { useChatStore } from "../store";
-// import { IconButton } from "./button";
 
-// import { useAppConfig } from "../store/config";
-// import clsx from "clsx";
 import classnames from "classnames";
+
+/* This component is a modified version of the code from https://github.com/ChatGPTNextWeb/NextChat/blob/main/app/components/markdown.tsx */
 
 export function Mermaid(props: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -363,7 +352,6 @@ function _MarkDownContent(props: { content: string }) {
 
 export const MarkdownContent = React.memo(_MarkDownContent);
 
-// Code from https://github.com/ChatGPTNextWeb/NextChat/blob/main/app/components/markdown.tsx
 export function Markdown(
   props: {
     content: string;

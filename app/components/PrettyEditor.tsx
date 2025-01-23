@@ -25,6 +25,10 @@ export const PrettyEditor = ({
   const [isPreview, setIsPreview] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const wordCount = post.content.trim().split(/\s+/).length;
+  const [newCategory, setNewCategory] = useState('');
+  const [newTag, setNewTag] = useState('');
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [customTags, setCustomTags] = useState<string[]>([]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -36,9 +40,6 @@ export const PrettyEditor = ({
           if (form) {
             onSubmit();
           }
-        } else if (e.key === 'p') {
-          e.preventDefault();
-          setIsPreview(prev => !prev);
         }
       }
     };
@@ -66,12 +67,36 @@ export const PrettyEditor = ({
     setPostTags(newTags);
     setIsDirty(true);
   };
+
+  const handleAddCategory = () => {
+    const trimmedCategory = newCategory.trim();
+    if (trimmedCategory && !availableCategories.includes(trimmedCategory) && !customCategories.includes(trimmedCategory)) {
+      handleCategoryChange(trimmedCategory);
+      setCustomCategories(prev => [...prev, trimmedCategory]);
+      setNewCategory('');
+    }
+  };
+
+  const handleAddTag = () => {
+    const trimmedTag = newTag.trim();
+    if (trimmedTag && !availableTags.includes(trimmedTag) && !customTags.includes(trimmedTag)) {
+      handleTagChange(trimmedTag);
+      setCustomTags(prev => [...prev, trimmedTag]);
+      setNewTag('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, handler: () => void) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handler();
+    }
+  };
   
   return (
     <form 
       onSubmit={handleSave} 
-      className="h-full"
-      style={{ paddingInlineStart: '20rem' }}
+      className="h-full ps-4 md:ps-20"
     >
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
@@ -112,7 +137,7 @@ export const PrettyEditor = ({
                 aria-label="Edit categories and tags"
               >
                 <FaTags className="w-4 h-4" />
-                <span>Categories & Tags</span>
+                <span>Labels</span>
               </button>
 
               <button
@@ -160,7 +185,7 @@ export const PrettyEditor = ({
         <div className="sticky top-24 mx-auto w-full z-50">
           <TableOfContents 
             content={post.content} 
-            className='absolute min-w-[10rem] max-w-[15rem]'
+            className='absolute min-w-[12rem] max-w-[15rem] hidden md:block'
             style={{ insetInlineStart: '800px' }}
           />
         </div>
@@ -201,7 +226,16 @@ export const PrettyEditor = ({
       >
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Categories</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Categories</h3>
+            <input
+              type="text"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, handleAddCategory)}
+              placeholder="Type a category and press Enter"
+              className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-md outline-none"
+              aria-label="New category name"
+            />
             <div className="flex flex-wrap gap-2">
               {availableCategories.map((category) => (
                 <button
@@ -218,11 +252,35 @@ export const PrettyEditor = ({
                   {category}
                 </button>
               ))}
+              {customCategories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryChange(category)}
+                  type="button"
+                  className={classNames(
+                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors border-2",
+                    post.categories.includes(category)
+                      ? "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-200"
+                  )}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
           </div>
 
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Tags</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4 dark:text-white">Tags</h3>
+            <input
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, handleAddTag)}
+              placeholder="Type a tag and press Enter"
+              className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              aria-label="New tag name"
+            />
             <div className="flex flex-wrap gap-2">
               {availableTags.map((tag) => (
                 <button
@@ -234,6 +292,21 @@ export const PrettyEditor = ({
                     post.tags.includes(tag)
                       ? "bg-green-100 text-green-800 hover:bg-green-200"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  )}
+                >
+                  {tag}
+                </button>
+              ))}
+              {customTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => handleTagChange(tag)}
+                  type="button"
+                  className={classNames(
+                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors border-2",
+                    post.tags.includes(tag)
+                      ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-200"
                   )}
                 >
                   {tag}

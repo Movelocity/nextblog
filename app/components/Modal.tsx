@@ -62,17 +62,17 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     >
       <div 
         className={classNames(
-          'bg-white rounded-lg shadow-xl w-full overflow-hidden flex flex-col',
+          'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full overflow-hidden flex flex-col',
           sizeClasses[size]
         )}
       >
-        <div className="flex justify-between items-center p-4 sm:p-6 border-b">
-          <h2 id="modal-title" className="text-xl font-semibold text-gray-900">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b dark:border-gray-700">
+          <h2 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-1"
+            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-1"
             aria-label="Close modal"
           >
             <svg

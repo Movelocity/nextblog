@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Post, SearchParams } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
 import Modal from './Modal';
@@ -33,11 +33,22 @@ export default function SearchModal() {
     return content.slice(0, 150) + (content.length > 150 ? '...' : '');
   };
 
+  useEffect(() => {
+    // shortcut to toggle search modal
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+        setIsOpen(!isOpen);
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, [isOpen]);
+
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        className="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium text-gray-500 hover:text-gray-700 outline-none"
         aria-label="Search posts"
       >
         <svg
@@ -57,7 +68,7 @@ export default function SearchModal() {
 
       <Modal isOpen={isOpen} onClose={handleClose} title="Search Posts" size="full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-          <div className="lg:border-r lg:pr-8">
+          <div className="lg:border-r lg:pr-8 dark:border-gray-700">
             <SearchPosts onSearch={handleSearch} />
           </div>
 
@@ -91,23 +102,23 @@ export default function SearchModal() {
             ) : searchResults.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                     Results ({searchResults.length})
                   </h3>
                 </div>
-                <div className="divide-y divide-gray-200 -mx-4 sm:mx-0">
+                <div className="divide-y divide-gray-200 dark:divide-gray-700 -mx-4 sm:mx-0">
                   {searchResults.map((post) => (
                     <Link
                       key={post.id}
                       href={`/posts/${post.id}`}
-                      className="block px-4 py-6 hover:bg-gray-50 transition-colors sm:rounded-lg"
+                      className="block px-4 py-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors sm:rounded-lg"
                       onClick={handleClose}
                     >
                       <div className="flex flex-col">
-                        <h4 className="text-lg font-medium text-gray-900">
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-white">
                           {post.title}
                         </h4>
-                        <p className="mt-2 text-sm text-gray-500 line-clamp-2">
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-300 line-clamp-2">
                           {getExcerpt(post.content)}
                         </p>
                         <div className="mt-3 flex flex-wrap gap-2">
@@ -141,7 +152,7 @@ export default function SearchModal() {
                       d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 21a9 9 0 110-18 9 9 0 010 18z"
                     />
                   </svg>
-                  <p className="text-gray-500">No results found</p>
+                  <p className="text-gray-500 dark:text-gray-300">No results found</p>
                 </div>
               </div>
             )}

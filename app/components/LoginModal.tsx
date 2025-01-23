@@ -52,7 +52,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
               Email Address
             </label>
             <div className="relative">
@@ -73,7 +73,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-white">
               Password
             </label>
             <div className="relative">
@@ -103,7 +103,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-white">
                 Remember me
               </label>
             </div>
@@ -111,7 +111,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
             <button
               type="button"
               onClick={handleForgotPassword}
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
             >
               Forgot password?
             </button>

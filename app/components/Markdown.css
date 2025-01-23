@@ -1,3 +1,5 @@
+/* This file is a modified version of the code from https://github.com/Movelocity/ChatGPT-Next-Web/blob/main/app/styles/markdown.scss */
+
 :root {
   color-scheme: light;
   --color-prettylights-syntax-comment: #6e7781;
