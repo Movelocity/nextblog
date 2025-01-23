@@ -37,8 +37,20 @@ export const PrettyEditor = ({
     if (!textarea) return;
 
     const adjustHeight = () => {
+      // Store current scroll position and cursor position
+      const scrollPos = window.scrollY;
+      const selectionStart = textarea.selectionStart;
+      const selectionEnd = textarea.selectionEnd;
+
+      // Adjust height
       textarea.style.height = 'auto';
       textarea.style.height = `${Math.max(500, textarea.scrollHeight+100)}px`;
+
+      // Restore scroll position
+      window.scrollTo(0, scrollPos);
+
+      // Restore cursor position
+      textarea.setSelectionRange(selectionStart, selectionEnd);
     };
 
     adjustHeight();
