@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
@@ -10,6 +10,7 @@ import { useEditPostStore } from '@/app/stores/EditPostStore';
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
+  const afterFirstLoad = useRef(false);
   const { isDirty, loading, error, setPost, setError, setLoading, setLastSaved } = useEditPostStore();
 
   useEffect(() => {
@@ -58,7 +59,8 @@ export default function EditPostPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  if (loading) {
+  if (loading && !afterFirstLoad.current) {
+    afterFirstLoad.current = true;
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="flex flex-col items-center gap-4">
