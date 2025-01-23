@@ -6,6 +6,8 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+中文 / [English](./README.en.md)
+
 一个现代化、高性能且易于定制的博客管理系统，基于 Next.js 构建。采用基于文件系统的存储方案，让内容管理和迁移更加简单直观。无需数据库，每篇博客都以独立文件夹形式存储，支持 Markdown 富文本编写，完美集成数学公式与图表展示。
 
 ### 为什么选择这个博客系统？

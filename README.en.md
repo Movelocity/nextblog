@@ -6,6 +6,8 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+English / [中文](./README.md)
+
 A modern (toy) blog management system built with Next.js, utilizing a file-based storage system. Each blog post is stored in a separate folder containing an `index.md` file for content and an assets directory for related resources.
 
 ## Tech Stack
