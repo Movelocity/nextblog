@@ -12,26 +12,26 @@ export default function EditPostPage() {
   const params = useParams();
   const { isDirty, loading, error, setPost, setError, setLoading, setLastSaved } = useEditPostStore();
 
-  const fetchPost = async () => {
-    try {
-      const post = await getPost(params.id as string);
-      setPost({
-        title: post.title,
-        content: post.content,
-        published: post.published,
-        categories: post.categories || [],
-        tags: post.tags || [],
-      });
-      setLastSaved(new Date());
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching post:', error);
-      setError('Failed to load post');
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const post = await getPost(params.id as string);
+        setPost({
+          title: post.title,
+          content: post.content,
+          published: post.published,
+          categories: post.categories || [],
+          tags: post.tags || [],
+        });
+        setLastSaved(new Date());
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setError('Failed to load post');
+        setLoading(false);
+      }
+    };
+
     const checkAuth = async () => {
       const authenticated = isAuthenticated();
       if (!authenticated) {
@@ -43,7 +43,7 @@ export default function EditPostPage() {
     };
 
     checkAuth();
-  }, [params.id, fetchPost]);
+  }, [params.id, setPost, setError, setLoading, setLastSaved]);
 
   // Handle unsaved changes warning
   useEffect(() => {
