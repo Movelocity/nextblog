@@ -60,7 +60,7 @@ app/
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Movelocity/nextblog.git
    cd nextblog
    ```
 
@@ -74,6 +74,8 @@ app/
    ```env
    BLOG_ROOT_DIR=blogs  # Blog storage directory (default: 'blogs')
    JWT_SECRET=your-super-secret-jwt-key  # JWT secret for authentication
+   ADMIN_EMAIL=nextblog@example.com  # Admin email, change it to your own
+   ADMIN_PASSWORD=nextblog123  # Admin password, change it to your own
    ```
 
 4. Start the development server:

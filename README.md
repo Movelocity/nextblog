@@ -70,7 +70,7 @@ app/
 
 1. 克隆仓库：
    ```bash
-   git clone <仓库地址>
+   git clone https://github.com/Movelocity/nextblog.git
    cd nextblog
    ```
 
@@ -84,6 +84,8 @@ app/
    ```env
    BLOG_ROOT_DIR=blogs  # 博客存储目录（默认：'blogs'）
    JWT_SECRET=your-super-secret-jwt-key  # JWT 密钥 用于用户认证
+   ADMIN_EMAIL=nextblog@example.com  # 管理员邮箱, 请修改为你的邮箱
+   ADMIN_PASSWORD=nextblog123  # 管理员密码, 自行修改
    ```
 
 4. 启动开发服务器：
