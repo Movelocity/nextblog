@@ -32,14 +32,14 @@ export default function PostsPage() {
   }, []);
 
 
-  const handleDelete = async (id: string) => {
-    try {
-      await deletePost(id);
-      fetchPosts();
-    } catch (error) {
-      console.error('Error deleting post:', error);
-    }
-  };
+  // const handleDelete = async (id: string) => {
+  //   try {
+  //     await deletePost(id);
+  //     fetchPosts();
+  //   } catch (error) {
+  //     console.error('Error deleting post:', error);
+  //   }
+  // };
 
   return (
     <div className="container mx-auto px-4 md:px-24 py-8">
@@ -48,7 +48,6 @@ export default function PostsPage() {
       ) : (
         <PostsList 
           posts={posts} 
-          onDelete={handleDelete}
         />
       )}
     </div>
