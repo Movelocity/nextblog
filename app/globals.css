@@ -8,14 +8,21 @@
   --sidebar-width: 18rem;
   --content-width: 780px;
   --sidebar-space: var(--sidebar-width);
-  --content-inline-start: 0px;
-  --content-inline-end: 0px;
+  --content-inline-start: 1rem;
+  --content-inline-end: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --content-inline-start: 3rem;
+    --content-inline-end: 3rem;
   }
 }
 

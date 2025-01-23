@@ -38,7 +38,7 @@ export default function PostsList({ posts, isLoading = false }: PostsListProps) 
               <div>
                 <Link 
                   href={`/posts/${post.id}`}
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-200 transition-colors"
+                  className="text-2xl font-bold text-gray-900 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                 >
                   {post.title}
                 </Link>

@@ -22,7 +22,6 @@ export default function RootLayout({
       <body className="min-h-screen bg-gray-50 dark:bg-neutral-900 text-gray-900 dark:text-white">
         <Navigation />
         <main className="py-6 mt-12">
-          
           {children}
         </main>
       </body>

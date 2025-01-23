@@ -60,8 +60,8 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
   }, []);
 
   return (
-    <div className="relative min-h-[calc(100vh-6rem)] mx-auto">
-      <div className="mx-auto px-4 lg:px-4">
+    <div className="min-h-[calc(100vh-6rem)] mx-auto">
+      <div className="mx-auto">
         <PrettyEditor 
           onSubmit={handleSubmit}
           availableCategories={availableCategories}

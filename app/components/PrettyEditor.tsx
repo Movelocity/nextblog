@@ -123,7 +123,7 @@ export const PrettyEditor = ({
         paddingInlineEnd: "var(--content-inline-end)"
       }}
     >
-      <div className="flex flex-col h-full px-4">
+      <div className="flex flex-col h-full">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full">
           <div className="pt-4">
@@ -191,7 +191,7 @@ export const PrettyEditor = ({
         <div className="sticky top-24 mx-auto w-full z-50">
           <TableOfContents 
             content={post.content} 
-            className='absolute min-w-[12rem] max-w-[15rem] hidden md:block'
+            className='hidden md:block absolute min-w-[12rem] max-w-[15rem]'
             style={{ insetInlineStart: '800px' }}
           />
         </div>

@@ -86,7 +86,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container px-4 md:px-24 py-8">
       {renderBreadcrumbs()}
       
       <h1 className="text-3xl font-bold mb-8">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Post, SearchParams } from '@/app/common/types';
-import { getPosts, deletePost } from '@/app/services/posts';
+import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/PostsList';
 
 
@@ -46,9 +46,7 @@ export default function PostsPage() {
       {loading ? (
         <div className="text-center py-4">Loading posts...</div>
       ) : (
-        <PostsList 
-          posts={posts} 
-        />
+        <PostsList posts={posts} />
       )}
     </div>
   );

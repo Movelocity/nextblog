@@ -30,19 +30,19 @@ const DeleteConfirmationModal = ({
 }) => (
   <Modal isOpen={isOpen} onClose={onClose} title="Confirm Delete" size="sm">
     <div className="space-y-4">
-      <p className="text-gray-700">
-        Are you sure you want to delete the post `&quot;`<span className="font-medium">{postTitle}</span>`&quot;`? This action cannot be undone.
+      <p className="text-gray-700 dark:text-gray-300">
+        Are you sure you want to delete the post &quot;<span className="font-medium">{postTitle}</span>&quot;? This action cannot be undone.
       </p>
       <div className="flex justify-end gap-3">
         <button
           onClick={onClose}
-          className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+          className="px-4 py-2 text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 rounded-lg transition-colors"
         >
           Delete
         </button>

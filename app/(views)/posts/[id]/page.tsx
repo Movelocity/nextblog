@@ -68,7 +68,12 @@ export default function PostPage() {
   }
 
   return (
-    <div className="h-full ps-4 md:ps-20">
+    <div className="h-full"
+      style={{
+        paddingInlineStart: "var(--content-inline-start)",
+        paddingInlineEnd: "var(--content-inline-end)"
+      }}
+    >
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full">

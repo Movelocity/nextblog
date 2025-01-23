@@ -107,8 +107,6 @@ export default function EditPostPage() {
   }
 
   return (
-    <PostEditor
-      id={params.id as string}
-    />
+    <PostEditor id={params.id as string}/>
   );
 } 
