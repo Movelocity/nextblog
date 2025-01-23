@@ -37,6 +37,7 @@ export default function SearchModal() {
     // shortcut to toggle search modal
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+        event.preventDefault();
         setIsOpen(!isOpen);
       }
     };
