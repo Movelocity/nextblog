@@ -38,7 +38,7 @@ export const PrettyEditor = ({
 
     const adjustHeight = () => {
       textarea.style.height = 'auto';
-      textarea.style.height = `${Math.max(500, textarea.scrollHeight)}px`;
+      textarea.style.height = `${Math.max(500, textarea.scrollHeight+100)}px`;
     };
 
     adjustHeight();
@@ -126,7 +126,7 @@ export const PrettyEditor = ({
         paddingInlineEnd: "var(--content-inline-end)"
       }}
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full px-4">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full">
           <div className="pt-4">
