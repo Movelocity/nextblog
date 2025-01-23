@@ -18,7 +18,7 @@ export default function NewPostPage() {
       tags: [],
       published: false,
     });
-  }, []);
+  }, [setPost]);
 
   const handleSubmit = async (data: PostEditorData) => {
     await createPost({

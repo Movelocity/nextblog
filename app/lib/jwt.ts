@@ -3,6 +3,7 @@ import { JWT_SECRET, JWT_EXPIRES_IN } from '../common/config';
 
 export interface JWTPayload {
     email: string;
+    password?: string;
     iat?: number;
     exp?: number;
 }
@@ -14,7 +15,7 @@ export const generateToken = (payload: Omit<JWTPayload, 'iat' | 'exp'>): string 
 export const verifyToken = (token: string): JWTPayload => {
     try {
         return jwt.verify(token, JWT_SECRET) as JWTPayload;
-    } catch (error) {
+    } catch (error) { // eslint-disable-line no-unused-vars
         throw new Error('Invalid token');
     }
 };

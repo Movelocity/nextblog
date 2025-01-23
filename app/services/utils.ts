@@ -12,7 +12,7 @@ export async function copyToClipboard(text: string) {
   try {
     document.execCommand("copy");
     showToast("Copied to clipboard");
-  } catch (error) {
+  } catch (error) { // eslint-disable-line no-unused-vars
     showToast("Failed to copy to clipboard");
   }
   document.body.removeChild(textArea);

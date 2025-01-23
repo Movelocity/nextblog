@@ -6,8 +6,7 @@ import { LoginCredentials } from '@/app/services/auth';
 export async function POST(request: Request) {
     try {
         const credentials: LoginCredentials = await request.json();
-        // console.log('credentials', credentials);
-        // console.log('ADMIN_CREDENTIALS', ADMIN_CREDENTIALS);
+        
         if (
             credentials.email !== ADMIN_CREDENTIALS.email ||
             credentials.password !== ADMIN_CREDENTIALS.password
@@ -18,10 +17,12 @@ export async function POST(request: Request) {
             );
         }
 
+        // Generate JWT token for successful login
         const token = generateToken({ email: credentials.email });
 
         return NextResponse.json({ token });
     } catch (error) {
+        console.error('Login error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

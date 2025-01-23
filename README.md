@@ -1,187 +1,161 @@
-# Blog Management System
+# Next.js 博客管理系统
 
-A modern blog management system built with Next.js that uses a file-based storage system. Each blog is stored as a separate folder containing an `index.md` for content and an assets directory for related files.
+[![Next.js](https://img.shields.io/badge/Next.js-15.1.5-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Project Structure
+一个现代化、高性能且易于定制的博客管理系统，基于 Next.js 构建。采用基于文件系统的存储方案，让内容管理和迁移更加简单直观。无需数据库，每篇博客都以独立文件夹形式存储，支持 Markdown 富文本编写，完美集成数学公式与图表展示。
+
+### 为什么选择这个博客系统？
+
+- 🚀 **零数据库依赖**：基于文件系统存储，部署简单，迁移方便
+- 📝 **强大的 Markdown 支持**：支持数学公式、图表等高级特性
+- 🎨 **深色模式**：内置亮暗主题切换，提供舒适的阅读体验
+- 🔍 **全文搜索**：快速定位任何内容
+- 📱 **响应式设计**：完美适配移动端、平板、桌面端
+- 🔐 **安全可靠**：JWT 认证 + 多设备会话管理
+- 🎯 **高性能**：通过缓存文章信息，即使使用文件系统存储博客内容，也能保持快速的访问速度
+
+## 技术栈
+
+- Next.js 15.1.5（使用 App Router）
+- React 19
+- TypeScript 5
+- Tailwind CSS
+- 文件系统存储
+- JWT 认证
+- Markdown 支持（支持数学公式、图表等）
+- Zustand 状态管理
+
+## 项目结构
 
 ```
 app/
-├── (views)/          # Frontend page components
-├── api/             # Backend API routes
-├── components/      # Reusable React components
-├── services/        # Frontend API services
-├── common/          # Shared types and configs
-├── hooks/          # React hooks
-├── lib/            # Core libraries
-└── store/          # State management
+├── (views)/        # 前端页面组件
+├── api/            # 后端 API 路由
+├── components/     # 可复用的 React 组件
+├── services/       # 前端 API 服务
+├── common/         # 共享类型和配置
+├── hooks/          # React Hooks
+├── lib/            # 核心库
+└── store/          # 状态管理
 ```
 
-## Current Progress
+## 功能清单
+- [x] 基于文件系统的博客存储（支持 Markdown 格式）
+- [x] 元数据缓存系统（提升读取性能）
+- [x] 完整的 CRUD 操作 API
+- [x] 响应式设计（支持移动端、平板、桌面端）
+- [x] 管理员登录（支持邮箱+密码）
+- [x] 亮、暗色模式支持
+- [x] 路由保护（基于角色的访问控制）
+- [x] JWT 认证（支持刷新令牌）
+- [x] 会话管理（支持多设备登录）
+- [x] Markdown 支持（包含数学公式、图表）
+- [x] 标签系统（支持多级分类）
+- [x] 搜索功能（支持全文搜索）
+- [x] 草稿功能
+- [ ] 资源文件管理（支持图片、视频、文档等）
+- [ ] 图片上传（支持拖拽、压缩、预览）
+- [ ] 统计面板（访问量、阅读时长）
+- [ ] Markdown 编辑器（支持实时预览）
+- [ ] 自定义主题
+- [ ] 自动备份功能
 
-### ✅ Completed Features
+## 快速开始
 
-1. **Core Storage System**
-   - File-based blog storage with folder per blog
-   - Metadata caching for performance
-   - Asset management support
-   - Full CRUD operations
+1. 克隆仓库：
+   ```bash
+   git clone <仓库地址>
+   cd nextblog
+   ```
 
-2. **Type System**
-   - Comprehensive TypeScript interfaces
-   - Type-safe blog operations
-   - Proper error handling
+2. 安装依赖：
+   ```bash
+   yarn install
+   ```
 
-3. **UI Components**
-   - Reusable Modal component
-   - Login Modal with form validation
-   - Dashboard with statistics
-   - Responsive navigation
+3. 配置环境变量：
+  创建 `.env.local` 文件并添加以下内容：
+   ```env
+   BLOG_ROOT_DIR=blogs  # 博客存储目录（默认：'blogs'）
+   JWT_SECRET=your-super-secret-jwt-key  # JWT 密钥 用于用户认证
+   ```
 
-4. **Dashboard Features**
-   - Post statistics (total, published, drafts)
-   - Quick actions menu
-   - Basic authentication flow
-   - Protected routes
+4. 启动开发服务器：
+   ```bash
+   yarn dev
+   ```
 
-### 🔧 Storage Interface Usage
+5. 访问系统：
+   ```
+   地址：http://localhost:3000/dashboard
+   测试账号：nextblog@example.com
+   密码：nextblog123
+   ```
 
-```typescript
-import blogStorage from '@/app/lib/blog-instance';
-
-// Create a new blog
-const blog = await blogStorage.createBlog({
-  id: 'my-first-blog',
-  title: 'My First Blog',
-  description: 'This is my first blog post',
-  content: '# Hello World\n\nThis is my first blog post.',
-  published: true,
-  tags: ['first', 'hello']
-});
-
-// Get a blog
-const blog = await blogStorage.getBlog('my-first-blog');
-
-// Update a blog
-const updated = await blogStorage.updateBlog('my-first-blog', {
-  title: 'Updated Title',
-  content: 'Updated content'
-});
-
-// Delete a blog
-await blogStorage.deleteBlog('my-first-blog');
-
-// List all blogs
-const allBlogs = await blogStorage.listBlogs();
-
-// List published blogs only
-const publishedBlogs = await blogStorage.listBlogs({ published: true });
-
-// Add an asset (e.g., image)
-const assetPath = await blogStorage.addAsset(
-  'my-first-blog',
-  'image.png',
-  imageBuffer
-);
-
-// Delete an asset
-await blogStorage.deleteAsset('my-first-blog', 'image.png');
+## 博客存储目录结构
 ```
-
-### 📁 Blog Directory Structure
-
-```
-blogs/                  # Root directory for all blogs
-├── meta.json          # Metadata cache for all blogs
-├── my-first-blog/     # Individual blog folder
-│   ├── index.md      # Main content file
-│   └── assets/       # Blog assets directory
-│       └── image.png # Blog assets
+blogs/                # 博客根目录
+├── meta.json         # 元数据缓存
+├── my-first-blog/    # 单个博客目录
+│   ├── index.md      # 主要内容
+│   └── assets/       # 资源目录
+│       └── image.png # 博客资源
 └── another-blog/
     ├── index.md
     └── assets/
 ```
 
-## 📝 TODO
+## 源码使用示例
 
-1. **Authentication & Authorization**
-   - [ ] Implement NextAuth.js for proper authentication
-   - [ ] Add session management
-   - [ ] Add role-based access control
-   - [ ] Add user management
-   - [ ] Add password reset functionality
+```typescript
+import blogStorage from '@/app/lib/blog-instance';
 
-2. **Dashboard Enhancements**
-   - [ ] Add user activity logs
-   - [ ] Add post analytics
-   - [ ] Add data visualization charts
-   - [ ] Add bulk post operations
-   - [ ] Add scheduled posts
+// 创建博客
+const blog = await blogStorage.createBlog({
+  id: 'my-first-blog',
+  title: '我的第一篇博客',
+  description: '这是我的第一篇博客文章',
+  content: '# 你好世界\n\n这是我的第一篇博客文章。',
+  published: true,
+  tags: ['首篇', '你好']
+});
 
-3. **API Layer**
-   - [ ] Update API routes to use the new storage system
-   - [ ] Add proper error handling and validation
-   - [ ] Implement file upload endpoints for assets
-   - [ ] Add rate limiting
-   - [ ] Add API documentation
+// 获取博客
+const blog = await blogStorage.getBlog('my-first-blog');
 
-4. **Frontend Updates**
-   - [ ] Update components to match new blog structure
-   - [ ] Add markdown editor with preview
-   - [ ] Add image upload UI
-   - [ ] Add tag management UI
-   - [ ] Add dark mode support
+// 更新博客
+const updated = await blogStorage.updateBlog('my-first-blog', {
+  title: '更新后的标题',
+  content: '更新后的内容'
+});
 
-5. **Features**
-   - [ ] Add search functionality
-   - [ ] Add tag filtering
-   - [ ] Add blog drafts
-   - [ ] Add blog categories
-   - [ ] Add blog series support
+// 删除博客
+await blogStorage.deleteBlog('my-first-blog');
 
-6. **Improvements**
-   - [ ] Add proper logging
-   - [ ] Add unit tests
-   - [ ] Add blog content validation
-   - [ ] Add image optimization
-   - [ ] Add backup system
-   - [ ] Add performance monitoring
-   - [ ] Add error tracking
+// 列出所有博客
+const allBlogs = await blogStorage.listBlogs();
 
-## 🚀 Getting Started
+// 只列出已发布的博客
+const publishedBlogs = await blogStorage.listBlogs({ published: true });
+```
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   yarn
-   ```
+## 贡献指南
 
-3. Set up environment variables:
-   ```env
-   BLOG_ROOT_DIR=blogs  # Directory where blogs will be stored
-   JWT_SECRET=your-super-secret-jwt-key
-   ```
+1. Fork 项目
+2. git clone 你 Fork 出的新项目
+3. 创建特性分支：`git checkout -b feature/AmazingFeature`
+4. 提交更改：`git commit -m 'Add some AmazingFeature'`
+5. 推送分支：`git push origin feature/AmazingFeature`
+6. 提交 Pull Request
 
-4. Run the development server:
-   ```bash
-   yarn dev
-   ```
+## 开发规范
+1. 使用 yarn 管理依赖
+2. 避免过度使用第三方库，尽量使用原生方法
 
-5. Access the dashboard:
-   ```
-   URL: http://localhost:3000/dashboard
-   Email: hollway@example.com
-   Password: hollway123
-   ```
+## 许可证
 
-## 📚 Environment Variables
-
-- `BLOG_ROOT_DIR`: Root directory for blog storage (default: 'blogs')
-
-## 🛠️ Tech Stack
-
-- Next.js 14
-- TypeScript
-- File-based Storage
-- Markdown Processing
-- Tailwind CSS
-- React Portal for Modals
+MIT License - 详见 LICENSE 文件

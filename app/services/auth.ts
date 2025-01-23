@@ -19,7 +19,8 @@ export const login = async (credentials: LoginCredentials): Promise<LoginRespons
   });
 
   if (!response.ok) {
-    throw new Error('Invalid credentials');
+    const error = await response.json().catch(() => ({ message: 'Invalid credentials' }));
+    throw new Error(error.message || 'Invalid credentials');
   }
 
   return response.json();

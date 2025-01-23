@@ -11,7 +11,6 @@ import { copyToClipboard } from "../services/utils";
 import mermaid from "mermaid";
 import { RiLoader4Line } from "react-icons/ri";
 import React from "react";
-import { useDebouncedCallback } from "use-debounce";
 
 import classnames from "classnames";
 
@@ -28,7 +27,7 @@ export function Mermaid(props: { code: string }) {
           nodes: [ref.current],
           suppressErrors: true,
         })
-        .catch((e: any) => {
+        .catch((e: { message: string }) => {
           setHasError(true);
           console.error("[Mermaid] ", e.message);
         });
@@ -39,8 +38,8 @@ export function Mermaid(props: { code: string }) {
   function viewSvgInNewWindow() {
     const svg = ref.current?.querySelector("svg");
     if (!svg) return;
-    const text = new XMLSerializer().serializeToString(svg);
-    const blob = new Blob([text], { type: "image/svg+xml" });
+    // const text = new XMLSerializer().serializeToString(svg);
+    // const blob = new Blob([text], { type: "image/svg+xml" });
     // showImageModal(URL.createObjectURL(blob));
   }
 
@@ -66,18 +65,18 @@ export function Mermaid(props: { code: string }) {
 export function PreCode(props: { children: any }) {
   const ref = useRef<HTMLPreElement>(null);
 //   const previewRef = useRef<HTMLPreviewHander>(null);
-  const [mermaidCode, setMermaidCode] = useState("");
+  const [mermaidCode, setMermaidCode] = useState("");  // eslint-disable-line no-unused-vars
 //   const [htmlCode, setHtmlCode] = useState("");
 //   const { height } = useWindowSize();
 //   const chatStore = useChatStore();
 //   const session = chatStore.currentSession();
 
-  const _renderArtifacts = useDebouncedCallback(() => {
-    if (!ref.current) return;
-    const mermaidDom = ref.current.querySelector("code.language-mermaid");
-    if (mermaidDom) {
-      setMermaidCode((mermaidDom as HTMLElement).innerText);
-    }
+  // const _renderArtifacts = useDebouncedCallback(() => {
+  //   if (!ref.current) return;
+  //   const mermaidDom = ref.current.querySelector("code.language-mermaid");
+  //   if (mermaidDom) {
+  //     setMermaidCode((mermaidDom as HTMLElement).innerText);
+  //   }
     // const htmlDom = ref.current.querySelector("code.language-html");
     // const refText = ref.current.querySelector("code")?.innerText;
     // if (htmlDom) {
@@ -89,7 +88,7 @@ export function PreCode(props: { children: any }) {
     // ) {
     //   setHtmlCode(refText);
     // }
-  }, 600);
+  // }, 600);
 
 //   const config = useAppConfig();
 //   const enableArtifacts =
@@ -112,8 +111,8 @@ export function PreCode(props: { children: any }) {
         "latex",
       ];
       codeElements.forEach((codeElement) => {
-        let languageClass = codeElement.className.match(/language-(\w+)/);
-        let name = languageClass ? languageClass[1] : "";
+        const languageClass = codeElement.className.match(/language-(\w+)/);
+        const name = languageClass ? languageClass[1] : "";
         if (wrapLanguages.includes(name)) {
           codeElement.style.whiteSpace = "pre-wrap";
         }
@@ -165,6 +164,7 @@ export function PreCode(props: { children: any }) {
   );
 }
 
+// eslint-disable-next-line no-explicit-any
 function CustomCode(props: { children: any; className?: string }) {
   // const chatStore = useChatStore();
   // const session = chatStore.currentSession();
@@ -259,7 +259,7 @@ function tryWrapHtmlCode(text: string) {
     );
 }
 
-function _MarkDownContent(props: { content: string }) {
+function MarkDownContent(props: { content: string }) {
   const escapedContent = useMemo(() => {
     return tryWrapHtmlCode(escapeBrackets(props.content));
   }, [props.content]);
@@ -278,8 +278,8 @@ function _MarkDownContent(props: { content: string }) {
         ],
       ]}
       components={{
-        pre: PreCode as any,
-        code: CustomCode as any,
+        pre: PreCode as any,  // eslint-disable-line no-explicit-any
+        code: CustomCode as any,  // eslint-disable-line no-explicit-any
         p: (pProps) => <p {...pProps} dir="auto" />,
         h1: (props) => {
           const id = props.children?.toString()
@@ -350,7 +350,7 @@ function _MarkDownContent(props: { content: string }) {
   );
 }
 
-export const MarkdownContent = React.memo(_MarkDownContent);
+export const MarkdownContentMemo = React.memo(MarkDownContent);
 
 export function Markdown(
   props: {
@@ -379,7 +379,7 @@ export function Markdown(
       {props.loading ? (
         <RiLoader4Line className="animate-spin" />
       ) : (
-        <MarkdownContent content={props.content} />
+        <MarkdownContentMemo content={props.content} />
       )}
     </div>
   );

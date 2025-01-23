@@ -18,7 +18,7 @@ export const authenticateRequest = (request: NextRequest): { email: string } | n
         const token = extractTokenFromHeader(authHeader);
         const payload = verifyToken(token);
         return payload;
-    } catch (error) {
+    } catch (error) { // eslint-disable-line no-unused-vars
         return null;
     }
 };

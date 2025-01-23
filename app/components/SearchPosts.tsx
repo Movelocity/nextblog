@@ -51,7 +51,7 @@ export default function SearchPosts({
     debounce((searchParams: SearchParams) => {
       onSearch(searchParams);
     }, 300),
-    [onSearch]
+    [onSearch] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleSearch = useCallback(() => {

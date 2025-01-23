@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import classNames from 'classnames';
 
 interface Heading {

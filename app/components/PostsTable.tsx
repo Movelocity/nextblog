@@ -31,7 +31,7 @@ const DeleteConfirmationModal = ({
   <Modal isOpen={isOpen} onClose={onClose} title="Confirm Delete" size="sm">
     <div className="space-y-4">
       <p className="text-gray-700">
-        Are you sure you want to delete the post "<span className="font-medium">{postTitle}</span>"? This action cannot be undone.
+        Are you sure you want to delete the post `&quot;`<span className="font-medium">{postTitle}</span>`&quot;`? This action cannot be undone.
       </p>
       <div className="flex justify-end gap-3">
         <button

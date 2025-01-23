@@ -12,33 +12,6 @@ export default function EditPostPage() {
   const params = useParams();
   const { isDirty, loading, error, setPost, setError, setLoading, setLastSaved } = useEditPostStore();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const authenticated = isAuthenticated();
-      if (!authenticated) {
-        console.log("not authenticated");
-        // router.push('/posts/' + params.id);
-        return;
-      }
-      await fetchPost();
-    };
-
-    checkAuth();
-  }, [params.id]);
-
-  // Handle unsaved changes warning
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
-
   const fetchPost = async () => {
     try {
       const post = await getPost(params.id as string);
@@ -57,6 +30,33 @@ export default function EditPostPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authenticated = isAuthenticated();
+      if (!authenticated) {
+        console.log("not authenticated");
+        // router.push('/posts/' + params.id);
+        return;
+      }
+      await fetchPost();
+    };
+
+    checkAuth();
+  }, [params.id, fetchPost]);
+
+  // Handle unsaved changes warning
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   if (loading) {
     return (

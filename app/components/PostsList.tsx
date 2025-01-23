@@ -7,7 +7,7 @@ interface PostsListProps {
   onDelete?: (id: string) => void;
 }
 
-export default function PostsList({ posts, isLoading = false, onDelete }: PostsListProps) {
+export default function PostsList({ posts, isLoading = false }: PostsListProps) {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-4">

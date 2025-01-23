@@ -8,21 +8,21 @@ import PostsTable from '@/app/components/PostsTable';
 import { Post } from '@/app/common/types';
 import { updatePost } from '@/app/services/posts';
 
-interface DashboardStats {
-  totalPosts: number;
-  publishedPosts: number;
-  draftPosts: number;
-}
+// interface DashboardStats {
+//   totalPosts: number;
+//   publishedPosts: number;
+//   draftPosts: number;
+// }
 
 export default function DashboardPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [_stats, setStats] = useState<DashboardStats>({
-    totalPosts: 0,
-    publishedPosts: 0,
-    draftPosts: 0,
-  });
+  // const [stats, setStats] = useState<DashboardStats>({
+  //   totalPosts: 0,
+  //   publishedPosts: 0,
+  //   draftPosts: 0,
+  // });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,17 +38,17 @@ export default function DashboardPage() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const { posts, total } = await getPosts({ page: 1, limit: 100, getAll: true });
-      console.log("posts", posts);
+      const { posts } = await getPosts({ page: 1, limit: 100, getAll: true });
+      // console.log("posts", posts);
       setPosts(posts);
-      const publishedPosts = posts.filter((post) => post.published);
-      const draftPosts = posts.filter((post) => !post.published);
+      // const publishedPosts = posts.filter((post) => post.published);
+      // const draftPosts = posts.filter((post) => !post.published);
 
-      setStats({
-        totalPosts: posts.length,
-        publishedPosts: publishedPosts.length,
-        draftPosts: draftPosts.length,
-      });
+      // setStats({
+      //   totalPosts: posts.length,
+      //   publishedPosts: publishedPosts.length,
+      //   draftPosts: draftPosts.length,
+      // });
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -56,15 +56,17 @@ export default function DashboardPage() {
     }
   };
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (email: string, password: string, remember: boolean) => {
     try {
       const response = await login({ email, password });
       setAuthToken(response.token);
       setIsAuthenticated(true);
       fetchPosts();
-    } catch (error) {
+    } catch (error) { // eslint-disable-line no-unused-vars
+      console.log('error', error);
       throw new Error('Invalid credentials');
     }
+    return true;
   };
 
   const handleLogout = () => {

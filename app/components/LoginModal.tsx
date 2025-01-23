@@ -8,7 +8,7 @@ import classNames from 'classnames';
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (email: string, password: string, remember: boolean) => void;
+  onLogin: (email: string, password: string, remember: boolean) => Promise<boolean>;
 }
 
 export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
@@ -24,9 +24,14 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
     setIsLoading(true);
     
     try {
-      await onLogin(email, password, rememberMe);
-      onClose();
+      const success = await onLogin(email, password, rememberMe);
+      if (success) {
+        onClose();
+      } else {
+        setError('Invalid email or password');
+      }
     } catch (err) {
+      console.log('err', err);
       setError('Invalid email or password');
     } finally {
       setIsLoading(false);
@@ -65,7 +70,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:bg-gray-700 dark:text-white"
                 placeholder="Enter your email"
                 aria-label="Email Address"
               />
@@ -86,7 +91,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:bg-gray-700 dark:text-white"
                 placeholder="Enter your password"
                 aria-label="Password"
               />

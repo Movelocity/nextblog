@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Post } from '@/app/common/types';
 import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
@@ -13,7 +13,7 @@ import { FaTags, FaEdit } from 'react-icons/fa';
 
 export default function PostPage() {
   const params = useParams();
-  const router = useRouter();
+  // const router = useRouter();
   const [post, setPost] = useState<Post | null>(null);
   const [editable, setEditable] = useState(false);
   const [loading, setLoading] = useState(true);

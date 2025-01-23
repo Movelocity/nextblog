@@ -120,7 +120,13 @@ export class BlogStorage {
       this.metaCache = JSON.parse(content);
       return this.metaCache!;
     } catch (error) {
-      throw new Error(`Failed to load meta cache: ${error}`);
+      console.log(`Failed to load meta cache: ${error}`);
+      return {
+        lastUpdated: new Date().toISOString(),
+        blogs: {},
+        categories: [],
+        tags: []
+      };
     }
   }
 

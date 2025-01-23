@@ -16,6 +16,7 @@ export default function CategoryPage() {
   const categoryPath = (params.slug as string[]) || [];
   const currentCategory = categoryPath.join('/');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchPosts = async () => {
     try {
       setLoading(true);
@@ -44,7 +45,7 @@ export default function CategoryPage() {
 
   useEffect(() => {
     fetchPosts();
-  }, [currentCategory]);
+  }, [currentCategory, fetchPosts]);
 
   const handleDelete = async (id: string) => {
     try {
