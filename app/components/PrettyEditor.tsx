@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Markdown } from './Markdown';
 import { TableOfContents } from './TableOfContents';
 import classNames from 'classnames';
@@ -29,6 +29,31 @@ export const PrettyEditor = ({
   const [newTag, setNewTag] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [customTags, setCustomTags] = useState<string[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-grow textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const adjustHeight = () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.max(500, textarea.scrollHeight)}px`;
+    };
+
+    adjustHeight();
+    
+    // Observe textarea content changes
+    const observer = new MutationObserver(adjustHeight);
+    observer.observe(textarea, { 
+      attributes: true, 
+      characterData: true, 
+      childList: true, 
+      subtree: true 
+    });
+
+    return () => observer.disconnect();
+  }, [post.content]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -47,10 +72,10 @@ export const PrettyEditor = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onSubmit]);
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onSubmit();
-  }
+  // const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   onSubmit();
+  // }
 
   const handleCategoryChange = (category: string) => {
     const newCategories = post.categories.includes(category)
@@ -94,9 +119,12 @@ export const PrettyEditor = ({
   };
   
   return (
-    <form 
-      onSubmit={handleSave} 
-      className="h-full ps-4 md:ps-20"
+    <div 
+      className="h-full"
+      style={{
+        paddingInlineStart: "var(--content-inline-start)",
+        paddingInlineEnd: "var(--content-inline-end)"
+      }}
     >
       <div className="flex flex-col h-full">
         {/* Title and Controls */}
@@ -168,7 +196,6 @@ export const PrettyEditor = ({
               </div>
 
               <button
-                type="button"
                 onClick={onSubmit}
                 className={classNames(
                   "px-3 py-1.5 text-sm font-medium hover:text-blue-500 rounded-md transition-colors",
@@ -194,17 +221,14 @@ export const PrettyEditor = ({
         <div className="flex-1 max-w-[780px] w-full mt-4">
           <div className={classNames(isPreview ? 'hidden' : '')}>
             <textarea
+              ref={textareaRef}
               id="content"
               value={post.content}
               onChange={(e) => {
                 setPostContent(e.target.value);
                 setIsDirty(true);
               }}
-              style={{
-                minHeight: '500px',
-                height: '1080px',
-              }}
-              className="w-full h-full bg-transparent outline-none font-mono resize-none"
+              className="w-full bg-transparent outline-none font-mono resize-none"
               placeholder="Write your post content here..."
               required
             />
@@ -316,6 +340,6 @@ export const PrettyEditor = ({
           </div>
         </div>
       </Modal>
-    </form>  
+    </div>  
   )
 };

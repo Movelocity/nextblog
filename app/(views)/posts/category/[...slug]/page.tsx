@@ -17,44 +17,36 @@ export default function CategoryPage() {
   const currentCategory = categoryPath.join('/');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const response = await getPosts({ categories: [currentCategory] });
-      setPosts(response.posts);
-
-      // Extract unique immediate sub-categories
-      const subCategories = new Set<string>();
-      response.posts.forEach(post => {
-        post.categories?.forEach(cat => {
-          // Only add categories that are direct children of current category
-          if (cat.startsWith(currentCategory + '/') && 
-              cat.split('/').length === categoryPath.length + 1) {
-            subCategories.add(cat.split('/').pop()!);
-          }
-        });
-      });
-
-      setAvailableSubCategories(Array.from(subCategories));
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await getPosts({ categories: [currentCategory] });
+        setPosts(response.posts);
+  
+        // Extract unique immediate sub-categories
+        const subCategories = new Set<string>();
+        response.posts.forEach(post => {
+          post.categories?.forEach(cat => {
+            // Only add categories that are direct children of current category
+            if (cat.startsWith(currentCategory + '/') && 
+                cat.split('/').length === categoryPath.length + 1) {
+              subCategories.add(cat.split('/').pop()!);
+            }
+          });
+        });
+  
+        setAvailableSubCategories(Array.from(subCategories));
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchPosts();
-  }, [currentCategory, fetchPosts]);
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deletePost(id);
-      fetchPosts();
-    } catch (error) {
-      console.error('Error deleting post:', error);
-    }
-  };
+  }, [currentCategory]);
 
   const renderBreadcrumbs = () => {
     const crumbs = [];
@@ -123,7 +115,7 @@ export default function CategoryPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       ) : (
-        <PostsList posts={posts} onDelete={handleDelete} />
+        <PostsList posts={posts} />
       )}
     </div>
   );

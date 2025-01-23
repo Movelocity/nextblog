@@ -5,6 +5,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --sidebar-width: 18rem;
+  --content-width: 780px;
+  --sidebar-space: var(--sidebar-width);
+  --content-inline-start: 0px;
+  --content-inline-end: 0px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -14,6 +19,13 @@
   }
 }
 
+@media (min-width: 1440px) {
+  :root {
+    --content-inline-start: calc(var(--sidebar-space) + 2rem);
+    --sidebar-space: clamp(var(--sidebar-width), max(0px, calc((100vw - var(--content-width)) / 2 - 2rem)), 100vw);
+    --content-inline-end: calc(100vw - var(--content-width) - var(--sidebar-space) - 6rem);
+  }
+}
 body {
   color: var(--foreground);
   background: var(--background);

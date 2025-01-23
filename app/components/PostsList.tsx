@@ -4,7 +4,6 @@ import Link from 'next/link';
 interface PostsListProps {
   posts: Post[];
   isLoading?: boolean;
-  onDelete?: (id: string) => void;
 }
 
 export default function PostsList({ posts, isLoading = false }: PostsListProps) {
