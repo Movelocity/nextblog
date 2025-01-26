@@ -44,12 +44,17 @@ export async function GET(request: NextRequest) {
 
     // Get all blog metas based on visibility
     let blogMetas: BlogMeta[];
+    let blogsCount = 0;
     if(getAll && authenticateRequest(request)!=null) {
       // get all posts, admin only
-      blogMetas = await blogStorage.listBlogs({ page, page_size: limit, published_only: false });
+      const { blogs, total } = await blogStorage.listBlogs({ page, page_size: limit, published_only: false });
+      blogMetas = blogs;
+      blogsCount = total;
     } else {
       // published posts only
-      blogMetas = await blogStorage.listBlogs({ page, page_size: limit, published_only: true });
+      const { blogs, total } = await blogStorage.listBlogs({ page, page_size: limit, published_only: true });
+      blogMetas = blogs;
+      blogsCount = total;
     }
     
     // Fetch full blog content for each meta
@@ -78,7 +83,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({
       posts,
-      total: posts.length
+      total: blogsCount
     });
   } catch (error) {
     console.error('Error fetching posts:', error);

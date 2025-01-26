@@ -330,18 +330,19 @@ export class BlogStorage {
   }
 
   // List all blogs
-  async listBlogs(options: { page?: number, page_size?: number, published_only?: boolean } = {}): Promise<BlogMeta[]> {
+  async listBlogs(options: { page?: number, page_size?: number, published_only?: boolean } = {}): Promise<{ blogs: BlogMeta[], total: number }> {
     const meta = await this.loadMeta();
     let blogs = Object.values(meta.blogs);
-
+    let total = blogs.length;
     if (options.published_only) {
       blogs = blogs.filter(blog => blog.published === true);
+      total = blogs.length;
     }
     if (options.page && options.page_size) {
       blogs = blogs.slice((options.page - 1) * options.page_size, options.page * options.page_size);
     }
 
-    return blogs;
+    return { blogs, total };
   }
 
   // Add an asset to a blog

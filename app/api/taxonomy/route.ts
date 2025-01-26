@@ -4,13 +4,13 @@ import blogStorage from '@/app/lib/BlogStorage';
 export async function GET() {
   try {
     // Get all blogs to ensure meta cache is up to date
-    const meta = await blogStorage.listBlogs();
+    const { blogs, total } = await blogStorage.listBlogs();
     
     // Extract unique categories and tags
     const categories = new Set<string>();
     const tags = new Set<string>();
     
-    meta.forEach(blog => {
+    blogs.forEach(blog => {
       blog.categories?.forEach(cat => categories.add(cat));
       blog.tags?.forEach(tag => tags.add(tag));
     });

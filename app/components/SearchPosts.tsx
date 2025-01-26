@@ -100,7 +100,7 @@ export default function SearchPosts({
           value={query}
           onChange={handleQueryChange}
           placeholder="Search posts..."
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg outline-none"
+          className="w-full px-4 py-2 border dark:text-gray-800 border-gray-300 dark:border-gray-700 rounded-lg outline-none"
           aria-label="Search posts"
         />
       </div>
