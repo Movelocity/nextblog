@@ -56,7 +56,7 @@ export default function SidePanel() {
 
       <div 
         className={classnames(
-          "fixed top-0 left-0 p-4 h-full w-64 bg-white dark:bg-gray-900 shadow-lg",
+          "fixed top-0 left-0 p-4 h-full w-64 bg-white dark:bg-zinc-900 shadow-lg",
           "transition-all duration-300 ease-in-out transform",
           show ? "translate-x-0" : "-translate-x-full",
           // "md:transition-none md:transform-none"
@@ -71,7 +71,7 @@ export default function SidePanel() {
                 <Link
                   key={category}
                   href={`/posts/category/${category}`}
-                  className="py-2 px-6 bg-white dark:bg-gray-900 shadow rounded-lg hover:shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-shadow"
+                  className="py-2 px-6 bg-white dark:bg-gray-800 shadow rounded-lg hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow"
                 >
                   <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">{category}</h3>
                 </Link>

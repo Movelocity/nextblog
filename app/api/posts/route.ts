@@ -47,39 +47,33 @@ export async function GET(request: NextRequest) {
     let blogsCount = 0;
     if(getAll && authenticateRequest(request)!=null) {
       // get all posts, admin only
-      const { blogs, total } = await blogStorage.listBlogs({ page, page_size: limit, published_only: false });
+      const { blogs, total } = await blogStorage.listBlogs({ 
+        page, 
+        page_size: limit, 
+        published_only: false,
+        categories,
+        tags,
+        query
+      });
       blogMetas = blogs;
       blogsCount = total;
     } else {
       // published posts only
-      const { blogs, total } = await blogStorage.listBlogs({ page, page_size: limit, published_only: true });
+      const { blogs, total } = await blogStorage.listBlogs({ 
+        page, 
+        page_size: limit, 
+        published_only: true,
+        categories,
+        tags,
+        query
+      });
       blogMetas = blogs;
       blogsCount = total;
     }
     
     // Fetch full blog content for each meta
     const blogs = await Promise.all(blogMetas.map(meta => blogStorage.getBlog(meta.id)));
-    let posts = blogs.map(blogToPost);
-    
-    // Apply search filters
-    if (query || categories.length || tags.length) {
-      posts = posts.filter(post => {
-        const matchesQuery = query ? 
-          post.title.toLowerCase().includes(query.toLowerCase()) || 
-          post.content.toLowerCase().includes(query.toLowerCase()) 
-          : true;
-          
-        const matchesCategories = categories.length ? 
-          categories.some((cat: string) => post.categories.includes(cat))
-          : true;
-          
-        const matchesTags = tags.length ? 
-          tags.some((tag: string) => post.tags.includes(tag))
-          : true;
-          
-        return matchesQuery && matchesCategories && matchesTags;
-      });
-    }
+    const posts = blogs.map(blogToPost);
     
     return NextResponse.json({
       posts,

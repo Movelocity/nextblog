@@ -40,7 +40,7 @@ export default function PostsList({ posts, isLoading = false }: PostsListProps) 
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <article key={post.id} className="p-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+        <article key={post.id} className="p-6 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start gap-4">
             <div className="flex-grow space-y-4">
               <div>

@@ -330,18 +330,53 @@ export class BlogStorage {
   }
 
   // List all blogs
-  async listBlogs(options: { page?: number, page_size?: number, published_only?: boolean } = {}): Promise<{ blogs: BlogMeta[], total: number }> {
+  async listBlogs(options: { 
+    page?: number, 
+    page_size?: number, 
+    published_only?: boolean,
+    categories?: string[],
+    tags?: string[],
+    query?: string
+  } = {}): Promise<{ blogs: BlogMeta[], total: number }> {
     const meta = await this.loadMeta();
     let blogs = Object.values(meta.blogs);
+    
     // sort by createdAt, most recent first
     blogs = blogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    let total = blogs.length;
+    
+    // Apply filters
     if (options.published_only) {
       blogs = blogs.filter(blog => blog.published === true);
-      total = blogs.length;
     }
+    
+    if (options.categories?.length) {
+      blogs = blogs.filter(blog => 
+        options.categories!.some(cat => blog.categories?.includes(cat))
+      );
+    }
+    
+    if (options.tags?.length) {
+      blogs = blogs.filter(blog => 
+        options.tags!.some(tag => blog.tags?.includes(tag))
+      );
+    }
+    
+    if (options.query) {
+      const query = options.query.toLowerCase();
+      blogs = blogs.filter(blog => 
+        blog.title.toLowerCase().includes(query) || 
+        blog.description.toLowerCase().includes(query)
+      );
+    }
+    
+    const total = blogs.length;
+    
+    // Apply pagination after filtering
     if (options.page && options.page_size) {
-      blogs = blogs.slice((options.page - 1) * options.page_size, options.page * options.page_size);
+      blogs = blogs.slice(
+        (options.page - 1) * options.page_size, 
+        options.page * options.page_size
+      );
     }
 
     return { blogs, total };
