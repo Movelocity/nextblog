@@ -93,27 +93,25 @@ export default function SearchPosts({
   }
 
   return (
-    <div className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <div className="relative">
+    <div className=" bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="p-2">
         <input
           type="text"
           value={query}
           onChange={handleQueryChange}
           placeholder="Search posts..."
-          className="w-full px-4 py-2 border dark:text-gray-800 border-gray-300 dark:border-gray-700 rounded-lg outline-none"
+          className="w-full px-4 py-2 dark:text-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 outline-none"
           aria-label="Search posts"
         />
       </div>
-
       {availableCategories.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-white">Categories</h3>
+        <div className="space-y-2 px-4">
           <div className="flex flex-wrap gap-2">
             {availableCategories.map(category => (
               <button
                 key={category}
                 onClick={() => toggleCategory(category)}
-                className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                className={`px-2 py text-sm rounded-full transition-colors ${
                   selectedCategories.includes(category)
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

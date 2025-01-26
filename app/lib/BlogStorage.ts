@@ -333,6 +333,8 @@ export class BlogStorage {
   async listBlogs(options: { page?: number, page_size?: number, published_only?: boolean } = {}): Promise<{ blogs: BlogMeta[], total: number }> {
     const meta = await this.loadMeta();
     let blogs = Object.values(meta.blogs);
+    // sort by createdAt, most recent first
+    blogs = blogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     let total = blogs.length;
     if (options.published_only) {
       blogs = blogs.filter(blog => blog.published === true);

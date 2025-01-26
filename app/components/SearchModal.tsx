@@ -67,15 +67,13 @@ export default function SearchModal() {
         </svg>
       </button>
 
-      <Modal isOpen={isOpen} onClose={handleClose} title="Search Posts" size="full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-          <div className="lg:border-r lg:pr-8 dark:border-gray-700">
-            <SearchPosts onSearch={handleSearch} />
-          </div>
+      <Modal isOpen={isOpen} onClose={handleClose}>
+        <div className="relative flex flex-col w-full max-w-2xl mx-auto bg-white dark:bg-gray-800/95 rounded-lg shadow-2xl">
+          <SearchPosts onSearch={handleSearch} />
 
-          <div className="lg:pl-8">
+          <div className="flex-1 overflow-y-auto max-h-[60vh]">
             {loading ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex items-center justify-center h-32">
                 <div className="text-center">
                   <svg
                     className="animate-spin h-8 w-8 text-blue-500 mx-auto mb-4"
@@ -97,36 +95,36 @@ export default function SearchModal() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  <p className="text-gray-500">Searching posts...</p>
+                  <p className="text-gray-500 dark:text-gray-400">Searching posts...</p>
                 </div>
               </div>
             ) : searchResults.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              <div>
+                <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700/50">
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Results ({searchResults.length})
                   </h3>
                 </div>
-                <div className="divide-y divide-gray-200 dark:divide-gray-700 -mx-4 sm:mx-0">
+                <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
                   {searchResults.map((post) => (
                     <Link
                       key={post.id}
                       href={`/posts/${post.id}`}
-                      className="block px-4 py-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors sm:rounded-lg"
+                      className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                       onClick={handleClose}
                     >
                       <div className="flex flex-col">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {post.title}
                         </h4>
-                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-300 line-clamp-2">
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
                           {getExcerpt(post.content)}
                         </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-2 flex flex-wrap gap-1.5">
                           {post.categories?.map((category) => (
                             <span
                               key={category}
-                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                             >
                               {category}
                             </span>
@@ -138,10 +136,10 @@ export default function SearchModal() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex items-center justify-center h-32">
                 <div className="text-center">
                   <svg
-                    className="h-12 w-12 text-gray-400 mx-auto mb-4"
+                    className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -153,7 +151,7 @@ export default function SearchModal() {
                       d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 21a9 9 0 110-18 9 9 0 010 18z"
                     />
                   </svg>
-                  <p className="text-gray-500 dark:text-gray-300">No results found</p>
+                  <p className="text-gray-400 dark:text-gray-500">No results found</p>
                 </div>
               </div>
             )}

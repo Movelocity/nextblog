@@ -236,10 +236,9 @@ export const PrettyEditor = ({
       <Modal
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
-        title="Categories & Tags"
         size="md"
       >
-        <div className="space-y-6">
+        <div className="space-y-6 p-4">
           <div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Categories</h3>
             <input
@@ -248,17 +247,17 @@ export const PrettyEditor = ({
               onChange={(e) => setNewCategory(e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, handleAddCategory)}
               placeholder="Type a category and press Enter"
-              className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-md outline-none"
+              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md outline-none"
               aria-label="New category name"
             />
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1">
               {availableCategories.map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}
                   type="button"
                   className={classNames(
-                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors",
+                    "px-2 text-sm font-medium rounded-full transition-colors",
                     post.categories.includes(category)
                       ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
@@ -273,7 +272,7 @@ export const PrettyEditor = ({
                   onClick={() => handleCategoryChange(category)}
                   type="button"
                   className={classNames(
-                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors border-2",
+                    "px-2 text-sm font-medium rounded-full transition-colors border-2",
                     post.categories.includes(category)
                       ? "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-200"
@@ -293,17 +292,17 @@ export const PrettyEditor = ({
               onChange={(e) => setNewTag(e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, handleAddTag)}
               placeholder="Type a tag and press Enter"
-              className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               aria-label="New tag name"
             />
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1">
               {availableTags.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => handleTagChange(tag)}
                   type="button"
                   className={classNames(
-                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors",
+                    "px-2 text-sm font-medium rounded-full transition-colors",
                     post.tags.includes(tag)
                       ? "bg-green-100 text-green-800 hover:bg-green-200"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
@@ -318,7 +317,7 @@ export const PrettyEditor = ({
                   onClick={() => handleTagChange(tag)}
                   type="button"
                   className={classNames(
-                    "px-3 py-1.5 text-sm font-medium rounded-full transition-colors border-2",
+                    "px-2 text-sm font-medium rounded-full transition-colors border-2",
                     post.tags.includes(tag)
                       ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-200"

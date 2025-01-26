@@ -70,7 +70,7 @@ export default function PostsList({ posts, isLoading = false }: PostsListProps) 
                           <Link
                             key={category}
                             href={`/posts/category/${category}`}
-                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-500 hover:underline"
+                            className="text-blue-600 dark:text-blue-500 hover:text-blue-800 dark:hover:text-blue-500 hover:underline"
                           >
                             {category}
                           </Link>
