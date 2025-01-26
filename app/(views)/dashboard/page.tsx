@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { getPosts, deletePost } from '@/app/services/posts';
 import LoginModal from '@/app/components/LoginModal';
-import { login, setAuthToken, isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/auth';
+import { login, setAuthToken, isAuthenticated as checkAuth } from '@/app/services/auth';
 import PostsTable from '@/app/components/PostsTable';
 import { Post } from '@/app/common/types';
 import { updatePost } from '@/app/services/posts';
-
+import { useToast } from '@/app/components/Toast';
 // interface DashboardStats {
 //   totalPosts: number;
 //   publishedPosts: number;
@@ -16,41 +16,32 @@ import { updatePost } from '@/app/services/posts';
 
 export default function DashboardPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [posts, setPosts] = useState<Post[]>([]);
-  // const [stats, setStats] = useState<DashboardStats>({
-  //   totalPosts: 0,
-  //   publishedPosts: 0,
-  //   draftPosts: 0,
-  // });
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const authStatus = checkAuth();
-    setIsAuthenticated(authStatus);
-    if (authStatus) {
-      setIsLoginModalOpen(false);
-      fetchPosts();
-    }
+    const checkAuthStatus = async () => {
+      const authStatus = await checkAuth();
+      setIsAuthenticated(authStatus);
+      if (authStatus) {
+        setIsLoginModalOpen(false);
+        fetchPosts();
+      }
+    };
+    checkAuthStatus();
   }, []);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const { posts, total } = await getPosts({ page: 1, limit: 100, getAll: true });
-      // console.log("posts", posts);
+      const { posts } = await getPosts({ page: 1, limit: 100, getAll: true });
       setPosts(posts);
-      // const publishedPosts = posts.filter((post) => post.published);
-      // const draftPosts = posts.filter((post) => !post.published);
-
-      // setStats({
-      //   totalPosts: posts.length,
-      //   publishedPosts: publishedPosts.length,
-      //   draftPosts: draftPosts.length,
-      // });
+      showToast('Posts fetched successfully', 'success');
     } catch (error) {
       console.error('Error fetching posts:', error);
+      showToast('Error fetching posts', 'error');
     } finally {
       setLoading(false);
     }
@@ -62,17 +53,11 @@ export default function DashboardPage() {
       setAuthToken(response.token);
       setIsAuthenticated(true);
       fetchPosts();
-    } catch (error) { // eslint-disable-line no-unused-vars
+    } catch (error) {
       console.log('error', error);
       throw new Error('Invalid credentials');
     }
     return true;
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setIsLoginModalOpen(true);
-    removeAuthToken();
   };
 
   if (!isAuthenticated) {
@@ -86,17 +71,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="px-3 py-1.5 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50 dark:hover:bg-transparent transition-colors"
-        >
-          Logout
-        </button>
-      </div>
-
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
         <PostsTable 
           posts={posts} 

@@ -15,14 +15,17 @@ export default function PostPage() {
   const params = useParams();
   // const router = useRouter();
   const [post, setPost] = useState<Post | null>(null);
-  const [editable, setEditable] = useState(false);
+  const [editable, setEditable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
-    const authenticated = isAuthenticated();
-    setEditable(authenticated);
+    const checkAuthStatus = async () => {
+      const authStatus = await isAuthenticated();
+      setEditable(authStatus);
+    };
+    checkAuthStatus();
   }, []);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Post, SearchParams } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/PostsList';
@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { POSTS_CONFIG } from '@/app/common/config';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
-export default function PostsPage() {
+function Page() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
@@ -95,3 +95,11 @@ export default function PostsPage() {
     </div>
   );
 } 
+
+export default function PostsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Page />
+    </Suspense>
+  )
+}
