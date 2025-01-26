@@ -24,7 +24,7 @@ export const PrettyEditor = ({
   } = useEditPostStore();
   const [isPreview, setIsPreview] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const wordCount = post.content.trim().split(/\s+/).length;
+  const wordCount = post.content.trim().match(/[\S]+/g)?.length || 0; // 更新 wordCount 计算方式
   const [newCategory, setNewCategory] = useState('');
   const [newTag, setNewTag] = useState('');
   const [customCategories, setCustomCategories] = useState<string[]>([]);
@@ -135,9 +135,9 @@ export const PrettyEditor = ({
         paddingInlineEnd: "var(--content-inline-end)"
       }}
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full mb-96">
         {/* Title and Controls */}
-        <div className="flex flex-col pb-4 max-w-[780px] w-full">
+        <div className="flex flex-col pb-4 max-w-[780px] w-full border-b border-gray-200 dark:border-gray-700">
           <div className="pt-4">
             <input
               type="text"
@@ -166,7 +166,7 @@ export const PrettyEditor = ({
                 {wordCount} words
               </span>
               <span className="italic">
-                {isSaving ? 'Saving...' : lastSaved ? `Last saved ${lastSaved.toLocaleTimeString()}` : ''}
+                {lastSaved ? `Last saved ${lastSaved.toLocaleTimeString()}` : ''}
               </span>
             </div>
 
@@ -190,10 +190,10 @@ export const PrettyEditor = ({
                 onClick={onSubmit}
                 className={classNames(
                   "px-3 py-1.5 text-sm font-medium hover:text-blue-500 rounded-md transition-colors",
-                  { "opacity-50 cursor-not-allowed": loading }
+                  { "opacity-50 cursor-default": loading }
                 )}
               >
-                {loading ? 'Saving...' : 'Save'}
+                {'Save'}
               </button>
             </div>
           </div>

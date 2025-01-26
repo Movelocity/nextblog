@@ -58,13 +58,13 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
       </div>
       
       {!isCollapsed && (
-        <nav className="space-y-1 border-l-2 pl-1 border-gray-300">
+        <nav className="space-y-1">
           {headings.map((heading, index) => (
             <button
               key={index}
               onClick={() => handleHeadingClick(heading.id)}
               className={classNames(
-                "block w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-700",
+                "block w-full text-left px-2 py-1 text-sm border-l-2 pl-1 border-transparent hover:border-gray-300",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500",
                 {
                   "pl-2": heading.level === 1,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Navigation } from "./components/Navbar";
+import { ToastProvider } from "./components/Toast";
 import "./globals.css";
 
 const geist = Geist({
@@ -20,10 +21,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={geist.className}>
       <body className="min-h-screen bg-gray-50 dark:bg-neutral-900 text-gray-900 dark:text-white">
-        <Navigation />
-        <main className="py-6 mt-12">
-          {children}
-        </main>
+        <ToastProvider>
+          <Navigation />
+          <main className="py-6 mt-12">
+            {children}
+          </main>
+        </ToastProvider>
       </body>
     </html>
   );

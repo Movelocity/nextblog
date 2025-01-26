@@ -1112,3 +1112,117 @@
 #dmermaid {
   display: none;
 }
+
+.mkd-body pre {
+  padding: 0;
+}
+
+.mkd-body pre,
+.mkd-body code {
+  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+}
+
+.mkd-body pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+}
+
+.mkd-body code {
+  padding: 3px 5px;
+}
+
+.mkd-body .hljs,
+.mkd-body pre {
+  background: #1a1b26;
+  color: #cbd2ea;
+}
+
+/*!
+Theme: Tokyo-night-Dark
+origin: https://github.com/enkia/tokyo-night-vscode-theme
+Description: Original highlight.js style
+Author: (c) Henri Vandersleyen <hvandersleyen@gmail.com>
+License: see project LICENSE
+Touched: 2022
+*/
+.mkd-body .hljs-comment,
+.mkd-body .hljs-meta {
+  color: #565f89;
+}
+
+.mkd-body .hljs-deletion,
+.mkd-body .hljs-doctag,
+.mkd-body .hljs-regexp,
+.mkd-body .hljs-selector-attr,
+.mkd-body .hljs-selector-class,
+.mkd-body .hljs-selector-id,
+.mkd-body .hljs-selector-pseudo,
+.mkd-body .hljs-tag,
+.mkd-body .hljs-template-tag,
+.hljs-variable.language_ {
+  color: #f7768e;
+}
+
+.mkd-body .hljs-link,
+.mkd-body .hljs-literal,
+.mkd-body .hljs-number,
+.mkd-body .hljs-params,
+.mkd-body .hljs-template-variable,
+.mkd-body .hljs-type,
+.mkd-body .hljs-variable {
+  color: #ff9e64;
+}
+
+.mkd-body .hljs-attribute,
+.mkd-body .hljs-built_in {
+  color: #e0af68;
+}
+
+.mkd-body .hljs-keyword,
+.mkd-body .hljs-property,
+.mkd-body .hljs-subst,
+.mkd-body .hljs-title,
+.mkd-body .hljs-title.class_,
+.mkd-body .hljs-title.class_.inherited__,
+.hljs-title.function_ {
+  color: #7dcfff;
+}
+
+.mkd-body .hljs-selector-tag {
+  color: #73daca;
+}
+
+.mkd-body .hljs-addition,
+.mkd-body .hljs-bullet,
+.mkd-body .hljs-quote,
+.mkd-body .hljs-string,
+.mkd-body .hljs-symbol {
+  color: #9ece6a;
+}
+
+.mkd-body .hljs-code,
+.mkd-body .hljs-formula,
+.mkd-body .hljs-section {
+  color: #7aa2f7;
+}
+
+.mkd-body .hljs-attr,
+.mkd-body .hljs-char.escape_,
+.mkd-body .hljs-keyword,
+.mkd-body .hljs-name,
+.mkd-body .hljs-operator {
+  color: #bb9af7;
+}
+
+.mkd-body .hljs-punctuation {
+  color: #c0caf5;
+}
+
+.mkd-body .hljs-emphasis {
+  font-style: italic;
+}
+
+.mkd-body .hljs-strong {
+  font-weight: 700;
+}

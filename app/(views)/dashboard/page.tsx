@@ -98,27 +98,21 @@ export default function DashboardPage() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <PostsTable 
-            posts={posts} 
-            onDelete={async (id) => {
-              await deletePost(id);
+        <PostsTable 
+          posts={posts} 
+          onDelete={async (id) => {
+            await deletePost(id);
+            fetchPosts();
+          }}
+          onTogglePublish={async (id, currentStatus) => {
+            try {
+              await updatePost(id, { published: !currentStatus });
               fetchPosts();
-            }}
-            onTogglePublish={async (id, currentStatus) => {
-              try {
-                await updatePost(id, { published: !currentStatus });
-                fetchPosts();
-              } catch (error) {
-                console.error('Error toggling post status:', error);
-              }
-            }}
-          />
-        )}
+            } catch (error) {
+              console.error('Error toggling post status:', error);
+            }
+          }}
+        />
       </div>
     </div>
   );
