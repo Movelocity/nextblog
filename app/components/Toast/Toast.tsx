@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { IoCheckmarkCircle, IoWarning, IoInformationCircle, IoCloseCircle } from 'react-icons/io5';
 
@@ -28,21 +28,36 @@ const TOAST_STYLES = {
 };
 
 export default function Toast({ id, message, type, onDismiss }: ToastProps) {
+  const toastRef = useRef<HTMLDivElement>(null);
+  const [toastState, setToastState] = useState<'enter' | 'exit' | 'dismissed'>('enter');
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onDismiss(id);
+    const fadingTimer = setTimeout(() => {
+      if (toastRef.current) {
+        setToastState('exit');
+      }
     }, 2000);
+    const dismissTimer = setTimeout(() => {
+      setToastState('dismissed');
+      onDismiss(id);
+    }, 2300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(dismissTimer);
+      clearTimeout(fadingTimer);
+    };
   }, [id, onDismiss]);
 
   const Icon = TOAST_ICONS[type];
 
   return (
     <div
+      ref={toastRef}
       className={classNames(
-        'flex items-center p-4 mb-3 rounded-lg shadow-lg transition-all duration-300 ease-in-out',
-        'animate-enter',
+        'flex items-center p-4 rounded-lg shadow-lg',
+        'transition-all duration-300 ease-in-out',
+        'opacity-100 scale-100',
+        toastState === 'enter' && 'animate-enter',
+        toastState === 'exit' && 'animate-exit',
         TOAST_STYLES[type]
       )}
       role="alert"

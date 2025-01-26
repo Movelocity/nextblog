@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getTaxonomy, updatePost } from '@/app/services/posts';
 import { PrettyEditor } from './PrettyEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
+import { useToast } from '@/app/components/Toast';
 
 export interface PostEditorData {
   title: string;
@@ -24,7 +25,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
 
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-
+  const { showToast } = useToast();
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -35,12 +36,15 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
         setIsDirty(false);
         setLastSaved(new Date());
         setIsSaving(false);
+        showToast('Post updated successfully', 'success');
       } else if (onCreate) {
         onCreate(post);
+        showToast('Post created successfully', 'success');
       }  
     } catch (error) {
       console.error('Error updating post:', error);
       setError('Failed to update post. Please try again.');
+      showToast('Failed to update post. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
