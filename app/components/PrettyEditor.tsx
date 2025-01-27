@@ -6,6 +6,7 @@ import { useEditPostStore } from '../stores/EditPostStore';
 import { FaTags } from 'react-icons/fa';
 import Modal from './Modal';
 import PublishHint from './PubilshHint';
+import Link from 'next/link';
 type PrettyEditorProps = {
   onSubmit: () => void;
   availableCategories: string[];
@@ -135,7 +136,7 @@ export const PrettyEditor = ({
         paddingInlineEnd: "var(--content-inline-end)"
       }}
     >
-      <div className="flex flex-col h-full mb-96">
+      <div className="flex flex-col h-full mb-64">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full border-b border-gray-200 dark:border-gray-700">
           <div className="pt-4">
@@ -155,13 +156,6 @@ export const PrettyEditor = ({
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4">
             <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-              <button
-                type="button"
-                onClick={() => setIsPreview(!isPreview)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-              >
-                {isPreview ? 'Edit' : 'Preview'}
-              </button>
               <span className="flex items-center">
                 {wordCount} words
               </span>
@@ -170,26 +164,46 @@ export const PrettyEditor = ({
               </span>
             </div>
 
-            <div className="flex items-center space-x-3 gap-4">
+            <div className="flex items-center space-x-3">
               <button
                 type="button"
                 onClick={() => setShowCategoryModal(true)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors flex items-center gap-2"
+                className="p-1.5 group"
                 aria-label="Edit categories and tags"
               >
-                <FaTags className="w-4 h-4" />
-                <span>Labels</span>
+                <FaTags className="w-4 h-4 group-hover:text-blue-500" />
               </button>
+              {post.categories && post.categories.length > 0 && (
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md flex items-center">
+                  <div className="flex gap-2">
+                    {post.categories.map((category) => (
+                      <Link
+                        key={category}
+                        href={`/posts/category/${category}`}
+                        className="hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
+                      >
+                        {category}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <PublishHint published={post.published} onClick={() => {
                 setPostPublished(!post.published);
                 setIsDirty(true);
               }} />
-
+              <button
+                type="button"
+                onClick={() => setIsPreview(!isPreview)}
+                className="px-3 py-1.5 text-sm font-medium hover:text-blue-500 transition-colors"
+              >
+                {isPreview ? 'Edit' : 'Preview'}
+              </button>
               <button
                 onClick={onSubmit}
                 className={classNames(
-                  "px-3 py-1.5 text-sm font-medium hover:text-blue-500 rounded-md transition-colors",
+                  "px-3 py-1.5 text-sm font-medium hover:text-blue-500 transition-colors",
                   { "opacity-50 cursor-default": loading }
                 )}
               >

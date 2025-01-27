@@ -13,12 +13,7 @@ export interface Post {
 export type CreatePostInput = Omit<Post, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdatePostInput = Partial<Omit<Post, 'id' | 'createdAt' | 'updatedAt'>>;
 
-export const BLOG_CONFIG = {
-  ROOT_DIR: process.env.BLOG_ROOT_DIR || 'blogs',  // Root directory for all blogs
-  META_FILE: 'meta.json',  // File to store metadata for all blogs
-  CONTENT_FILE: 'index.md',  // Main content file for each blog
-  ASSETS_DIR: 'assets',  // Directory for blog assets (images, etc.)
-};
+
 
 export interface BlogMeta {
   id: string;  // Same as folder name

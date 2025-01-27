@@ -111,8 +111,6 @@ export default function PostsList({ posts, isLoading = false }: PostsListProps) 
               <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed line-clamp-2">
                 {post.content.replace(/<[^>]*>?/gm, '').replace(/[#`-]/g, '').substring(0, 200)}...
               </p>
-              
-              
             </div>
           </div>
         </article>

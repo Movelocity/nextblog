@@ -6,7 +6,7 @@ import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/PostsList';
 import { useToast } from '@/app/components/Toast';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { POSTS_CONFIG } from '@/app/common/config';
+import { BLOG_CONFIG } from '@/app/common/config';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 function Page() {
@@ -17,7 +17,7 @@ function Page() {
   const searchParams = useSearchParams();
   const [total, setTotal] = useState(0);
   const page = Number(searchParams.get('page')) || 1;
-  const limit = POSTS_CONFIG.MAX_POSTS_PER_PAGE;
+  const limit = BLOG_CONFIG.MAX_POSTS_PER_PAGE;
 
   const fetchPosts = async (searchParams?: SearchParams) => {
     try {

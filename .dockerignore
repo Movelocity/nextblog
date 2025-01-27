@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.local
+.env*.local
+.next
+node_modules
+README.md
+README.en.md
+*.log
+.vscode
+.idea
+.DS_Store
+docker-compose*
+Dockerfile*
+blogs/*
+posts/* 

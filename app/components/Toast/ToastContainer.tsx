@@ -25,12 +25,12 @@ export default function ToastContainer({ toasts, onDismiss }: ToastContainerProp
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed top-4 right-4 z-50 flex flex-col items-end">
+    <div className="fixed top-16 right-4 z-50 flex flex-col items-end">
       {toasts.slice(0, 3).reverse().map((toast, index) => (
         <div 
           key={toast.id} 
           className="transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateY(${index * 1}rem)` }}
+          style={{ transform: `translateY(${index * 0.5}rem)` }}
         >
           <Toast {...toast} onDismiss={onDismiss} />
         </div>

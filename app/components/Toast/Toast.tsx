@@ -53,7 +53,7 @@ export default function Toast({ id, message, type, onDismiss }: ToastProps) {
     <div
       ref={toastRef}
       className={classNames(
-        'flex items-center p-4 rounded-lg shadow-lg',
+        'flex items-center p-2 rounded-lg shadow-lg',
         'transition-all duration-300 ease-in-out',
         'opacity-100 scale-100',
         toastState === 'enter' && 'animate-enter',

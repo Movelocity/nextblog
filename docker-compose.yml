@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  nextblog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-my-ultra-secret-jwt-key}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-nextblog@example.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-nextblog123}
+      - BLOG_ROOT_DIR=blogs
+    volumes:
+      - ./blogs:/app/blogs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3 

@@ -6,7 +6,6 @@ import { Post } from '@/app/common/types';
 import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
 import Link from 'next/link';
-import classNames from 'classnames';
 import { Markdown } from '@/app/components/Markdown';
 import { TableOfContents } from '@/app/components/TableOfContents';
 import { FaTags, FaEdit } from 'react-icons/fa';
@@ -105,7 +104,7 @@ export default function PostPage() {
                       <Link
                         key={category}
                         href={`/posts/category/${category}`}
-                        className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        className="hover:text-blue-600 dark:hover:text-blue-500 transition-colors"
                       >
                         {category}
                       </Link>
@@ -139,7 +138,7 @@ export default function PostPage() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 max-w-[780px] w-full mt-4">
+        <div className="flex-1 max-w-[780px] w-full mt-4 mb-64">
           <div className="prose max-w-none">
             <Markdown content={post.content} />
           </div>

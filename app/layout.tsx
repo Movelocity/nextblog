@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
 import { Navigation } from "./components/Navbar";
 import { ToastProvider } from "./components/Toast";
 import "./globals.css";
 
-const geist = Geist({
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Blog Management System",
@@ -19,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={geist.className}>
+    <html lang="en">
       <body className="min-h-screen bg-gray-50 dark:bg-neutral-900 text-gray-900 dark:text-white">
         <ToastProvider>
           <Navigation />

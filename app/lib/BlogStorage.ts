@@ -3,15 +3,14 @@ import path from 'path';
 import yaml from 'yaml';
 import { existsSync } from 'fs';
 import { 
-  BLOG_CONFIG, 
   BlogMeta, 
   Blog, 
   CreateBlogInput,
   UpdateBlogInput,
   BlogMetaCache,
   BlogConfig
-} from '../common/types';
-
+} from '@/app/common/types';
+import { BLOG_CONFIG } from '@/app/common/config';
 /**
  * BlogStorage class handles all blog-related file operations
  * including creating, reading, updating, and deleting blogs and their assets.
