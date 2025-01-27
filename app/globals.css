@@ -5,18 +5,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --navbar-height: 3rem;
   --sidebar-width: 18rem;
   --content-width: 780px;
   --sidebar-space: var(--sidebar-width);
   --content-inline-start: 1rem;
   --content-inline-end: 1rem;
+  --shadow-color: #bbb;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --shadow-color: #111;
 }
 
 @media (min-width: 768px) {
@@ -72,4 +73,29 @@ body {
 .animate-exit {
   animation: exit 0.3s ease-out forwards;
   pointer-events: none;
+}
+
+/** css part of side panel. color and animation decided by tailwind **/
+.side-panel {
+  top: var(--navbar-height);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: start;
+  position:fixed;
+  left: 0;
+  z-index: 10;
+}
+
+.side-panel-toggle-bar {
+  position: fixed;
+  left: var(--sidebar-width);
+  height: 100%;
+  cursor: pointer;
+}
+
+.side-panel-content {
+  width: var(--sidebar-width);
+  height: 100%;
+  box-shadow: 2px 6px 8px var(--shadow-color);
 }

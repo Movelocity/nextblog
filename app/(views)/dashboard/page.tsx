@@ -7,12 +7,8 @@ import { login, setAuthToken, isAuthenticated as checkAuth } from '@/app/service
 import PostsTable from '@/app/components/PostsTable';
 import { Post } from '@/app/common/types';
 import { updatePost } from '@/app/services/posts';
-import { useToast } from '@/app/components/Toast';
-// interface DashboardStats {
-//   totalPosts: number;
-//   publishedPosts: number;
-//   draftPosts: number;
-// }
+import { useToast } from '@/app/features/Toast/context';
+
 
 export default function DashboardPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);

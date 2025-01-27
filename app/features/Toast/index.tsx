@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+
 import classNames from 'classnames';
 import { IoCheckmarkCircle, IoWarning, IoInformationCircle, IoCloseCircle } from 'react-icons/io5';
 
@@ -25,11 +27,12 @@ const TOAST_STYLES = {
   error: 'bg-red-50 text-red-800 dark:bg-red-900/50 dark:text-red-300',
   warning: 'bg-amber-50 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
   info: 'bg-blue-50 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
-};
+}; 
 
-export default function Toast({ id, message, type, onDismiss }: ToastProps) {
+const Toast = ({ id, message, type, onDismiss }: ToastProps) => {
   const toastRef = useRef<HTMLDivElement>(null);
   const [toastState, setToastState] = useState<'enter' | 'exit' | 'dismissed'>('enter');
+
   useEffect(() => {
     const fadingTimer = setTimeout(() => {
       if (toastRef.current) {
@@ -65,5 +68,41 @@ export default function Toast({ id, message, type, onDismiss }: ToastProps) {
       <Icon className="w-5 h-5 mr-2" />
       <span className="font-medium">{message}</span>
     </div>
+  );
+} 
+
+interface ToastInfo {
+  id: string;
+  message: string;
+  type: ToastType;
+}
+
+interface ToastContainerProps {
+  toasts: ToastInfo[];
+  onDismiss: (id: string) => void;
+}
+
+export default function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed top-16 right-4 z-50 flex flex-col items-end">
+      {toasts.slice(0, 3).reverse().map((toast, index) => (
+        <div 
+          key={toast.id} 
+          className="transition-transform duration-300 ease-in-out"
+          style={{ transform: `translateY(${index * 0.5}rem)` }}
+        >
+          <Toast {...toast} onDismiss={onDismiss} />
+        </div>
+      ))}
+    </div>,
+    document.body
   );
 } 

@@ -1,20 +1,19 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback } from 'react';
-import { ToastType } from './Toast';
-import ToastContainer from './ToastContainer';
-
-interface ToastContextType {
-  showToast: (message: string, type: ToastType) => void;
-}
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+import ToastContainer, { ToastType } from './index';
 
 interface Toast {
   id: string;
   message: string;
   type: ToastType;
 }
+
+interface ToastContextType {
+  showToast: (message: string, type: ToastType) => void;
+}
+
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
