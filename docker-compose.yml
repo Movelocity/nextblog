@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   nextblog:
+    image: nextblog:latest
     build:
       context: .
       dockerfile: Dockerfile
