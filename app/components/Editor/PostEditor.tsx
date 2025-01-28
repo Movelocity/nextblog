@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getTaxonomy, updatePost } from '@/app/services/posts';
-import { PrettyEditor } from './PrettyEditor';
+import { PrettyEditor } from '@/app/components/Editor/PrettyEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useToast } from '@/app/features/Toast/context';
 

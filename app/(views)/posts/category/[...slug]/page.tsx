@@ -16,9 +16,6 @@ export default function CategoryPage() {
   const categoryPath = (params.slug as string[]) || [];
   const currentCategory = categoryPath.join('/');
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  
-
   useEffect(() => {
     const fetchPosts = async () => {
       try {

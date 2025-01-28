@@ -5,7 +5,7 @@ JWT_SECRET="my-ultra-secret-jwt-key"
 ADMIN_EMAIL="nextblog@example.com"
 ADMIN_PASSWORD="nextblog123"
 BLOG_ROOT_DIR="./blogs"
-PORT=3000
+PORT=3003
 IMAGE_NAME="nextblog:latest"
 
 # 启动 Docker 容器

@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
-import { Markdown } from './Markdown';
-import { TableOfContents } from './TableOfContents';
+import { Markdown } from '@/app/components/Markdown';
+import { TableOfContents } from '@/app/components/TableOfContents';
 import classNames from 'classnames';
-import { useEditPostStore } from '../stores/EditPostStore';
+import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { FaTags } from 'react-icons/fa';
-import Modal from './Modal';
-import PublishHint from './PubilshHint';
+import Modal from '@/app/components/Modal';
+import PublishHint from '@/app/components/PubilshHint';
 import Link from 'next/link';
+
 type PrettyEditorProps = {
   onSubmit: () => void;
   availableCategories: string[];

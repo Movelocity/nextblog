@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { PostEditorData } from '../components/PostEditor';
+import { PostEditorData } from '@/app/components/Editor/PostEditor';
 
 export interface EditPostStore {
   isDirty: boolean;

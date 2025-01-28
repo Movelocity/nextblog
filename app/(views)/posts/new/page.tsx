@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { createPost } from '@/app/services/posts';
-import { PostEditor, PostEditorData } from '@/app/components/PostEditor';
+import { PostEditor, PostEditorData } from '@/app/components/Editor/PostEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useEffect } from 'react';
 
@@ -30,9 +30,7 @@ export default function NewPostPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PostEditor
-        onCreate={handleSubmit}
-      />
+      <PostEditor onCreate={handleSubmit}/>
     </div>
   );
 } 
