@@ -29,8 +29,6 @@ export default function NewPostPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <PostEditor onCreate={handleSubmit}/>
-    </div>
+    <PostEditor onCreate={handleSubmit}/>
   );
 } 

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useSidePanel } from './context';
 import { getTaxonomy } from '@/app/services/posts';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-
+import { RiBook2Line } from 'react-icons/ri';
 export function SidePanel() {
   const { isSidePanelOpen } = useSidePanel();
   return (
@@ -40,7 +40,8 @@ export const ToggleBar = () => {
     <div 
       className={classnames(
         "side-panel-toggle-bar px-1 bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-800",
-        isSidePanelOpen ? "flex justify-center items-center" : "hidden",
+        "text-gray-400/50 hover:text-gray-400 text-sm",
+        "hidden md:flex justify-center items-center",
       )}
       onClick={toggleSidePanel}
       aria-hidden="true"
@@ -72,15 +73,18 @@ const Categories = () => {
   }, []);
 
   return (
-    <div className="side-panel-content p-4 flex flex-col gap-4">
-      <h2 className="text-xl font-semibold">Categories</h2>
+    <div className="side-panel-content p-4 flex flex-col text-gray-500 dark:text-gray-300">
+      <span className="flex items-center gap-1 mb-1">
+        <RiBook2Line className="w-5 h-5" />
+        Categories
+      </span>
       {topLevelCategories.map((category) => (
         <Link
           key={category}
           href={`/posts/category/${category}`}
-          className="py-2 px-6 bg-white dark:bg-gray-800 shadow rounded-lg hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow"
+          className="py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md"
         >
-          <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">{category}</h3>
+          {category}
         </Link>
       ))}
     </div>

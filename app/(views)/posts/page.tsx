@@ -49,7 +49,7 @@ function Page() {
   };
 
   return (
-    <div className="container mx-auto px-4 md:px-24 py-8">
+    <div className="post-content">
       <PostsList posts={posts} isLoading={loading} />
       
       {/* Pagination */}

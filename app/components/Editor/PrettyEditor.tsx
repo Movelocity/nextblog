@@ -130,13 +130,7 @@ export const PrettyEditor = ({
   };
   
   return (
-    <div 
-      className="h-full"
-      style={{
-        paddingInlineStart: "var(--content-inline-start)",
-        paddingInlineEnd: "var(--content-inline-end)"
-      }}
-    >
+    <div className="h-full post-content">
       <div className="flex flex-col h-full mb-64">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full border-b border-gray-200 dark:border-gray-700">
