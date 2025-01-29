@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { Post, SearchParams } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/PostsList';
-import { useToast } from '@/app/features/Toast/context';
+import { useToast } from '@/app/components/Toast/context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BLOG_CONFIG } from '@/app/common/config';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';

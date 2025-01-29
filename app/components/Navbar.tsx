@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/auth';
 import { useRouter } from 'next/navigation';
 import { RiLogoutBoxLine } from 'react-icons/ri';
-import { ToggleBtn } from "@/app/features/SidePanel";
+import { ToggleBtn } from "@/app/components/SidePanel";
 
 export const Navigation = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

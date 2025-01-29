@@ -7,7 +7,8 @@ import Link from 'next/link';
 import { useSidePanel } from './context';
 import { getTaxonomy } from '@/app/services/posts';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { RiBook2Line } from 'react-icons/ri';
+import { RiBook2Fill, RiHomeFill } from 'react-icons/ri';
+
 export function SidePanel() {
   const { isSidePanelOpen } = useSidePanel();
   return (
@@ -19,7 +20,7 @@ export function SidePanel() {
       )}
     >
       <ToggleBar/>
-      <Categories />
+      <SidePanelContent />
     </div>
   )
 }
@@ -51,7 +52,7 @@ export const ToggleBar = () => {
   )
 }
   
-const Categories = () => {
+const SidePanelContent = () => {
   const [topLevelCategories, setTopLevelCategories] = useState<string[]>([]);
 
   useEffect(() => {
@@ -74,8 +75,12 @@ const Categories = () => {
 
   return (
     <div className="side-panel-content p-4 flex flex-col text-gray-500 dark:text-gray-300">
+      <Link href="/posts" className="flex items-center gap-1 mb-4 hover:bg-zinc-800 rounded-md py-1 pr-2">
+        <RiHomeFill className="w-4 h-4" />
+        Home
+      </Link>
       <span className="flex items-center gap-1 mb-1">
-        <RiBook2Line className="w-5 h-5" />
+        <RiBook2Fill className="w-4 h-4" />
         Categories
       </span>
       {topLevelCategories.map((category) => (

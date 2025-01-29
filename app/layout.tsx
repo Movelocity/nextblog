@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Navigation } from "./components/Navbar";
-import { SidePanel } from "@/app/features/SidePanel";
+import { SidePanel } from "@/app/components/SidePanel";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description: "A modern blog management system built with Next.js",
 };
 
-import { ToastProvider } from '@/app/features/Toast/context';
-import { SidePanelProvider } from '@/app/features/SidePanel/context';
+import { ToastProvider } from '@/app/components/Toast/context';
+import { SidePanelProvider } from '@/app/components/SidePanel/context';
 
 interface ProvidersProps {
   children: React.ReactNode;
