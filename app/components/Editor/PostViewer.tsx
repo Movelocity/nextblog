@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Markdown } from '@/app/components/Markdown';
+import { Markdown } from '@/app/components/Editor/Markdown';
 import { TableOfContents } from '@/app/components/TableOfContents';
 import { FaTags, FaEdit } from 'react-icons/fa';
 import PublishHint from '@/app/components/PubilshHint';

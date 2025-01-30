@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Markdown } from '@/app/components/Markdown';
+import { Markdown } from '@/app/components/Editor/Markdown';
 import { TableOfContents } from '@/app/components/TableOfContents';
 import classNames from 'classnames';
 import { useEditPostStore } from '@/app/stores/EditPostStore';

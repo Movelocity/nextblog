@@ -7,7 +7,7 @@ import RehypeKatex from "rehype-katex";
 import RemarkGfm from "remark-gfm";
 import RehypeHighlight from "rehype-highlight";
 import { useRef, useState, RefObject, useEffect, useMemo } from "react";
-import { copyToClipboard } from "../services/utils";
+import { copyToClipboard } from "../../services/utils";
 import mermaid from "mermaid";
 import { RiLoader4Line } from "react-icons/ri";
 import React from "react";

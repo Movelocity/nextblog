@@ -10,13 +10,14 @@ import { RiLogoutBoxLine } from 'react-icons/ri';
 import { ToggleBtn } from "@/app/components/SidePanel";
 import { useScrollDirection } from '@/app/hooks/useScrollDirection';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
+import { useSidePanel } from '@/app/components/SidePanel/context';
 
 export const Navigation = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
   const { visible } = useScrollDirection();
   const isMobile = useIsMobile();
-
+  const { isSidePanelOpen } = useSidePanel();
   useEffect(() => {
     const checkAuthStatus = async () => {
       const authStatus = await checkAuth();
@@ -34,7 +35,7 @@ export const Navigation = () => {
   return (
     <nav 
       className={`bg-white/50 dark:bg-zinc-800/60 shadow-md fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
-        isMobile && !visible ? '-translate-y-full' : 'translate-y-0'
+        isMobile && !visible && !isSidePanelOpen ? '-translate-y-full' : 'translate-y-0'
       }`}
       style={{ height: "var(--navbar-height)" }}
     >

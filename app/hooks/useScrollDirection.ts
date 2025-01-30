@@ -4,7 +4,6 @@ type ScrollDirection = 'up' | 'down';
 
 export const useScrollDirection = () => {
   const [scrollDirection, setScrollDirection] = useState<ScrollDirection>('up');
-  const [prevOffset, setPrevOffset] = useState(0);
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
