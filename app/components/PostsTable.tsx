@@ -153,7 +153,7 @@ const TableHeader = ({
   return (
     <div className="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Posts</h2>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 overflow-x-auto">
         {selectedPosts.length > 0 && (
           <>
             {onTogglePublish && (
@@ -260,8 +260,9 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
               onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
             />
           </div>
-          {post.categories && <CategoryTags categories={post.categories} />}
-          <div className="flex justify-end items-center gap-3 pt-2 border-t dark:border-gray-700">
+          
+          <div className="flex justify-between items-center gap-3 pt-2 border-t dark:border-gray-700">
+            {post.categories && <CategoryTags categories={post.categories} />}
             <ActionButtons post={post} {...props} />
           </div>
         </div>

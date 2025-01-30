@@ -7,18 +7,13 @@ import Link from 'next/link';
 import { useSidePanel } from './context';
 import { getTaxonomy } from '@/app/services/posts';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { RiBook2Fill, RiHomeFill } from 'react-icons/ri';
+import { RiBook2Fill, RiHomeFill, RiDashboardFill } from 'react-icons/ri';
 import './index.css';
 
 export function SidePanel() {
-  // const { isSidePanelOpen } = useSidePanel();
   return (
     <div 
-      className={classnames(
-        "side-panel h-full bg-white dark:bg-zinc-900",
-        // "transition-all duration-300 ease-in-out transform",
-        // isSidePanelOpen ? "translate-x-0" : "-translate-x-full",
-      )}
+      className={classnames("side-panel h-full bg-white dark:bg-zinc-900")}
     >
       <ToggleBar/>
       <SidePanelContent />
@@ -52,7 +47,15 @@ export const ToggleBar = () => {
     </div>
   )
 }
-  
+
+const StyledLink = ({target, children}: {target: string, children: React.ReactNode}) => {
+  return (
+    <Link href={target} className="flex items-center gap-1 mb-4 hover:bg-zinc-800 rounded-md py-1 px-2">
+      {children}
+    </Link>
+  )
+}
+
 const SidePanelContent = () => {
   const [topLevelCategories, setTopLevelCategories] = useState<string[]>([]);
 
@@ -76,10 +79,10 @@ const SidePanelContent = () => {
 
   return (
     <div className="side-panel-content p-4 flex flex-col text-gray-500 dark:text-gray-300">
-      <Link href="/posts" className="flex items-center gap-1 mb-4 hover:bg-zinc-800 rounded-md py-1 px-2">
+      <StyledLink target="/posts">
         <RiHomeFill className="w-4 h-4" />
         Home
-      </Link>
+      </StyledLink>
       <span className="flex items-center gap-1 mb-1 px-2">
         <RiBook2Fill className="w-4 h-4" />
         Categories
@@ -93,6 +96,10 @@ const SidePanelContent = () => {
           {category}
         </Link>
       ))}
+      <StyledLink target="/dashboard">
+        <RiDashboardFill className="w-4 h-4" />
+        Dashboard
+      </StyledLink>
     </div>
   );
 }; 
