@@ -29,7 +29,7 @@ export function SidePanel() {
 export const ToggleBtn = ({className}: {className?: string}) => {
   const { toggleSidePanel } = useSidePanel();
   return (
-    <div className={classnames("cursor-pointer select-none", className)} onClick={toggleSidePanel}>
+    <div className={classnames("cursor-pointer select-none side-panel-toggle-btn", className)} onClick={toggleSidePanel}>
       <RiMenuFill className="text-2xl" />
     </div>
   );

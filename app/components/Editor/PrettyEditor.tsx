@@ -212,8 +212,7 @@ export const PrettyEditor = ({
         <div className="sticky top-24 mx-auto w-full z-50">
           <TableOfContents 
             content={post.content} 
-            className='hidden md:block absolute min-w-[12rem] max-w-[15rem]'
-            style={{ insetInlineStart: '800px' }}
+            className='toc absolute min-w-[10rem] max-w-[15rem]'
           />
         </div>
 

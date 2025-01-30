@@ -7,10 +7,10 @@
   --foreground: #171717;
   --navbar-height: 3rem;
   --sidebar-width: 14rem;
+  --sidebar-space: 0px;
   --content-width: 780px;
-  --sidebar-space: var(--sidebar-width);
-  --content-inline-start: 1rem;
-  --content-inline-end: 1rem;
+  --content-inline-start: calc(var(--sidebar-space) + 2rem);
+  --content-inline-end: calc(100vw - var(--content-width) - var(--sidebar-space) - 2rem);
   --shadow-color: #bbb;
 }
 
@@ -31,23 +31,23 @@ body {
 }
 
 @media (min-width: 768px) and (max-width: 1439px) {
-  :root {
-    --content-inline-start: 3rem;
-    --content-inline-end: 3rem;
+  body {
+    --content-inline-start: calc((100vw - var(--content-width)) / 2 - 2rem);
+    --content-inline-end: calc((100vw - var(--content-width)) / 2 - 2rem);
   }
 
   body.has-side-panel {
+    --sidebar-space: var(--sidebar-width);
     --content-inline-start: calc(var(--sidebar-space) + 2rem);
-    --sidebar-space: clamp(var(--sidebar-width), max(0px, calc((100vw - var(--content-width)) / 2 - 2rem)), 100vw);
-    --content-inline-end: calc(100vw - var(--content-width) - var(--sidebar-space)  + 6rem);
-  }
+    --content-inline-end: calc(100vw - var(--content-width) - var(--sidebar-space) - 2rem);
+  }  
 }
 
 @media (min-width: 1440px) {
   :root {
+    --sidebar-space: calc(var(--sidebar-width) + 1rem);
     --content-inline-start: calc(var(--sidebar-space));
-    --sidebar-space: clamp(var(--sidebar-width), max(0px, calc((100vw - var(--content-width)) / 2 - 2rem)), 100vw);
-    --content-inline-end: calc(100vw - var(--content-width) - var(--sidebar-space) - 6rem);
+    --content-inline-end: calc(100vw - var(--content-width) - var(--sidebar-space) - 2rem);
   }
 }
 
@@ -87,4 +87,21 @@ body {
   padding-inline-end: var(--content-inline-end);
   /* transform animation when side panel is open */
   transition: padding 0.3s ease-in-out;
+}
+
+.normal-content {
+  padding-inline-start: var(--content-inline-start);
+  padding-inline-end: 2rem;
+  transition: padding 0.3s ease-in-out;
+}
+
+.toc {
+  display: none;
+  inset-inline-start: calc(100% + .5rem);
+}
+
+@media (min-width: 1000px) {
+  .toc {
+    display: block;
+  }
 }

@@ -49,7 +49,7 @@ function Page() {
   };
 
   return (
-    <div className="post-content">
+    <div className="normal-content">
       <PostsList posts={posts} isLoading={loading} />
       
       {/* Pagination */}

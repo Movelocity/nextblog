@@ -65,7 +65,7 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
               onClick={() => handleHeadingClick(heading.id)}
               className={classNames(
                 "block w-full text-left px-2 py-1 text-sm border-l-2 pl-1 border-transparent hover:border-gray-300",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500",
+                "focus:outline-none focus:font-bold",
                 {
                   "pl-2": heading.level === 1,
                   "pl-4": heading.level === 2,
