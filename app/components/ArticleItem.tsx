@@ -28,12 +28,14 @@ const ArticleItem = ({ post }: ArticleItemProps) => {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-500 transition-colors">
           {post.title}
         </h2>
+
+        {/* Content Preview */}
+        <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-4 line-clamp-3">
+          {contentPreview}...
+        </p>
       </Link>
 
-      {/* Content Preview */}
-      <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-4 line-clamp-3">
-        {contentPreview}...
-      </p>
+      
 
       {/* Metadata Section */}
       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">

@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { Markdown } from '@/app/components/Editor/Markdown';
 import { TableOfContents } from '@/app/components/TableOfContents';
-import { FaCube, FaTags, FaEdit } from 'react-icons/fa';
-import { FaCubes } from 'react-icons/fa6';
+import { FaTags, FaEdit } from 'react-icons/fa';
 import PublishHint from '@/app/components/PubilshHint';
 import { Post } from '@/app/common/types';
 import CategoryTag from '@/app/components/CategoryTag';
@@ -27,30 +26,24 @@ export const PostViewer = ({ post, editable }: PostViewerProps) => {
           </div>
 
           <div className="flex flex-row items-center justify-start mt-4">
-            
-
             {post.categories && post.categories.length > 0 && (
-              <div className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md flex items-center gap-2">
-                <FaCubes className="w-4 h-4" />
-                <div className="flex gap-2">
-                  {post.categories.map((category) => (
-                    <CategoryTag
-                      key={category}
-                      category={category}
-                      showLink={false}
-                    />
-                  ))}
-                </div>
+              <div>
+                {post.categories.map((category) => (
+                  <CategoryTag
+                    key={category}
+                    category={category}
+                    showLink={false}
+                  />
+                ))}
               </div>
             )}
 
             {editable && (
               <Link
                 href={`/posts/${post.id}/edit`}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors flex items-center gap-2"
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-500 transition-colors flex items-center gap-2"
               >
-                <FaEdit className="w-4 h-4" />
-                <span>Edit</span>
+                <FaEdit className="w-4 h-4" /> Edit
               </Link>
             )}
           </div>

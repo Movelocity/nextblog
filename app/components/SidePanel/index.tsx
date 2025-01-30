@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import classnames from 'classnames';
-import { RiMenuFill } from 'react-icons/ri';
+import { RiAddFill, RiMenuFill } from 'react-icons/ri';
 import Link from 'next/link';
 import { useSidePanel } from './context';
 import { getTaxonomy } from '@/app/services/posts';
@@ -12,7 +12,7 @@ import './index.css';
 
 export function SidePanel() {
   return (
-    <div 
+    <div
       className={classnames("side-panel h-full bg-white dark:bg-zinc-900")}
     >
       <ToggleBar/>
@@ -36,7 +36,7 @@ export const ToggleBar = () => {
   return (
     <div 
       className={classnames(
-        "side-panel-toggle-bar px-1 bg-transparent dark:hover:bg-zinc-800",
+        "side-panel-toggle-bar px-1 bg-transparent",
         "text-gray-400/50 hover:text-gray-400 text-sm",
         "justify-center items-center",
       )}
@@ -48,10 +48,31 @@ export const ToggleBar = () => {
   )
 }
 
-const StyledLink = ({target, children}: {target: string, children: React.ReactNode}) => {
-  return (
-    <Link href={target} className="flex items-center gap-1 mb-4 hover:bg-zinc-800 rounded-md py-1 px-2">
-      {children}
+interface StyledLinkProps {
+  icon: React.ReactNode;
+  name: string;
+  tgUrl: string;
+  children?: React.ReactNode;
+}
+
+const StyledLink = ({icon, name, tgUrl, children}: StyledLinkProps) => {
+  const [isOpen, setIsOpen] = useState(true);
+  if(children) { // optional children, if children is provided, then we need to render a dropdown
+    return (
+      <div className="flex flex-col">
+        <div className="flex items-center gap-1 px-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1" onClick={() => setIsOpen(!isOpen)}>
+          {icon} {name}
+        </div>
+        {isOpen && children}
+      </div>
+    )
+  }
+  return (  // just render a link if no children
+    <Link 
+      href={tgUrl} 
+      className="flex items-center gap-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2"
+    >
+      {icon} {name}
     </Link>
   )
 }
@@ -79,27 +100,20 @@ const SidePanelContent = () => {
 
   return (
     <div className="side-panel-content p-4 flex flex-col text-gray-500 dark:text-gray-300">
-      <StyledLink target="/posts">
-        <RiHomeFill className="w-4 h-4" />
-        Home
+      <StyledLink icon={<RiHomeFill className="w-4 h-4" />} name="Home" tgUrl="/posts" />
+      <StyledLink icon={<RiBook2Fill className="w-4 h-4" />} name="Categories" tgUrl="/posts/category">
+        {topLevelCategories.map((category) => (
+          <Link
+            key={category}
+            href={`/posts/category/${category}`}
+            className="py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md"
+          >
+            {category}
+          </Link>
+        ))}
       </StyledLink>
-      <span className="flex items-center gap-1 mb-1 px-2">
-        <RiBook2Fill className="w-4 h-4" />
-        Categories
-      </span>
-      {topLevelCategories.map((category) => (
-        <Link
-          key={category}
-          href={`/posts/category/${category}`}
-          className="py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md"
-        >
-          {category}
-        </Link>
-      ))}
-      <StyledLink target="/dashboard">
-        <RiDashboardFill className="w-4 h-4" />
-        Dashboard
-      </StyledLink>
+      <StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard"/>
+      <StyledLink icon={<RiAddFill className="w-4 h-4" />} name="New Post" tgUrl="/posts/new"/>
     </div>
   );
 }; 

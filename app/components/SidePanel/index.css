@@ -35,6 +35,10 @@
   background-color: #f0f0f0;
 }
 
+.dark .side-panel-toggle-bar:hover {
+  background-color: #111111;
+}
+
 @media (max-width: 780px) {
   .has-side-panel .side-panel-toggle-bar {
     width: calc(100vw - var(--sidebar-width));
