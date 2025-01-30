@@ -1,12 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { Markdown } from '@/app/components/Editor/Markdown';
-import { TableOfContents } from '@/app/components/TableOfContents';
+import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import classNames from 'classnames';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
-import { FaTags } from 'react-icons/fa';
-import { FaCubes } from 'react-icons/fa6';
-import { CategoryModal } from '@/app/components/CategoryModal';
-import PublishHint from '@/app/components/PubilshHint';
+import { CategoryModal } from '@/app/components/CategoryTag/CategoryModal';
+import PublishHint from '@/app/components/part/PubilshHint';
 import CategoryTag from '@/app/components/CategoryTag';
 
 type PrettyEditorProps = {

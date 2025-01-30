@@ -1,4 +1,4 @@
-import { Post } from '../common/types';
+import { Post } from '../../common/types';
 import ArticleItem from './ArticleItem';
 
 interface PostsListProps {
@@ -31,7 +31,7 @@ export default function PostsList({ posts, isLoading = false }: PostsListProps) 
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="text-gray-600 p-4 text-center border rounded-lg">
+      <div className="text-gray-600 p-4 text-center rounded-lg">
         No posts available.
       </div>
     );

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Post, SearchParams } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
-import Modal from './Modal';
+import Modal from '@/app/components/Modal';
 import SearchPosts from './SearchPosts';
 import Link from 'next/link';
 

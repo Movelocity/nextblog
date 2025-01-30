@@ -1,8 +1,8 @@
 'use client';
 
 import Link from "next/link";
-import SearchModal from "./SearchModal";
-import ThemeBtn from "./ThemeBtn";
+import SearchModal from "@/app/components/Searching/SearchModal";
+import ThemeBtn from "@/app/components/part/ThemeBtn";
 import { useState, useEffect } from 'react';
 import { isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/auth';
 import { useRouter } from 'next/navigation';

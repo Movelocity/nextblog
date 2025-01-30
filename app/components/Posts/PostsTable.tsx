@@ -1,10 +1,10 @@
-import { Post } from '../common/types';
+import { Post } from '../../common/types';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { FaSort, FaSortUp, FaSortDown, FaEdit, FaTrash } from 'react-icons/fa';
 import { MdPublish, MdUnpublished } from 'react-icons/md';
 import classNames from 'classnames';
-import Modal from './Modal';
+import Modal from '../Modal';
 
 // Types
 type SortField = 'title' | 'updatedAt' | 'published';

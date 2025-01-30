@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Post } from '@/app/common/types';
 import { getPosts, deletePost } from '@/app/services/posts';
-import PostsList from '@/app/components/PostsList';
+import PostsList from '@/app/components/Posts/PostsList';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 

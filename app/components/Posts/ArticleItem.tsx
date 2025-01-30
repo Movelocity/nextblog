@@ -1,8 +1,7 @@
-import { Post } from '../common/types';
+import { Post } from '../../common/types';
 import Link from 'next/link';
 import { FaTags, FaCalendarAlt } from 'react-icons/fa';
-import classNames from 'classnames';
-import CategoryTag from './CategoryTag';
+import CategoryTag from '@/app/components/CategoryTag';
 
 interface ArticleItemProps {
   post: Post;

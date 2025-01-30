@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { getPosts, deletePost } from '@/app/services/posts';
 import LoginModal from '@/app/components/LoginModal';
 import { login, setAuthToken, isAuthenticated as checkAuth } from '@/app/services/auth';
-import PostsTable from '@/app/components/PostsTable';
+import PostsTable from '@/app/components/Posts/PostsTable';
 import { Post } from '@/app/common/types';
 import { updatePost } from '@/app/services/posts';
 import { useToast } from '@/app/components/Toast/context';

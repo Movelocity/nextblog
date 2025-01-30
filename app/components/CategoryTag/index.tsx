@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useCategoryStore } from '../stores/CategoryStore';
+import { useCategoryStore } from '@/app/stores/CategoryStore';
 import classNames from 'classnames';
 
 interface CategoryTagProps {

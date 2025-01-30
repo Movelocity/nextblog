@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Post, SearchParams } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
-import PostsList from '@/app/components/PostsList';
+import PostsList from '@/app/components/Posts/PostsList';
 import { useToast } from '@/app/components/Toast/context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BLOG_CONFIG } from '@/app/common/config';

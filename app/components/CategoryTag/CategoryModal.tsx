@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Modal from '@/app/components/Modal';
-import CategoryTag from '@/app/components/CategoryTag';
-import classNames from 'classnames';
+import CategoryTag from './index';
 
 interface CategoryModalProps {
   isOpen: boolean;

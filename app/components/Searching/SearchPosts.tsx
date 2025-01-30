@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import { SearchParams } from '../common/types';
+import { SearchParams } from '../../common/types';
 import debounce from 'lodash/debounce';
-import { getTaxonomy } from '../services/posts';
-import CategoryTag from './CategoryTag';
+import { getTaxonomy } from '../../services/posts';
+import CategoryTag from '@/app/components/CategoryTag';
 
 interface SearchPostsProps {
   onSearch: (params: SearchParams) => void;
@@ -106,18 +106,16 @@ export default function SearchPosts({
         />
       </div>
       {availableCategories.length > 0 && (
-        <div className="space-y-2 px-4">
-          <div className="flex flex-wrap gap-2">
-            {availableCategories.map(category => (
-              <CategoryTag
-                key={category}
-                category={category}
-                onClick={() => toggleCategory(category)}
-                showLink={false}
-                selected={selectedCategories.includes(category)}
-              />
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-2">
+          {availableCategories.map(category => (
+            <CategoryTag
+              key={category}
+              category={category}
+              onClick={() => toggleCategory(category)}
+              showLink={false}
+              selected={selectedCategories.includes(category)}
+            />
+          ))}
         </div>
       )}
 
