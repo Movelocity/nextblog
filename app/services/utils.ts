@@ -1,7 +1,4 @@
-export function showToast(message: string) {
-  // TODO: implement toast in components
-  console.log("showToast", message);
-}
+
 
 export async function copyToClipboard(text: string) {
   const textArea = document.createElement("textarea");
@@ -11,9 +8,9 @@ export async function copyToClipboard(text: string) {
   textArea.select();
   try {
     document.execCommand("copy");
-    showToast("Copied to clipboard");
+    // showToast("Copied to clipboard");
   } catch (error) { // eslint-disable-line no-unused-vars
-    showToast("Failed to copy to clipboard");
+    // showToast("Failed to copy to clipboard");
   }
   document.body.removeChild(textArea);
 }

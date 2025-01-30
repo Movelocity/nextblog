@@ -1,22 +1,32 @@
 'use client';
 
-import { useState } from 'react';
-import Modal from './Modal';
+import { useEffect, useState } from 'react';
+import Modal from '../Modal';
+import { login, setAuthToken } from '@/app/services/auth';
 import { FiMail, FiLock, FiLoader } from 'react-icons/fi';
 import classNames from 'classnames';
+import { readAccount, rememberAccount } from '@/app/components/Login/utils';
+import { useToast } from '@/app/components/Toast/context';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (email: string, password: string, remember: boolean) => Promise<boolean>;
+  onSuccess: ()=>void;
 }
 
-export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const { showToast } = useToast();
+
+  useEffect(()=>{
+    const authInfo = readAccount();
+    setEmail(authInfo.email);
+    setPassword(authInfo.password);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +34,15 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
     setIsLoading(true);
     
     try {
-      const success = await onLogin(email, password, rememberMe);
-      if (success) {
-        onClose();
+      const response = await login({ email, password });
+      if (response && response.token) {
+        setAuthToken(response.token);
+        rememberAccount({ email, password }, rememberMe);
+        onSuccess();
       } else {
         setError('Invalid email or password');
       }
+
     } catch (err) {
       console.log('err', err);
       setError('Invalid email or password');
@@ -41,6 +54,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps
   const handleForgotPassword = () => {
     // Implement forgot password functionality
     console.log('Forgot password clicked');
+    showToast('Forgot password', 'info');
   };
 
   return (

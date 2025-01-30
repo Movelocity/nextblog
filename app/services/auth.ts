@@ -17,7 +17,7 @@ export interface AuthCheckResponse {
   error?: string;
 }
 
-export const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+export const login = async (credentials: LoginCredentials): Promise<LoginResponse | null> => {
   const response = await fetch(API_ROUTES.LOGIN, {
     method: 'POST',
     headers: {

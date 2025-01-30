@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { getPosts, deletePost } from '@/app/services/posts';
-import LoginModal from '@/app/components/LoginModal';
-import { login, setAuthToken, isAuthenticated as checkAuth } from '@/app/services/auth';
+import LoginModal from '@/app/components/Login/LoginModal';
+import { isAuthenticated as checkAuth } from '@/app/services/auth';
 import PostsTable from '@/app/components/Posts/PostsTable';
 import { Post } from '@/app/common/types';
 import { updatePost } from '@/app/services/posts';
@@ -15,7 +15,6 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [posts, setPosts] = useState<Post[]>([]);
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -31,29 +30,18 @@ export default function DashboardPage() {
 
   const fetchPosts = async () => {
     try {
-      setLoading(true);
       const { posts } = await getPosts({ page: 1, limit: 100, getAll: true });
       setPosts(posts);
       showToast('Posts fetched successfully', 'success');
     } catch (error) {
       console.error('Error fetching posts:', error);
       showToast('Error fetching posts', 'error');
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
-  const handleLogin = async (email: string, password: string, remember: boolean) => {
-    try {
-      const response = await login({ email, password });
-      setAuthToken(response.token);
-      setIsAuthenticated(true);
-      fetchPosts();
-    } catch (error) {
-      console.log('error', error);
-      throw new Error('Invalid credentials');
-    }
-    return true;
+  const handleLogin = async () => {
+    setIsAuthenticated(true);
+    fetchPosts();
   };
 
   if (!isAuthenticated) {
@@ -61,7 +49,7 @@ export default function DashboardPage() {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onLogin={handleLogin}
+        onSuccess={handleLogin}
       />
     );
   }
