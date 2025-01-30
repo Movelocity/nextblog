@@ -31,6 +31,23 @@
   display: flex;
 }
 
+.side-panel-toggle-bar:hover {
+  background-color: #f0f0f0;
+}
+
+@media (max-width: 780px) {
+  .has-side-panel .side-panel-toggle-bar {
+    width: calc(100vw - var(--sidebar-width));
+    background-color: transparent;
+    color: transparent;
+  }
+
+  .has-side-panel .side-panel-toggle-bar:hover {
+    background-color: transparent;
+    color: transparent;
+  }
+}
+
 .side-panel-content {
   width: var(--sidebar-width);
   height: 100%;

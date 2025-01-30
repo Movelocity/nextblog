@@ -8,7 +8,7 @@ interface PublishHintProps {
 
 export default function PublishHint({ published, onClick }: PublishHintProps) {
   return (
-    <div className="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+    <div className="flex items-center space-x-2">
       <span className={classnames(
         "px-2.5 py-0.5 text-xs font-medium rounded-full cursor-pointer",
         published 

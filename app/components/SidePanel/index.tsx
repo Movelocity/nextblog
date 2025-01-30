@@ -36,7 +36,7 @@ export const ToggleBar = () => {
   return (
     <div 
       className={classnames(
-        "side-panel-toggle-bar px-1 bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-800",
+        "side-panel-toggle-bar px-1 bg-transparent dark:hover:bg-zinc-800",
         "text-gray-400/50 hover:text-gray-400 text-sm",
         "justify-center items-center",
       )}

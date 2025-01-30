@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { SearchParams } from '../common/types';
 import debounce from 'lodash/debounce';
 import { getTaxonomy } from '../services/posts';
+import CategoryTag from './CategoryTag';
 
 interface SearchPostsProps {
   onSearch: (params: SearchParams) => void;
@@ -93,7 +94,7 @@ export default function SearchPosts({
   }
 
   return (
-    <div className=" bg-white dark:bg-gray-800 rounded-lg shadow">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
       <div className="p-2">
         <input
           type="text"
@@ -108,26 +109,20 @@ export default function SearchPosts({
         <div className="space-y-2 px-4">
           <div className="flex flex-wrap gap-2">
             {availableCategories.map(category => (
-              <button
+              <CategoryTag
                 key={category}
+                category={category}
                 onClick={() => toggleCategory(category)}
-                className={`px-2 py text-sm rounded-full transition-colors ${
-                  selectedCategories.includes(category)
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                aria-pressed={selectedCategories.includes(category)}
-              >
-                {category}
-              </button>
+                showLink={false}
+                selected={selectedCategories.includes(category)}
+              />
             ))}
           </div>
         </div>
       )}
 
       {availableTags.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-white">Tags</h3>
+        <div className="space-y-2 px-4">
           <div className="flex flex-wrap gap-2">
             {availableTags.map(tag => (
               <button
@@ -135,12 +130,12 @@ export default function SearchPosts({
                 onClick={() => toggleTag(tag)}
                 className={`px-3 py-1 text-sm rounded-full transition-colors ${
                   selectedTags.includes(tag)
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'text-blue-500 dark:text-blue-300'
+                    : 'text-gray-400/50 hover:text-gray-400'
                 }`}
                 aria-pressed={selectedTags.includes(tag)}
               >
-                {tag}
+                {"#"+tag}
               </button>
             ))}
           </div>
