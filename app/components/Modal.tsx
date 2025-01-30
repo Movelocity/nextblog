@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import classNames from 'classnames';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 interface ModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ const sizeClasses = {
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setMounted(true);
@@ -55,7 +57,11 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className={classNames(
+        "fixed inset-0 bg-black/50 flex z-50",
+        isMobile ? "items-start pt-4" : "items-center",
+        "justify-center"
+      )}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -63,7 +69,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       <div 
         className={classNames(
           'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full overflow-hidden flex flex-col',
-          sizeClasses[size]
+          sizeClasses[size],
+          isMobile && 'mb-32'
         )}
       >
         {title && (  // title is optional
@@ -92,7 +99,10 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
             </button>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto">
+        <div className={classNames(
+          "flex-1 overflow-y-auto",
+          isMobile && "pb-8"
+        )}>
           {children}
         </div>
       </div>

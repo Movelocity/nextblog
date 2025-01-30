@@ -8,10 +8,14 @@ import { isAuthenticated as checkAuth, removeAuthToken } from '@/app/services/au
 import { useRouter } from 'next/navigation';
 import { RiLogoutBoxLine } from 'react-icons/ri';
 import { ToggleBtn } from "@/app/components/SidePanel";
+import { useScrollDirection } from '@/app/hooks/useScrollDirection';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 export const Navigation = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+  const { visible } = useScrollDirection();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -29,7 +33,9 @@ export const Navigation = () => {
 
   return (
     <nav 
-      className="bg-white/50 dark:bg-zinc-800/60 shadow-md fixed top-0 left-0 right-0 z-50"
+      className={`bg-white/50 dark:bg-zinc-800/60 shadow-md fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+        isMobile && !visible ? '-translate-y-full' : 'translate-y-0'
+      }`}
       style={{ height: "var(--navbar-height)" }}
     >
       <div className="px-4 sm:px-6 lg:px-8">

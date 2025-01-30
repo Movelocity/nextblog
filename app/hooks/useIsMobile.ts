@@ -23,9 +23,18 @@ export const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const userAgent = typeof navigator === 'undefined' ? 'SSR' : navigator.userAgent;
-    const mobile = getMobileDetect(userAgent);
-    setIsMobile(mobile.isMobile());
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 640); // Matches Tailwind's sm breakpoint
+    };
+
+    // Check on mount
+    checkIsMobile();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIsMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
   return isMobile;
