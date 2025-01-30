@@ -85,10 +85,6 @@ export default function CategoryPage() {
   return (
     <div className="normal-content">
       {renderBreadcrumbs()}
-      
-      {/* <h1 className="text-3xl font-bold mb-8">
-        {currentCategory ? `Posts in ${categoryPath[categoryPath.length - 1]}` : 'All Posts'}
-      </h1> */}
 
       {availableSubCategories.length > 0 && (
         <div className="mb-8">

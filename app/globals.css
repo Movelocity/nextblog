@@ -9,8 +9,8 @@
   --sidebar-width: 14rem;
   --sidebar-space: 0px;
   --content-width: 780px;
-  --content-inline-start: calc(var(--sidebar-space) + 2rem);
-  --content-inline-end: calc(100vw - var(--content-width) - var(--sidebar-space) - 2rem);
+  --content-inline-start: max(calc(var(--sidebar-space) + 2rem), 2rem);
+  --content-inline-end: max(calc(100vw - var(--content-width) - var(--sidebar-space) - 2rem), 2rem);
   --shadow-color: #bbb;
 }
 
