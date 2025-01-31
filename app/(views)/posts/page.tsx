@@ -7,7 +7,7 @@ import PostsList from '@/app/components/Posts/PostsList';
 import { useToast } from '@/app/components/Toast/context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BLOG_CONFIG } from '@/app/common/config';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import Pagination from '@/app/components/Pagination';
 
 function Page() {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
@@ -52,45 +52,12 @@ function Page() {
     <div className="normal-content">
       <PostsList posts={posts} isLoading={loading} />
       
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-8 flex justify-center items-center gap-1 px-2 max-w-full overflow-x-auto">
-          <button
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-            className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-            aria-label="Previous page"
-          >
-            <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-          
-          <div className="flex items-center gap-1 overflow-x-auto">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-              <button
-                key={pageNum}
-                onClick={() => handlePageChange(pageNum)}
-                className={`min-w-[1.75rem] h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm
-                  ${pageNum === page 
-                    ? 'bg-blue-600 text-white' 
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                aria-label={`Go to page ${pageNum}`}
-                aria-current={pageNum === page ? 'page' : undefined}
-              >
-                {pageNum}
-              </button>
-            ))}
-          </div>
-          
-          <button
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-            className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-            aria-label="Next page"
-          >
-            <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       )}
     </div>
   );

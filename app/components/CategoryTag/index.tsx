@@ -21,7 +21,7 @@ const CategoryTag = ({
   const colorClasses = getColorForCategory(category);
   
   const baseClasses = classNames(
-    'px-1 rounded-md text-sm font-medium transition-colors',
+    'px-1.5 py-0.5 rounded-sm text-xs font-bold transition-colors',
     colorClasses,
     {
       'hover:opacity-90': showLink && !onClick,

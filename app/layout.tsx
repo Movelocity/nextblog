@@ -4,7 +4,7 @@ import { SidePanel } from "@/app/components/SidePanel";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Blog Management System",
+  title: "Next Blog",
   description: "A modern blog management system built with Next.js",
 };
 

@@ -9,7 +9,7 @@ import { textPreview } from '@/app/common/utils';
  * searchParams:
  *  - id: 博客ID
  *  - page: 页码
- *  - limit: 每页数量
+ *  - limit: 每页数量 (page_size)
  *  - pubOnly: 是否只查询已发布的博客, false 需要鉴权生效
  *  - query: 搜索关键词
  *  - categories: 分类列表

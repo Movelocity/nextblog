@@ -59,6 +59,7 @@ export default function EditPostPage() {
           categories: post.categories || [],
           tags: post.tags || [],
         });
+        document.title = post.title;
         setLastSaved(new Date());
         setLoading(false);
       } catch (error) {

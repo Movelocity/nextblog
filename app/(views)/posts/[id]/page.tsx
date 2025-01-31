@@ -7,7 +7,6 @@ import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
 import { PostViewer } from '@/app/components/Editor/PostViewer';
 
-
 export default function PostPage() {
   const params = useParams();
   // const router = useRouter();
@@ -30,6 +29,7 @@ export default function PostPage() {
       try {
         const data = await getPost(params.id as string);
         setPost(data);
+        document.title = data.title;
         // Calculate word count
         // setWordCount(data.content.trim().split(/\s+/).length);
       } catch (error) {

@@ -21,7 +21,6 @@ export default function SearchPosts({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const executeSearch = useCallback((searchParams: SearchParams) => {
     // if empty, don't search
@@ -77,8 +76,6 @@ export default function SearchPosts({
         setAvailableTags(tags);
       } catch (error) {
         console.error('Error fetching taxonomy:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -113,10 +110,6 @@ export default function SearchPosts({
         : [...prev, tag]
     );
   }, []);
-
-  if (loading) {
-    return <div className="text-center py-4">Loading filters...</div>;
-  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">

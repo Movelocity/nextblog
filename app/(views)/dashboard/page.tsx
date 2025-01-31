@@ -9,11 +9,17 @@ import { updatePost } from '@/app/services/posts';
 import { useToast } from '@/app/components/Toast/context';
 import { BLOG_CONFIG } from '@/app/common/config';
 import { BlogMeta } from '@/app/common/types';
+import Pagination from '@/app/components/Pagination';
+
 export default function DashboardPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
+
+  const [postsCnt, setPostsCnt] = useState(0);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(postsCnt / BLOG_CONFIG.MAX_POSTS_PER_PAGE);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -27,15 +33,21 @@ export default function DashboardPage() {
     checkAuthStatus();
   }, []);
 
+  useEffect(() => {
+    fetchPosts();
+  }, [page]);
+
+
   const fetchPosts = async () => {
     try {
-      const { blogs_info } = await getPosts({ 
-        page: 1, 
+      const { blogs_info, total } = await getPosts({ 
+        page: page, 
         limit: BLOG_CONFIG.MAX_POSTS_PER_PAGE,
         pubOnly: false 
       });
       setBlogsInfo(blogs_info);
-      showToast('Posts fetched successfully', 'success');
+      setPostsCnt(total);
+      // showToast('Posts fetched successfully', 'success');
     } catch (error) {
       console.error('Error fetching posts:', error);
       showToast('Error fetching posts', 'error');
@@ -74,6 +86,11 @@ export default function DashboardPage() {
               console.error('Error toggling post status:', error);
             }
           }}
+        />
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       </div>
     </div>
