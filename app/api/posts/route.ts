@@ -11,7 +11,6 @@ function blogToPost(blog: Blog): Post {
     content: blog.content,
     createdAt: blog.createdAt,
     updatedAt: blog.updatedAt,
-    slug: blog.id, // Using id as slug
     published: blog.published,
     categories: blog.categories || [],
     tags: blog.tags || []
@@ -54,42 +53,20 @@ export async function GET(request: NextRequest) {
     const categories = JSON.parse(searchParams.get('categories') || '[]');
     const tags = JSON.parse(searchParams.get('tags') || '[]');
 
-    let blogMetas: BlogMeta[];
-    let blogsCount = 0;
-    if(pubOnly) {
-      // published posts only
-      const { blogs, total } = await blogStorage.listBlogs({ 
-        page, 
-        page_size: limit, 
-        published_only: true,
-        categories,
-        tags,
-        query
-      });
-      blogMetas = blogs;
-      blogsCount = total;
-    } else {
-      // get both published and draft posts, admin only (getting draft with single id is permitted)
-      const { blogs, total } = await blogStorage.listBlogs({ 
-        page, 
-        page_size: limit, 
-        published_only: false,
-        categories,
-        tags,
-        query
-      });
-      blogMetas = blogs;
-      blogsCount = total;
-    }
+    const { blogs_info, total } = await blogStorage.listBlogs({ 
+      page, 
+      page_size: limit, 
+      published_only: pubOnly,
+      categories,
+      tags,
+      query
+    });
     
     // Fetch full blog content for each meta
-    const blogs = await Promise.all(blogMetas.map(meta => blogStorage.getBlog(meta.id)));
+    const blogs = await Promise.all(blogs_info.map(meta => blogStorage.getBlog(meta.id)));
     const posts = blogs.map(blogToPost);
     
-    return NextResponse.json({
-      posts,
-      total: blogsCount
-    });
+    return NextResponse.json({ posts, total });
   } catch (error) {
     console.error('Error fetching posts:', error);
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });

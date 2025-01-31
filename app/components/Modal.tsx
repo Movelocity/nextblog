@@ -58,9 +58,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       ref={overlayRef}
       onClick={handleOverlayClick}
       className={classNames(
-        "fixed inset-0 bg-black/50 flex z-50",
+        "fixed inset-0 bg-black/50 flex z-50 justify-center",
         isMobile ? "items-start pt-4" : "items-center",
-        "justify-center"
       )}
       role="dialog"
       aria-modal="true"

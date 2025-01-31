@@ -9,9 +9,12 @@ export function blogToPost(blog: Blog|BlogMeta): Post {
     content: blog.description,
     createdAt: blog.createdAt,
     updatedAt: blog.updatedAt,
-    slug: blog.id, // Using id as slug
     published: blog.published,
     categories: blog.categories || [],
     tags: blog.tags || []
   };
+}
+
+export const textPreview = (md: string) => {
+  return md.replace(/<[^>]*>?/gm, '').replace(/[#`-]/g, '').replace(/\([^)]*\)/g, '').trim().split(/\s+/).slice(0, 50).join(' ');
 }

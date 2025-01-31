@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { Post } from '@/app/common/types';
-import { getPosts, deletePost } from '@/app/services/posts';
+import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/Posts/PostsList';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 export default function CategoryPage() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
   const [availableSubCategories, setAvailableSubCategories] = useState<string[]>([]);
   
   const params = useParams();
@@ -19,7 +18,7 @@ export default function CategoryPage() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        setLoading(true);
+        // setLoading(true);
         const response = await getPosts({ categories: [currentCategory] });
         setPosts(response.posts);
   
@@ -38,9 +37,7 @@ export default function CategoryPage() {
         setAvailableSubCategories(Array.from(subCategories));
       } catch (error) {
         console.error('Error fetching posts:', error);
-      } finally {
-        setLoading(false);
-      }
+      } 
     };
     fetchPosts();
   }, [currentCategory]);

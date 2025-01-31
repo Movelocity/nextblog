@@ -336,13 +336,13 @@ export class BlogStorage {
     categories?: string[],
     tags?: string[],
     query?: string
-  } = {}): Promise<{ blogs: BlogMeta[], total: number }> {
+  } = {}): Promise<{ blogs_info: BlogMeta[], total: number }> {
     const meta = await this.loadMeta();
     let blogs = Object.values(meta.blogs);
     
     // sort by createdAt, most recent first
     blogs = blogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
     // Apply filters
     if (options.published_only) {
       blogs = blogs.filter(blog => blog.published === true);
@@ -378,7 +378,7 @@ export class BlogStorage {
       );
     }
 
-    return { blogs, total };
+    return { blogs_info: blogs, total };
   }
 
   // Add an asset to a blog

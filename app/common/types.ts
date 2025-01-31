@@ -4,7 +4,6 @@ export interface Post {
   content: string;
   createdAt: string;
   updatedAt: string;
-  slug: string;
   published: boolean;
   categories: string[];
   tags: string[];
@@ -12,8 +11,6 @@ export interface Post {
 
 export type CreatePostInput = Omit<Post, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdatePostInput = Partial<Omit<Post, 'id' | 'createdAt' | 'updatedAt'>>;
-
-
 
 export interface BlogMeta {
   id: string;  // Same as folder name

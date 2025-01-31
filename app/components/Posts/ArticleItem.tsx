@@ -2,18 +2,15 @@ import { Post } from '../../common/types';
 import Link from 'next/link';
 import { FaTags, FaCalendarAlt } from 'react-icons/fa';
 import CategoryTag from '@/app/components/CategoryTag';
+import { textPreview } from '@/app/common/utils';
 import './ArticleItem.css';
-
-const md2text = (md: string) => {
-  return md.replace(/<[^>]*>?/gm, '').replace(/[#`-]/g, '').replace(/\([^)]*\)/g, '').trim().split(/\s+/).slice(0, 50).join(' ');
-}
 
 interface ArticleItemProps {
   post: Post;
 }
 
 const ArticleItem = ({ post }: ArticleItemProps) => {
-  const contentPreview = md2text(post.content);
+  const contentPreview = textPreview(post.content);
 
   return (
     <article className="p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-md shadow-sm hover:shadow-md transition-all duration-200">

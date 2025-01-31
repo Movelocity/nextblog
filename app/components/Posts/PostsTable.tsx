@@ -5,6 +5,7 @@ import { FaSort, FaSortUp, FaSortDown, FaEdit, FaTrash } from 'react-icons/fa';
 import { MdPublish, MdUnpublished } from 'react-icons/md';
 import classNames from 'classnames';
 import Modal from '../Modal';
+import CategoryTag from '@/app/components/CategoryTag';
 
 // Types
 type SortField = 'title' | 'updatedAt' | 'published';
@@ -78,12 +79,10 @@ const StatusBadge = ({ published, onClick }: { published: boolean; onClick?: () 
 const CategoryTags = ({ categories }: { categories?: string[] }) => (
   <div className="flex flex-wrap gap-1">
     {categories?.map((category) => (
-      <span
+      <CategoryTag
         key={category}
-        className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded"
-      >
-        {category}
-      </span>
+        category={category}
+      />
     ))}
   </div>
 );
@@ -247,7 +246,7 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 )}
               />
               <div>
-                <Link href={`/posts/${post.slug}`}>
+                <Link href={`/posts/${post.id}`}>
                   <div className="font-medium text-gray-900 dark:text-white hover:text-blue-500">{post.title}</div>
                 </Link>
                 <div className="text-sm text-gray-500 mt-1">
@@ -364,7 +363,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                   />
                 </td>
                 <td className="px-6 py-4">
-                  <Link href={`/posts/${post.slug}`}>
+                  <Link href={`/posts/${post.id}`}>
                     <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-md cursor-pointer hover:text-blue-500">
                       {post.title}
                     </div>

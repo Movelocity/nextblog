@@ -45,7 +45,7 @@ export const getPosts = async (params: SearchParams = {}): Promise<{ posts: Post
   if (params.limit) searchParams.set('limit', params.limit.toString());
   if (params.pubOnly !== undefined) searchParams.set('pubOnly', params.pubOnly.toString());
 
-  console.log("params", params)
+  // console.log("params", params)
   console.log("service: ", `${API_ROUTES.POSTS}?${searchParams.toString()}`)
   const response = await fetch(`${API_ROUTES.POSTS}?${searchParams.toString()}`, {
     headers: getAuthHeaders(),

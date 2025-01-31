@@ -21,10 +21,7 @@ export default function NewPostPage() {
   }, [setPost]);
 
   const handleSubmit = async (data: PostEditorData) => {
-    const newPost = await createPost({
-      ...data,
-      slug: data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    });
+    const newPost = await createPost(data);
     router.push(`/posts/${newPost.id}/edit`);
   };
 
