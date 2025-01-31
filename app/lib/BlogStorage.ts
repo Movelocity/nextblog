@@ -11,6 +11,14 @@ import {
   BlogConfig
 } from '@/app/common/types';
 import { BLOG_CONFIG } from '@/app/common/config';
+
+interface ContentCache {
+  content: string;
+  timestamp: number;
+}
+
+type BlogContentCache = Map<string, ContentCache>;
+
 /**
  * BlogStorage class handles all blog-related file operations
  * including creating, reading, updating, and deleting blogs and their assets.
@@ -19,7 +27,9 @@ export class BlogStorage {
   private rootDir: string;
   private metaFile: string;
   private metaCache: BlogMetaCache | null = null;
+  private contentCache: BlogContentCache = new Map();
   private static instance: BlogStorage | null = null;
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache TTL
 
   private constructor(rootDir?: string) {
     this.rootDir = rootDir || BLOG_CONFIG.ROOT_DIR;
@@ -222,10 +232,23 @@ export class BlogStorage {
 
     try {
       const blogDir = path.join(this.rootDir, id);
-      const content = await fs.readFile(
-        path.join(blogDir, BLOG_CONFIG.CONTENT_FILE),
-        'utf-8'
-      );
+      let content: string;
+
+      // Check cache first
+      const cached = this.contentCache.get(id);
+      const now = Date.now();
+      
+      if (cached && (now - cached.timestamp) < this.CACHE_TTL) {
+        content = cached.content;
+        console.log(`cache hit for blog ${id}  (cacheSize: ${this.contentCache.size})`);
+      } else {
+        content = await fs.readFile(
+          path.join(blogDir, BLOG_CONFIG.CONTENT_FILE),
+          'utf-8'
+        );
+        // Update cache
+        this.contentCache.set(id, { content, timestamp: now });
+      }
 
       // List assets
       const assetsDir = path.join(blogDir, BLOG_CONFIG.ASSETS_DIR);
@@ -243,6 +266,11 @@ export class BlogStorage {
 
   // Update a blog
   async updateBlog(id: string, input: UpdateBlogInput): Promise<Blog> {
+    // Remove from cache if content is being updated
+    if (input.content !== undefined) {
+      this.contentCache.delete(id);
+    }
+    
     const meta = await this.loadMeta();
     const blogMeta = meta.blogs[id];
     
@@ -278,6 +306,8 @@ export class BlogStorage {
           path.join(this.rootDir, id, BLOG_CONFIG.CONTENT_FILE),
           input.content
         );
+        // Update cache, both for content search and high-performance read
+        this.contentCache.set(id, { content: input.content, timestamp: Date.now() });
       }
 
       // Update config file
@@ -338,47 +368,63 @@ export class BlogStorage {
     query?: string
   } = {}): Promise<{ blogs_info: BlogMeta[], total: number }> {
     const meta = await this.loadMeta();
-    let blogs = Object.values(meta.blogs);
+    let blogs_info = Object.values(meta.blogs);
     
     // sort by createdAt, most recent first
-    blogs = blogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    blogs_info = blogs_info.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Apply filters
     if (options.published_only) {
-      blogs = blogs.filter(blog => blog.published === true);
+      blogs_info = blogs_info.filter(blog => blog.published === true);
     }
     
     if (options.categories?.length) {
-      blogs = blogs.filter(blog => 
+      blogs_info = blogs_info.filter(blog => 
         options.categories!.some(cat => blog.categories?.includes(cat))
       );
     }
     
     if (options.tags?.length) {
-      blogs = blogs.filter(blog => 
+      blogs_info = blogs_info.filter(blog => 
         options.tags!.some(tag => blog.tags?.includes(tag))
       );
     }
     
     if (options.query) {
       const query = options.query.toLowerCase();
-      blogs = blogs.filter(blog => 
-        blog.title.toLowerCase().includes(query) || 
-        blog.description.toLowerCase().includes(query)
+      const searchResults = await Promise.all(
+        blogs_info.map(async (blog) => {
+          // Check title and description first (in-memory)
+          if (blog.title.toLowerCase().includes(query) ||
+              blog.description.toLowerCase().includes(query)) {
+            return true;
+          }
+
+          try {
+            // Only load content if title/description don't match
+            const b = await this.getBlog(blog.id);
+            return b.content.toLowerCase().includes(query);
+          } catch (error) {
+            console.error(`Error searching blog ${blog.id}:`, error);
+            return false;
+          }
+        })
       );
+
+      blogs_info = blogs_info.filter((_, index) => searchResults[index]);
     }
     
-    const total = blogs.length;
+    const total = blogs_info.length;
     
     // Apply pagination after filtering
     if (options.page && options.page_size) {
-      blogs = blogs.slice(
+      blogs_info = blogs_info.slice(
         (options.page - 1) * options.page_size, 
         options.page * options.page_size
       );
     }
 
-    return { blogs_info: blogs, total };
+    return { blogs_info, total };
   }
 
   // Add an asset to a blog
