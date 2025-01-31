@@ -2,39 +2,34 @@ import { Post } from '../../common/types';
 import Link from 'next/link';
 import { FaTags, FaCalendarAlt } from 'react-icons/fa';
 import CategoryTag from '@/app/components/CategoryTag';
+import './ArticleItem.css';
+
+const md2text = (md: string) => {
+  return md.replace(/<[^>]*>?/gm, '').replace(/[#`-]/g, '').replace(/\([^)]*\)/g, '').trim().split(/\s+/).slice(0, 50).join(' ');
+}
 
 interface ArticleItemProps {
   post: Post;
 }
 
 const ArticleItem = ({ post }: ArticleItemProps) => {
-  const contentPreview = post.content
-    .replace(/<[^>]*>?/gm, '')
-    .replace(/[#`-]/g, '')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 50)
-    .join(' ');
+  const contentPreview = md2text(post.content);
 
   return (
-    <article className="group p-6 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+    <article className="p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-md shadow-sm hover:shadow-md transition-all duration-200">
       {/* Title Section */}
       <Link 
         href={`/posts/${post.id}`}
-        className="block mb-3"
+        className="item-title text-gray-900 dark:text-gray-200"
         aria-label={`Read article: ${post.title}`}
       >
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-500 transition-colors">
-          {post.title}
-        </h2>
-
-        {/* Content Preview */}
-        <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-4 line-clamp-3">
-          {contentPreview}...
-        </p>
+        {post.title}
       </Link>
 
-      
+      {/* Content Preview */}
+      <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-4 line-clamp-3">
+        {contentPreview}...
+      </p>
 
       {/* Metadata Section */}
       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">

@@ -78,5 +78,5 @@ export interface SearchParams {
   tags?: string[];
   page?: number;
   limit?: number;
-  getAll?: boolean;
+  pubOnly?: boolean;
 }

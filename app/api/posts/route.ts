@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CreatePostInput, UpdatePostInput, Post, BlogMeta } from '@/app/common/types';
+import { CreatePostInput, UpdatePostInput, Post, Blog, BlogMeta } from '@/app/common/types';
 import blogStorage from '@/app/lib/BlogStorage';
 import { requireAuth, authenticateRequest } from '@/app/lib/auth';
 
 // Convert Blog to Post interface
-function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post {
+function blogToPost(blog: Blog): Post {
   return {
     id: blog.id,
     title: blog.title,
@@ -18,17 +18,20 @@ function blogToPost(blog: Awaited<ReturnType<typeof blogStorage.getBlog>>): Post
   };
 }
 
-// GET is public - no auth required
+/**
+ * 查询博客列表，支持分页、过滤、搜索、排序等
+ * searchParams:
+ *  - id: 博客ID
+ *  - page: 页码
+ *  - limit: 每页数量
+ *  - pubOnly: 是否只查询已发布的博客, false 需要鉴权生效
+ *  - query: 搜索关键词
+ *  - categories: 分类列表
+ *  - tags: 标签列表
+ */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-  const page = parseInt(searchParams.get('page') || '1', 10);
-  const limit = parseInt(searchParams.get('limit') || '10', 10);
-  const getAll = searchParams.get('getAll') === 'true';
-  const query = searchParams.get('query') || '';
-  const categories = JSON.parse(searchParams.get('categories') || '[]');
-  const tags = JSON.parse(searchParams.get('tags') || '[]');
-  
   try {
     // If id is provided, return single post
     if (id) {
@@ -42,15 +45,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(blogToPost(blog));
     }
 
-    // Get all blog metas based on visibility
+    // List blogs
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10);
+    let pubOnly = true;
+    if(searchParams.get("pubOnly") === 'false' && authenticateRequest(request)!=null) pubOnly = false;
+    const query = searchParams.get('query') || '';
+    const categories = JSON.parse(searchParams.get('categories') || '[]');
+    const tags = JSON.parse(searchParams.get('tags') || '[]');
+
     let blogMetas: BlogMeta[];
     let blogsCount = 0;
-    if(getAll && authenticateRequest(request)!=null) {
-      // get all posts, admin only
+    if(pubOnly) {
+      // published posts only
       const { blogs, total } = await blogStorage.listBlogs({ 
         page, 
         page_size: limit, 
-        published_only: false,
+        published_only: true,
         categories,
         tags,
         query
@@ -58,11 +69,11 @@ export async function GET(request: NextRequest) {
       blogMetas = blogs;
       blogsCount = total;
     } else {
-      // published posts only
+      // get both published and draft posts, admin only (getting draft with single id is permitted)
       const { blogs, total } = await blogStorage.listBlogs({ 
         page, 
         page_size: limit, 
-        published_only: true,
+        published_only: false,
         categories,
         tags,
         query

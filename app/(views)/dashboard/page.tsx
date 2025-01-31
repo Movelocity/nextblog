@@ -8,7 +8,7 @@ import PostsTable from '@/app/components/Posts/PostsTable';
 import { Post } from '@/app/common/types';
 import { updatePost } from '@/app/services/posts';
 import { useToast } from '@/app/components/Toast/context';
-
+import { BLOG_CONFIG } from '@/app/common/config';
 
 export default function DashboardPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);
@@ -30,7 +30,11 @@ export default function DashboardPage() {
 
   const fetchPosts = async () => {
     try {
-      const { posts } = await getPosts({ page: 1, limit: 100, getAll: true });
+      const { posts } = await getPosts({ 
+        page: 1, 
+        limit: BLOG_CONFIG.MAX_POSTS_PER_PAGE,
+        pubOnly: false 
+      });
       setPosts(posts);
       showToast('Posts fetched successfully', 'success');
     } catch (error) {

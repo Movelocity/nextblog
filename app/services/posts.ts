@@ -43,8 +43,10 @@ export const getPosts = async (params: SearchParams = {}): Promise<{ posts: Post
   if (params.tags?.length) searchParams.set('tags', JSON.stringify(params.tags));
   if (params.page) searchParams.set('page', params.page.toString());
   if (params.limit) searchParams.set('limit', params.limit.toString());
-  if (params.getAll) searchParams.set('getAll', params.getAll.toString());
+  if (params.pubOnly !== undefined) searchParams.set('pubOnly', params.pubOnly.toString());
 
+  console.log("params", params)
+  console.log("service: ", `${API_ROUTES.POSTS}?${searchParams.toString()}`)
   const response = await fetch(`${API_ROUTES.POSTS}?${searchParams.toString()}`, {
     headers: getAuthHeaders(),
   });
