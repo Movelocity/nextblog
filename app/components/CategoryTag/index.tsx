@@ -7,7 +7,7 @@ interface CategoryTagProps {
   className?: string;
   showLink?: boolean;
   onClick?: () => void;
-  selected?: boolean;
+  selected?: boolean;  // true, false, undefined
 }
 
 const CategoryTag = ({ 
@@ -15,7 +15,7 @@ const CategoryTag = ({
   className = '', 
   showLink = true,
   onClick,
-  selected = false 
+  selected, 
 }: CategoryTagProps) => {
   const getColorForCategory = useCategoryStore(state => state.getColorForCategory);
   const colorClasses = getColorForCategory(category);
@@ -26,7 +26,7 @@ const CategoryTag = ({
     {
       'hover:opacity-90': showLink && !onClick,
       'cursor-pointer hover:opacity-80': onClick,
-      'opacity-50': !selected
+      'opacity-50': selected === false  // transparent for false. normal for undefined
     },
     className
   );
