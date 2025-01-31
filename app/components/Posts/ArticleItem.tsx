@@ -1,4 +1,4 @@
-import { Post } from '../../common/types';
+import { BlogMeta } from '../../common/types';
 import Link from 'next/link';
 import { FaTags, FaCalendarAlt } from 'react-icons/fa';
 import CategoryTag from '@/app/components/CategoryTag';
@@ -6,11 +6,11 @@ import { textPreview } from '@/app/common/utils';
 import './ArticleItem.css';
 
 interface ArticleItemProps {
-  post: Post;
+  post: BlogMeta;
 }
 
 const ArticleItem = ({ post }: ArticleItemProps) => {
-  const contentPreview = textPreview(post.content);
+  const contentPreview = post.description;
 
   return (
     <article className="p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-md shadow-sm hover:shadow-md transition-all duration-200">
@@ -30,7 +30,7 @@ const ArticleItem = ({ post }: ArticleItemProps) => {
 
       {/* Metadata Section */}
       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-        {post.categories?.length > 0 && (
+        {post.categories && post.categories?.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {post.categories.map(category => (
               <CategoryTag
@@ -41,7 +41,7 @@ const ArticleItem = ({ post }: ArticleItemProps) => {
           </div>
         )}
 
-        {post.tags?.length > 0 && (
+        {post.tags && post.tags?.length > 0 && (
           <div className="flex items-center gap-2">
             <FaTags className="w-4 h-4 text-gray-400" />
             <div className="flex flex-wrap gap-1.5">

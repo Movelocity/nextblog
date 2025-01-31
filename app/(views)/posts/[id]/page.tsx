@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Post } from '@/app/common/types';
+import { Blog } from '@/app/common/types';
 import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
 import { PostViewer } from '@/app/components/Editor/PostViewer';
@@ -11,11 +11,11 @@ import { PostViewer } from '@/app/components/Editor/PostViewer';
 export default function PostPage() {
   const params = useParams();
   // const router = useRouter();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<Blog | null>(null);
   const [editable, setEditable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [wordCount, setWordCount] = useState(0);
+  // const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -31,7 +31,7 @@ export default function PostPage() {
         const data = await getPost(params.id as string);
         setPost(data);
         // Calculate word count
-        setWordCount(data.content.trim().split(/\s+/).length);
+        // setWordCount(data.content.trim().split(/\s+/).length);
       } catch (error) {
         setError('Failed to load post');
         console.error('Error fetching post:', error);

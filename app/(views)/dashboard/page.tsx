@@ -5,15 +5,14 @@ import { getPosts, deletePost } from '@/app/services/posts';
 import LoginModal from '@/app/components/Login/LoginModal';
 import { isAuthenticated as checkAuth } from '@/app/services/auth';
 import PostsTable from '@/app/components/Posts/PostsTable';
-import { Post } from '@/app/common/types';
 import { updatePost } from '@/app/services/posts';
 import { useToast } from '@/app/components/Toast/context';
 import { BLOG_CONFIG } from '@/app/common/config';
-
+import { BlogMeta } from '@/app/common/types';
 export default function DashboardPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -30,12 +29,12 @@ export default function DashboardPage() {
 
   const fetchPosts = async () => {
     try {
-      const { posts } = await getPosts({ 
+      const { blogs_info } = await getPosts({ 
         page: 1, 
         limit: BLOG_CONFIG.MAX_POSTS_PER_PAGE,
         pubOnly: false 
       });
-      setPosts(posts);
+      setBlogsInfo(blogs_info);
       showToast('Posts fetched successfully', 'success');
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -62,7 +61,7 @@ export default function DashboardPage() {
     <div className="normal-content">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
         <PostsTable 
-          posts={posts} 
+          posts={blogs_info} 
           onDelete={async (id) => {
             await deletePost(id);
             fetchPosts();

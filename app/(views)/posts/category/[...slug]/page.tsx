@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Post } from '@/app/common/types';
+import { BlogMeta } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/Posts/PostsList';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 export default function CategoryPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [availableSubCategories, setAvailableSubCategories] = useState<string[]>([]);
   
   const params = useParams();
@@ -20,11 +20,11 @@ export default function CategoryPage() {
       try {
         // setLoading(true);
         const response = await getPosts({ categories: [currentCategory] });
-        setPosts(response.posts);
+        setPosts(response.blogs_info);
   
         // Extract unique immediate sub-categories
         const subCategories = new Set<string>();
-        response.posts.forEach(post => {
+        response.blogs_info.forEach(post => {
           post.categories?.forEach(cat => {
             // Only add categories that are direct children of current category
             if (cat.startsWith(currentCategory + '/') && 

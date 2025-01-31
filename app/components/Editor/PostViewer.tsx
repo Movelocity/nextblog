@@ -5,10 +5,10 @@ import { Markdown } from '@/app/components/Editor/Markdown';
 import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import { FaTags, FaEdit } from 'react-icons/fa';
 import PublishHint from '@/app/components/part/PubilshHint';
-import { Post } from '@/app/common/types';
+import { Blog } from '@/app/common/types';
 import CategoryTag from '@/app/components/CategoryTag';
 type PostViewerProps = {
-  post: Post;
+  post: Blog;
   editable: boolean;
 }
 

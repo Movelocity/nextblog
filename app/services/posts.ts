@@ -1,5 +1,5 @@
 import { API_ROUTES } from '../common/config';
-import { CreatePostInput, Post, UpdatePostInput, SearchParams } from "../common/types"
+import { CreatePostInput, UpdatePostInput, SearchParams, Blog, BlogMeta } from "../common/types"
 import { getAuthToken } from './auth';
 
 const getAuthHeaders = () => {
@@ -32,10 +32,10 @@ export const getTaxonomy = async (): Promise<{ categories: string[]; tags: strin
  * Fetches a list of posts from the API with optional search parameters.
  *
  * @param {SearchParams} params - Search parameters including query, categories, tags, pagination, etc.
- * @returns {Promise<{ posts: Post[]; total: number }>} A promise that resolves to posts and total count
+ * @returns {Promise<{ posts: BlogMeta[]; total: number }>} A promise that resolves to posts and total count
  * @throws {Error} Throws an error if the fetch operation fails
  */
-export const getPosts = async (params: SearchParams = {}): Promise<{ posts: Post[]; total: number }> => {
+export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info: BlogMeta[]; total: number }> => {
   const searchParams = new URLSearchParams();
   
   if (params.query) searchParams.set('query', params.query);
@@ -58,7 +58,7 @@ export const getPosts = async (params: SearchParams = {}): Promise<{ posts: Post
   return response.json();
 };
 
-export const getPost = async (id: string): Promise<Post> => {
+export const getPost = async (id: string): Promise<Blog> => {
   const response = await fetch(`${API_ROUTES.POSTS}?id=${id}`, {
     headers: getAuthHeaders(),
   });
@@ -70,7 +70,7 @@ export const getPost = async (id: string): Promise<Post> => {
   return response.json();
 };
 
-export const createPost = async (input: CreatePostInput): Promise<Post> => {
+export const createPost = async (input: CreatePostInput): Promise<BlogMeta> => {
   const response = await fetch(API_ROUTES.POSTS, {
     method: 'POST',
     headers: getAuthHeaders(),
@@ -84,7 +84,7 @@ export const createPost = async (input: CreatePostInput): Promise<Post> => {
   return response.json();
 };
 
-export const updatePost = async (id: string, input: UpdatePostInput): Promise<Post> => {
+export const updatePost = async (id: string, input: UpdatePostInput): Promise<BlogMeta> => {
   const response = await fetch(`${API_ROUTES.POSTS}?id=${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(),

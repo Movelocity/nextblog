@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { Post, SearchParams } from '@/app/common/types';
+import { BlogMeta, SearchParams } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/Posts/PostsList';
 import { useToast } from '@/app/components/Toast/context';
@@ -10,7 +10,7 @@ import { BLOG_CONFIG } from '@/app/common/config';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 function Page() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
   const router = useRouter();
@@ -22,9 +22,9 @@ function Page() {
   const fetchPosts = async (searchParams?: SearchParams) => {
     try {
       setLoading(true);
-      const response = await getPosts(searchParams);
-      setPosts(response.posts);
-      setTotal(response.total);
+      const { blogs_info, total } = await getPosts(searchParams);
+      setPosts(blogs_info);
+      setTotal(total);
     } catch (error) {
       console.error('Error fetching posts:', error);
       showToast('Error fetching posts', 'error');

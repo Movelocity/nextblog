@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Post, SearchParams } from '../../common/types';
+import { BlogMeta, SearchParams } from '../../common/types';
 import debounce from 'lodash/debounce';
 import { getTaxonomy } from '../../services/posts';
 import CategoryTag from '@/app/components/CategoryTag';
 import { getPosts } from '@/app/services/posts';
 
 interface SearchPostsProps {
-  onResult: (result: Post[]) => void;
+  onResult: (result: BlogMeta[]) => void;
   initialCategory?: string;
 }
 
@@ -25,7 +25,7 @@ export default function SearchPosts({
 
   const executeSearch = useCallback((searchParams: SearchParams) => {
     getPosts(searchParams).then(result => {
-      onResult(result.posts);
+      onResult(result.blogs_info);
     }).catch(error => {
       console.error('Error searching posts:', error);
     });

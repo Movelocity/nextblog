@@ -1,4 +1,4 @@
-import { Post } from '../../common/types';
+import { BlogMeta } from '@/app/common/types';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { FaSort, FaSortUp, FaSortDown, FaEdit, FaTrash } from 'react-icons/fa';
@@ -12,7 +12,7 @@ type SortField = 'title' | 'updatedAt' | 'published';
 type SortDirection = 'asc' | 'desc';
 
 interface PostsTableProps {
-  posts: Post[];
+  posts: BlogMeta[];
   onDelete?: (id: string) => void;
   onTogglePublish?: (id: string, currentStatus: boolean) => void;
 }
@@ -95,7 +95,7 @@ const SortIcon = ({ field, currentField, direction }: { field: SortField; curren
   </span>
 );
 
-const ActionButtons = ({ post, onDelete }: { post: Post } & Pick<PostsTableProps, 'onDelete'>) => {
+const ActionButtons = ({ post, onDelete }: { post: BlogMeta } & Pick<PostsTableProps, 'onDelete'>) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
@@ -212,7 +212,7 @@ const getToggleHandler = (
 
 // Mobile View Component
 const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
-  posts: Post[];
+  posts: BlogMeta[];
   selectedPosts: string[];
   setSelectedPosts: (posts: string[]) => void;
 } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => (
@@ -272,7 +272,7 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
 
 // Desktop View Component
 const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
-  posts: Post[];
+  posts: BlogMeta[];
   selectedPosts: string[];
   setSelectedPosts: (posts: string[]) => void;
 } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => {

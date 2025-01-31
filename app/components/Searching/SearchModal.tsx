@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Post, SearchParams } from '@/app/common/types';
-import { getPosts } from '@/app/services/posts';
+import { BlogMeta, SearchParams } from '@/app/common/types';
 import { RiLoader4Line, RiSearchLine } from 'react-icons/ri';
 import { FaRegFaceFrownOpen } from "react-icons/fa6";
 import Modal from '@/app/components/Modal';
@@ -13,7 +12,7 @@ const getExcerpt = (content: string) => {
   return content.slice(0, 150) + (content.length > 150 ? '...' : '');
 };
 
-const ResultItem = ({ post, onClick }: { post: Post, onClick: () => void }) => {
+const ResultItem = ({ post, onClick }: { post: BlogMeta, onClick: () => void }) => {
   return (
     <Link
       key={post.id}
@@ -26,7 +25,7 @@ const ResultItem = ({ post, onClick }: { post: Post, onClick: () => void }) => {
           {post.title}
         </h4>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-          {getExcerpt(post.content)}
+          {getExcerpt(post.description)}
         </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {post.categories?.map((category) => (
@@ -45,7 +44,7 @@ const ResultItem = ({ post, onClick }: { post: Post, onClick: () => void }) => {
 
 export default function SearchModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<Post[]>([]);
+  const [searchResults, setSearchResults] = useState<BlogMeta[]>([]);
   // const [loading, setLoading] = useState(false);
 
   // const handleSearch = async (params: SearchParams) => {

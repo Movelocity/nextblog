@@ -1,8 +1,8 @@
-import { Post } from '../../common/types';
+import { BlogMeta } from '../../common/types';
 import ArticleItem from './ArticleItem';
 
 interface PostsListProps {
-  posts: Post[];
+  posts: BlogMeta[];
   isLoading?: boolean;
 }
 

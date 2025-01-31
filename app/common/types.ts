@@ -1,17 +1,3 @@
-export interface Post {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  published: boolean;
-  categories: string[];
-  tags: string[];
-}
-
-export type CreatePostInput = Omit<Post, 'id' | 'createdAt' | 'updatedAt'>;
-export type UpdatePostInput = Partial<Omit<Post, 'id' | 'createdAt' | 'updatedAt'>>;
-
 export interface BlogMeta {
   id: string;  // Same as folder name
   title: string;
@@ -33,8 +19,24 @@ export interface Blog extends BlogMeta {
   assets: string[];
 }
 
+export type CreatePostInput = {
+  title: string;
+  content: string;
+  published: boolean;
+  categories: string[];
+  tags: string[];
+};
+
+export type UpdatePostInput = {
+  title?: string;
+  content?: string;
+  published?: boolean;
+  categories?: string[];
+  tags?: string[];
+};
+
 export interface CreateBlogInput {
-  id: string;  // Will be used as folder name
+  id: string;
   title: string;
   description: string;
   content: string;
