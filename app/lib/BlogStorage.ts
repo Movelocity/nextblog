@@ -29,7 +29,7 @@ export class BlogStorage {
   private metaCache: BlogMetaCache | null = null;
   private contentCache: BlogContentCache = new Map();
   private static instance: BlogStorage | null = null;
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache TTL
+  private readonly CACHE_LIMIT = 20; // Maximum number of cached blog contents
 
   private constructor(rootDir?: string) {
     this.rootDir = rootDir || BLOG_CONFIG.ROOT_DIR;
@@ -236,9 +236,8 @@ export class BlogStorage {
 
       // Check cache first
       const cached = this.contentCache.get(id);
-      const now = Date.now();
       
-      if (cached && (now - cached.timestamp) < this.CACHE_TTL) {
+      if (cached) {
         content = cached.content;
         console.log(`cache hit for blog ${id}  (cacheSize: ${this.contentCache.size})`);
       } else {
@@ -246,8 +245,15 @@ export class BlogStorage {
           path.join(blogDir, BLOG_CONFIG.CONTENT_FILE),
           'utf-8'
         );
-        // Update cache
-        this.contentCache.set(id, { content, timestamp: now });
+        // Update cache with size limit
+        if (this.contentCache.size >= this.CACHE_LIMIT) {
+          // Remove oldest entry if cache is full
+          const firstKey = this.contentCache.keys().next().value;
+          if (firstKey) {
+            this.contentCache.delete(firstKey);
+          }
+        }
+        this.contentCache.set(id, { content, timestamp: Date.now() });
       }
 
       // List assets
@@ -265,12 +271,7 @@ export class BlogStorage {
   }
 
   // Update a blog
-  async updateBlog(id: string, input: UpdateBlogInput): Promise<Blog> {
-    // Remove from cache if content is being updated
-    if (input.content !== undefined) {
-      this.contentCache.delete(id);
-    }
-    
+  async updateBlog(id: string, input: UpdateBlogInput): Promise<Blog> {    
     const meta = await this.loadMeta();
     const blogMeta = meta.blogs[id];
     

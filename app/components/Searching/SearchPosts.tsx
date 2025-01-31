@@ -24,6 +24,15 @@ export default function SearchPosts({
   const [loading, setLoading] = useState(true);
 
   const executeSearch = useCallback((searchParams: SearchParams) => {
+    // if empty, don't search
+    if (searchParams.query === undefined 
+      && searchParams.categories === undefined 
+      && searchParams.tags === undefined
+    ) {
+      onResult([]);
+      return;
+    }
+    console.log('searchParams', searchParams);
     getPosts(searchParams).then(result => {
       onResult(result.blogs_info);
     }).catch(error => {

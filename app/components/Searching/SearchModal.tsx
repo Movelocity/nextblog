@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BlogMeta, SearchParams } from '@/app/common/types';
-import { RiLoader4Line, RiSearchLine } from 'react-icons/ri';
-import { FaRegFaceFrownOpen } from "react-icons/fa6";
+import { BlogMeta } from '@/app/common/types';
+import { RiSearchLine } from 'react-icons/ri';
+import { FaRegFaceGrinBeamSweat } from "react-icons/fa6";
 import Modal from '@/app/components/Modal';
 import SearchPosts from './SearchPosts';
 import Link from 'next/link';
@@ -45,26 +45,11 @@ const ResultItem = ({ post, onClick }: { post: BlogMeta, onClick: () => void }) 
 export default function SearchModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<BlogMeta[]>([]);
-  // const [loading, setLoading] = useState(false);
-
-  // const handleSearch = async (params: SearchParams) => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await getPosts(params);
-  //     setSearchResults(response.posts);
-  //   } catch (error) {
-  //     console.error('Error searching posts:', error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleClose = () => {
     setIsOpen(false);
     setSearchResults([]);
   };
-
-  
 
   useEffect(() => {
     // shortcut to toggle search modal
@@ -88,10 +73,10 @@ export default function SearchModal() {
         <RiSearchLine className="h-5 w-5" />
       </button>
 
-      <Modal isOpen={isOpen} onClose={handleClose}>
-        <div className="relative flex flex-col w-full max-w-2xl mx-auto bg-white dark:bg-gray-800/95 rounded-lg">
+      <Modal isOpen={isOpen} onClose={handleClose} size="lg">
+        <div className="relative flex flex-col w-full mx-auto bg-white dark:bg-gray-800/95 rounded-lg">
           <SearchPosts onResult={setSearchResults} />
-          <div className="flex-1 overflow-y-auto max-h-[60vh]">
+          <div className="flex-1 overflow-y-auto max-h-[60vh] min-h-[60vh]">
             {searchResults.length > 0 ? (
               <div>
                 <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700/50">
@@ -106,9 +91,9 @@ export default function SearchModal() {
                 </div>
               </div>
             ) : (// no result
-              <div className="flex items-center justify-center h-32">
+              <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                  <FaRegFaceFrownOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
+                  <FaRegFaceGrinBeamSweat className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto" />
                   <p className="text-gray-400 dark:text-gray-500">No results found</p>
                 </div>
               </div>

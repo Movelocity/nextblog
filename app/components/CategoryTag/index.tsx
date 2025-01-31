@@ -21,13 +21,12 @@ const CategoryTag = ({
   const colorClasses = getColorForCategory(category);
   
   const baseClasses = classNames(
-    'px-0.5 rounded-md text-sm font-medium transition-colors border-2',
+    'px-1 rounded-md text-sm font-medium transition-colors',
     colorClasses,
     {
       'hover:opacity-90': showLink && !onClick,
       'cursor-pointer hover:opacity-80': onClick,
-      'border-current': selected,
-      'border-transparent': !selected
+      'opacity-50': !selected
     },
     className
   );
