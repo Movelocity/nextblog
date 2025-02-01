@@ -18,5 +18,6 @@ export const API_ROUTES = {
     LOGIN: '/api/auth/login',
     CHECK_AUTH: '/api/auth/check',
     POSTS: '/api/posts',
-    TAXONOMY: '/api/taxonomy'
-};
+    TAXONOMY: '/api/taxonomy',
+    ASSET: '/api/asset'
+} as const;

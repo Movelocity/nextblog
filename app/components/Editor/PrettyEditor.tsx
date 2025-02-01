@@ -6,14 +6,17 @@ import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { CategoryModal } from '@/app/components/CategoryTag/CategoryModal';
 import PublishHint from '@/app/components/part/PubilshHint';
 import CategoryTag from '@/app/components/CategoryTag';
+import { AssetModal } from '@/app/components/Asset/AssetModal';
 
 type PrettyEditorProps = {
+  id?: string;
   onSubmit: () => void;
   availableCategories: string[];
   availableTags: string[];
 }
 
 export const PrettyEditor = ({ 
+  id,
   onSubmit,
   availableCategories,
   availableTags,
@@ -152,6 +155,8 @@ export const PrettyEditor = ({
               >
                 Categories
               </button>
+
+              { id && <AssetModal blogId={id} /> }
 
               <button
                 type="button"

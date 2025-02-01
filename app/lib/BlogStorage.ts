@@ -8,7 +8,8 @@ import {
   CreateBlogInput,
   UpdateBlogInput,
   BlogMetaCache,
-  BlogConfig
+  BlogConfig,
+  Asset
 } from '@/app/common/types';
 import { BLOG_CONFIG } from '@/app/common/config';
 
@@ -221,6 +222,22 @@ export class BlogStorage {
     }
   }
 
+  /**
+   * Add content to cache, if cache is full, remove the oldest entry
+   * @param id - Blog ID
+   * @param content - Blog content
+   */
+  addCache(id: string, content: string) {
+    if (!this.contentCache.has(id) && this.contentCache.size >= this.CACHE_LIMIT) {
+      // Remove oldest entry if cache is full
+      const firstKey = this.contentCache.keys().next().value;
+      if (firstKey) {
+        this.contentCache.delete(firstKey);
+      }
+    }
+    this.contentCache.set(id, { content, timestamp: Date.now() });
+  }
+
   // Get a blog by ID
   async getBlog(id: string): Promise<Blog> {
     const meta = await this.loadMeta();
@@ -245,15 +262,7 @@ export class BlogStorage {
           path.join(blogDir, BLOG_CONFIG.CONTENT_FILE),
           'utf-8'
         );
-        // Update cache with size limit
-        if (this.contentCache.size >= this.CACHE_LIMIT) {
-          // Remove oldest entry if cache is full
-          const firstKey = this.contentCache.keys().next().value;
-          if (firstKey) {
-            this.contentCache.delete(firstKey);
-          }
-        }
-        this.contentCache.set(id, { content, timestamp: Date.now() });
+        this.addCache(id, content);
       }
 
       // List assets
@@ -307,8 +316,7 @@ export class BlogStorage {
           path.join(this.rootDir, id, BLOG_CONFIG.CONTENT_FILE),
           input.content
         );
-        // Update cache, both for content search and high-performance read
-        this.contentCache.set(id, { content: input.content, timestamp: Date.now() });
+        this.addCache(id, input.content);
       }
 
       // Update config file
@@ -428,7 +436,62 @@ export class BlogStorage {
     return { blogs_info, total };
   }
 
-  // Add an asset to a blog
+  /**
+   * List all assets of a blog
+   * @param blogId - Blog ID
+   * @returns - Asset file names
+   */
+  async listAssets(blogId: string): Promise<Asset[]> {
+    const assetsDir = path.join(this.rootDir, blogId, BLOG_CONFIG.ASSETS_DIR);
+    
+    try {
+      const assets = await fs.readdir(assetsDir).catch(() => [] as string[]);
+      const assetDetails = await Promise.all(
+        assets.map(async (asset) => {
+          try {
+            const assetPath = path.join(assetsDir, asset);
+            const stats = await fs.stat(assetPath);
+            
+            // Get file extension and determine MIME type
+            const ext = path.extname(asset).toLowerCase();
+            let type = 'application/octet-stream';
+            
+            // Common image types
+            if (['.jpg', '.jpeg'].includes(ext)) type = 'image/jpeg';
+            else if (ext === '.png') type = 'image/png';
+            else if (ext === '.gif') type = 'image/gif';
+            else if (ext === '.svg') type = 'image/svg+xml';
+            else if (ext === '.webp') type = 'image/webp';
+            
+            return {
+              name: asset,
+              path: path.join(blogId, BLOG_CONFIG.ASSETS_DIR, asset),
+              size: stats.size,
+              type,
+              lastModified: stats.mtime.toISOString()
+            };
+          } catch (error) {
+            console.error(`Error getting details for asset ${asset}:`, error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out any null values from failed asset processing
+      return assetDetails.filter((asset): asset is Asset => asset !== null);
+    } catch (error) {
+      console.error(`Error listing assets for blog ${blogId}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Add an asset to a blog
+   * @param blogId - Blog ID
+   * @param fileName - Asset file name
+   * @param content - Asset content
+   * @returns - Asset file path
+   */
   async addAsset(blogId: string, fileName: string, content: Buffer): Promise<string> {
     const meta = await this.loadMeta();
     
@@ -447,7 +510,22 @@ export class BlogStorage {
     }
   }
 
-  // Delete an asset from a blog
+  /**
+   * Get an asset from a blog
+   * @param blogId - Blog ID
+   * @param fileName - Asset file name
+   * @returns - Asset content
+   */
+  async getAsset(blogId: string, fileName: string): Promise<Buffer> {
+    const assetPath = path.join(this.rootDir, blogId, BLOG_CONFIG.ASSETS_DIR, fileName);
+    return await fs.readFile(assetPath);
+  }
+
+  /**
+   * Delete an asset from a blog
+   * @param blogId - Blog ID
+   * @param fileName - Asset file name
+   */
   async deleteAsset(blogId: string, fileName: string): Promise<void> {
     const meta = await this.loadMeta();
     

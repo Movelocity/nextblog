@@ -79,3 +79,11 @@ export interface SearchParams {
   limit?: number;
   pubOnly?: boolean;
 }
+
+export interface Asset {
+  name: string;
+  path: string;
+  size: number;
+  type: string;
+  lastModified: string;
+}
