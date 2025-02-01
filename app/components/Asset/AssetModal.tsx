@@ -90,9 +90,40 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
   }, [blogId, loadAssets, showToast]);
 
   const handleCopyUrl = useCallback((fileName: string) => {
-    const url = assetService.getAssetUrl(blogId, fileName);
-    navigator.clipboard.writeText(url);
-    showToast('URL copied to clipboard', 'success');
+    const assetUrl = assetService.getAssetUrl(blogId, fileName);
+    const markdownUrl = `![${fileName}](${assetUrl})`;
+    const copyToClipboard = (text: string) => {
+      // Try using the modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('URL copied to clipboard', 'success'))
+          .catch(() => showToast('Failed to copy URL', 'error'));
+        return;
+      }
+
+      // Fallback for non-HTTPS environments
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        
+        // Style to make it invisible but still functional
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        
+        textArea.focus();
+        textArea.select();
+        
+        document.execCommand('copy');
+        textArea.remove();
+        showToast('URL copied to clipboard', 'success');
+      } catch (err) {
+        showToast('Failed to copy URL', 'error');
+      }
+    };
+
+    copyToClipboard(markdownUrl);
   }, [blogId, showToast]);
 
   return (

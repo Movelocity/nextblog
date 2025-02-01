@@ -517,8 +517,11 @@ export class BlogStorage {
    * @param fileName - Asset file name
    * @returns - Asset content
    */
-  async getAsset(blogId: string, fileName: string): Promise<Buffer> {
+  async getAsset(blogId: string, fileName: string): Promise<Buffer | null> {
     const assetPath = path.join(this.rootDir, blogId, BLOG_CONFIG.ASSETS_DIR, fileName);
+    if (!existsSync(assetPath)) {
+      return null;
+    }
     return await fs.readFile(assetPath);
   }
 

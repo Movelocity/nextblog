@@ -20,7 +20,12 @@ export async function GET(request: NextRequest) {
     const fileName = searchParams.get('fileName');
     if (fileName) {
       const asset = await blogStorage.getAsset(blogId, fileName);
-      
+      if (!asset) {
+        return NextResponse.json(
+          { error: 'Asset not found' },
+          { status: 404 }
+        );
+      }
       // Determine content type based on file extension
       const ext = fileName.split('.').pop()?.toLowerCase();
       let contentType = 'application/octet-stream'; // default binary
@@ -52,12 +57,12 @@ export async function GET(request: NextRequest) {
         contentType = mimeTypes[ext];
       }
 
-      // Create response with proper headers
-      return new NextResponse(asset, {
+      // Create response with proper headers using the standard Response object for binary data
+      return new Response(asset, {
         status: 200,
         headers: {
           'Content-Type': contentType,
-          'Content-Disposition': `inline; filename="${fileName}"`,
+          'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
           'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
         },
       });

@@ -1,5 +1,5 @@
 import { Asset } from '@/app/common/types';
-import { FiCopy, FiDownload, FiTrash2 } from 'react-icons/fi';
+import { FiCopy, FiDownload, FiTrash2, FiFileText } from 'react-icons/fi';
 import { AssetPreview } from './AssetPreview';
 
 type AssetCardProps = {
@@ -17,6 +17,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   assetUrl,
 }) => {
   const sizeInKb = (asset.size / 1024).toFixed(1);
+  const MAX_PREVIEW_SIZE = 2 * 1024 * 1024; // 2MB in bytes
 
   const handleDownload = () => {
     const link = document.createElement('a');
@@ -32,17 +33,24 @@ export const AssetCard: React.FC<AssetCardProps> = ({
       className="relative group bg-white w-48 rounded-lg p-3 border border-gray-200 hover:border-blue-400 transition-colors h-full"
       role="article"
       aria-label={`Asset: ${asset.name}`}
-    >
+            >
       <div className="aspect-square mb-2 rounded overflow-hidden">
-        <AssetPreview type={asset.type} url={assetUrl} name={asset.name} />
+        {asset.size > MAX_PREVIEW_SIZE ? (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-500">
+            <FiFileText size={32} className="mb-2" />
+            <span className="text-xs text-center px-2">Beyond 2MB</span>
+          </div>
+        ) : (
+          <AssetPreview type={asset.type} url={assetUrl} name={asset.name} />
+        )}
       </div>
 
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-        <button
-          onClick={() => onCopy(asset.name)}
+          <button
+            onClick={() => onCopy(asset.name)}
           className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
           aria-label={`Copy URL for ${asset.name}`}
-        >
+          >
           <FiCopy size={16} />
         </button>
         <button
@@ -51,15 +59,15 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           aria-label={`Download ${asset.name}`}
         >
           <FiDownload size={16} />
-        </button>
-        <button
-          onClick={() => onDelete(asset.name)}
+          </button>
+          <button
+            onClick={() => onDelete(asset.name)}
           className="p-1.5 text-gray-600 hover:text-red-500 bg-white shadow-sm rounded-full"
           aria-label={`Delete ${asset.name}`}
-        >
+          >
           <FiTrash2 size={16} />
-        </button>
-      </div>
+          </button>
+        </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-2 bg-gray-300/50">
         <div className="text-sm truncate mb-1 text-gray-700">{asset.name}</div>

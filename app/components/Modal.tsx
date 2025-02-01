@@ -73,7 +73,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
         )}
       >
         {title && (  // title is optional
-          <div className="flex justify-between items-center p-4 sm:p-6 border-b dark:border-gray-700">
+          <div className="flex justify-between items-center p-2 px-4 border-b dark:border-gray-700">
             <h2 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">
               {title}
             </h2>
