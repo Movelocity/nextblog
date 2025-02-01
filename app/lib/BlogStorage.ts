@@ -462,6 +462,7 @@ export class BlogStorage {
             else if (ext === '.gif') type = 'image/gif';
             else if (ext === '.svg') type = 'image/svg+xml';
             else if (ext === '.webp') type = 'image/webp';
+            else if (ext === '.ico') type = 'image/x-icon';
             
             return {
               name: asset,

@@ -1,114 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { assetService } from '@/app/services/assets';
 import { Asset } from '@/app/common/types';
-import { FiUpload, FiCopy, FiTrash2, FiImage } from 'react-icons/fi';
+import { FiImage } from 'react-icons/fi';
 import { useToast } from '@/app/components/Toast/context';
-import classNames from 'classnames';
 import Modal from '@/app/components/Modal';
+import { AssetCard } from './AssetCard';
+import { UploadArea } from './UploadArea';
 
 type AssetModalProps = {
   blogId: string;
 };
-
-type AssetCardProps = {
-  asset: Asset;
-  blogId: string;
-  onDelete: (fileName: string) => Promise<void>;
-  onCopy: (fileName: string) => void;
-};
-
-const AssetCard: React.FC<AssetCardProps> = ({
-  asset,
-  blogId,
-  onDelete,
-  onCopy,
-}) => {
-  const assetUrl = assetService.getAssetUrl(blogId, asset.name);
-  const isImage = asset.type.startsWith('image/');
-  const sizeInKb = (asset.size / 1024).toFixed(1);
-
-  return (
-    <div
-      className="relative group border rounded-lg p-2 hover:border-blue-500 transition-all"
-      role="article"
-      aria-label={`Asset: ${asset.name}`}
-    >
-      <div className="aspect-square mb-2 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
-        {isImage ? (
-          <img
-            src={assetUrl}
-            alt={asset.name}
-            className="object-cover w-full h-full"
-            loading="lazy"
-          />
-        ) : (
-          <div className="text-gray-400 text-sm">{asset.type}</div>
-        )}
-      </div>
-
-      <div className="text-sm truncate mb-1">{asset.name}</div>
-      <div className="text-xs text-gray-500">{sizeInKb} KB</div>
-
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-        <button
-          onClick={() => onCopy(asset.name)}
-          className="p-1.5 text-gray-600 hover:text-blue-500 bg-white rounded-full shadow-sm"
-          aria-label={`Copy URL for ${asset.name}`}
-        >
-          <FiCopy size={16} />
-        </button>
-        <button
-          onClick={() => onDelete(asset.name)}
-          className="p-1.5 text-gray-600 hover:text-red-500 bg-white rounded-full shadow-sm"
-          aria-label={`Delete ${asset.name}`}
-        >
-          <FiTrash2 size={16} />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const UploadArea: React.FC<{
-  onDrag: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent) => void;
-  onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  isDragActive: boolean;
-}> = ({ onDrag, onDrop, onFileSelect, isDragActive }) => (
-  <div
-    onDragEnter={onDrag}
-    onDragLeave={onDrag}
-    onDragOver={onDrag}
-    onDrop={onDrop}
-    className={classNames(
-      'border-2 border-dashed rounded-lg p-8 mb-6 text-center transition-colors',
-      {
-        'border-blue-500 bg-blue-50': isDragActive,
-        'border-gray-300 hover:border-blue-500': !isDragActive
-      }
-    )}
-  >
-    <input
-      type="file"
-      onChange={onFileSelect}
-      className="hidden"
-      id="file-upload"
-      multiple
-      accept="image/*"
-    />
-    <label 
-      htmlFor="file-upload" 
-      className="cursor-pointer flex flex-col items-center"
-      role="button"
-      tabIndex={0}
-    >
-      <FiUpload className="mb-2" size={24} />
-      <p className="text-gray-600">
-        {isDragActive ? 'Drop files here' : 'Drag and drop files here or click to upload'}
-      </p>
-    </label>
-  </div>
-);
 
 export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -124,7 +25,6 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
     try {
       setIsLoading(true);
       const data = await assetService.listAssets(blogId);
-      console.log("assets", data);
       setAssets(data);
     } catch (error) {
       showToast('Failed to load assets', 'error');
@@ -199,7 +99,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
     <>
       <button
         onClick={handleOpen}
-        className="flex items-center gap-1 px-4 py-2 text-sm font-medium hover:text-blue-500 transition-colors"
+        className="flex items-center gap-1 hover:text-blue-500 transition-colors"
         aria-label="Open Asset Manager"
       >
         <FiImage className="w-4 h-4" />
@@ -213,31 +113,29 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
         size="xl"
       >
         <div className="p-6">
-          <UploadArea
-            onDrag={handleDrag}
-            onDrop={handleDrop}
-            onFileSelect={handleFileSelect}
-            isDragActive={dragActive}
-          />
-
           <div className="overflow-y-auto max-h-[calc(90vh-350px)]">
-            {isLoading ? (
-              <div className="text-center py-8">Loading assets...</div>
-            ) : assets.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No assets found</div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {assets.map((asset) => (
+            <div className="flex flex-wrap gap-4">
+              <UploadArea
+                onDrag={handleDrag}
+                onDrop={handleDrop}
+                onFileSelect={handleFileSelect}
+                isDragActive={dragActive}
+              />
+              {isLoading ? (
+                <div className="w-full text-center py-8 text-gray-500">Loading assets...</div>
+              ) : (
+                assets.map((asset) => (
                   <AssetCard
                     key={asset.path}
                     asset={asset}
                     blogId={blogId}
                     onDelete={handleDelete}
                     onCopy={handleCopyUrl}
+                    assetUrl={assetService.getAssetUrl(blogId, asset.name)}
                   />
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </Modal>
