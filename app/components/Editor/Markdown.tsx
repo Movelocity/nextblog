@@ -56,13 +56,16 @@ export function Mermaid(props: { code: string }) {
 /** preview code */
 export function PreCode(props: { children: any }) {
   const ref = useRef<HTMLPreElement>(null);
-  const [mermaidCode, setMermaidCode] = useState("");  // eslint-disable-line no-unused-vars
+  const hiddenRef = useRef<HTMLDivElement>(null);
+  const [mermaidCode, setMermaidCode] = useState("");
+  const [isMermaid, setIsMermaid] = useState(false);
 
   const renderArtifacts = useDebouncedCallback(() => {
-    if (!ref.current) return;
-    const mermaidDom = ref.current.querySelector("code.language-mermaid");
+    if (!ref.current && !hiddenRef.current) return;
+    const targetRef = isMermaid ? hiddenRef.current : ref.current;
+    const mermaidDom = targetRef?.querySelector("code.language-mermaid");
     if (mermaidDom) {
-      console.log("mermaidDom", mermaidDom);
+      setIsMermaid(true);
       setMermaidCode((mermaidDom as HTMLElement).innerText);
     }
   }, 600);
@@ -95,23 +98,26 @@ export function PreCode(props: { children: any }) {
   }, []);
 
   return (
-    <>{/** group hover and show copy button*/}
-      <pre ref={ref} className="group relative">
-        <span
-          className="group-hover:opacity-100 opacity-0 absolute top-2 right-2 cursor-pointer"
-          onClick={() => {
-            if (ref.current) {
-              copyToClipboard(
-                ref.current.querySelector("code")?.innerText ?? "",
-              );
-            }
-          }}
-        >copy</span>
-        {props.children}
-      </pre>
-      {mermaidCode.length > 0 && (
+    <>
+      {!isMermaid && (
+        <pre ref={ref} className="group relative">
+          <span
+            className="group-hover:opacity-100 opacity-0 absolute top-2 right-2 cursor-pointer"
+            onClick={() => {
+              if (ref.current) {
+                copyToClipboard(
+                  ref.current.querySelector("code")?.innerText ?? "",
+                );
+              }
+            }}
+          >copy</span>
+          {props.children}
+        </pre>
+      )}
+      {isMermaid && mermaidCode.length > 0 && (
         <Mermaid code={mermaidCode} key={mermaidCode} />
       )}
+      {!isMermaid && <div ref={hiddenRef} className="hidden">{props.children}</div>}
     </>
   );
 }
@@ -127,46 +133,51 @@ function CustomCode(props: { children: any; className?: string }) {
     if (ref.current) {
       const codeHeight = ref.current.scrollHeight;
       setShowToggle(codeHeight > 400);
-      ref.current.scrollTop = ref.current.scrollHeight;
     }
   }, [props.children]);
 
   const toggleCollapsed = () => {
     setCollapsed((collapsed) => !collapsed);
   };
-  const renderShowMoreButton = () => {
-    if (showToggle && enableCodeFold && collapsed) {
-      return (
-        <div
-          className={classnames("absolute bottom-0 flex justify-center w-full", {
-            collapsed,
-            expanded: !collapsed,
-          })}
-          style={{
-            backgroundImage: "linear-gradient(180deg,rgba(0,0,0,.8),rgba(0,0,0,.06))"
-          }}
+
+  const renderToggleButton = () => {
+    if (!showToggle || !enableCodeFold) return null;
+
+    return (
+      <div
+        className={classnames(
+          "absolute bottom-0 left-0 right-0 flex justify-center w-full py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+          {
+            "bg-gradient-to-t from-gray-100 dark:from-gray-800 to-transparent": collapsed,
+          }
+        )}
+      >
+        <button
+          onClick={toggleCollapsed}
+          className="px-2 py-0.5 text-sm rounded-full bg-gray-200/90 dark:bg-gray-700/90 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
         >
-          <button onClick={toggleCollapsed}>Show more</button>
-        </div>
-      );
-    }
-    return null;
+          {collapsed ? "Show more" : "Show less"}
+        </button>
+      </div>
+    );
   };
+
   return (
-    <>
+    <div className="group relative">
       <code
         className={classnames(props?.className)}
         ref={ref}
         style={{
           maxHeight: enableCodeFold && collapsed ? "400px" : "none",
           overflowY: "hidden",
+          display: "block",
         }}
       >
         {props.children}
       </code>
 
-      {renderShowMoreButton()}
-    </>
+      {renderToggleButton()}
+    </div>
   );
 }
 
