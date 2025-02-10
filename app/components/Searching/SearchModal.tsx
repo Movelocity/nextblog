@@ -75,7 +75,7 @@ export default function SearchModal() {
 
       <Modal isOpen={isOpen} onClose={handleClose} size="lg">
         <div className="relative flex flex-col w-full mx-auto bg-white dark:bg-gray-800/95 rounded-lg">
-          <SearchPosts onResult={setSearchResults} />
+          <SearchPosts onResult={setSearchResults} open={isOpen} />
           <div className="flex-1 overflow-y-auto max-h-[60vh] min-h-[60vh]">
             {searchResults.length > 0 ? (
               <div>

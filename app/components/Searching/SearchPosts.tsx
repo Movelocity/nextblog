@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { BlogMeta, SearchParams } from '../../common/types';
 import debounce from 'lodash/debounce';
 import { getTaxonomy } from '../../services/posts';
@@ -7,11 +7,13 @@ import { getPosts } from '@/app/services/posts';
 
 interface SearchPostsProps {
   onResult: (result: BlogMeta[]) => void;
+  open?: boolean;
   initialCategory?: string;
 }
 
 export default function SearchPosts({ 
   onResult,
+  open = false,
   initialCategory 
 }: SearchPostsProps) {
   const [query, setQuery] = useState('');
@@ -21,6 +23,14 @@ export default function SearchPosts({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      inputRef.current?.focus();
+    }
+  }, [open]);
+
 
   const executeSearch = useCallback((searchParams: SearchParams) => {
     // if empty, don't search
@@ -115,6 +125,7 @@ export default function SearchPosts({
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
       <div className="p-2">
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={handleQueryChange}
