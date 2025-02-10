@@ -23,7 +23,7 @@ export const PrettyEditor = ({
 }: PrettyEditorProps) => {
   const { 
     post, setPostTitle, setPostContent, setPostPublished, 
-    isSaving, lastSaved, loading, setIsDirty,
+    lastSaved, loading, setIsDirty,
     setPostCategories, setPostTags
   } = useEditPostStore();
   const [isPreview, setIsPreview] = useState(false);
@@ -188,7 +188,7 @@ export const PrettyEditor = ({
 
         {/* Content Area */}
         <div className="flex-1 max-w-[780px] w-full mt-4">
-          <div className={classNames(isPreview ? 'hidden' : '')}>
+          <div className={classNames(isPreview ? 'absolute opacity-0 pointer-events-none' : '')}>
             <textarea
               ref={textareaRef}
               id="content"
@@ -202,7 +202,7 @@ export const PrettyEditor = ({
               required
             />
           </div>
-          <div className={classNames(!isPreview ? 'hidden' : '')}>
+          <div className={classNames(!isPreview ? 'absolute opacity-0 pointer-events-none' : '')}>
             <div className="prose max-w-none">
               <Markdown content={post.content} />
             </div>

@@ -13,6 +13,7 @@ import { RiLoader4Line } from "react-icons/ri";
 import React from "react";
 
 import classnames from "classnames";
+import { useDebouncedCallback } from "use-debounce";
 
 /* This component is a modified version of the code from https://github.com/ChatGPTNextWeb/NextChat/blob/main/app/components/markdown.tsx */
 
@@ -27,21 +28,13 @@ export function Mermaid(props: { code: string }) {
           nodes: [ref.current],
           suppressErrors: true,
         })
-        .catch((e: { message: string }) => {
+        .catch((e) => {
           setHasError(true);
           console.error("[Mermaid] ", e.message);
         });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.code]);
-
-  function viewSvgInNewWindow() {
-    const svg = ref.current?.querySelector("svg");
-    if (!svg) return;
-    // const text = new XMLSerializer().serializeToString(svg);
-    // const blob = new Blob([text], { type: "image/svg+xml" });
-    // showImageModal(URL.createObjectURL(blob));
-  }
 
   if (hasError) {
     return null;
@@ -51,48 +44,28 @@ export function Mermaid(props: { code: string }) {
     <div
       className={classnames("no-dark", "mermaid")}
       style={{
-        cursor: "pointer",
         overflow: "auto",
       }}
       ref={ref}
-      onClick={() => viewSvgInNewWindow()}
     >
       {props.code}
     </div>
   );
 }
 
+/** preview code */
 export function PreCode(props: { children: any }) {
   const ref = useRef<HTMLPreElement>(null);
-//   const previewRef = useRef<HTMLPreviewHander>(null);
   const [mermaidCode, setMermaidCode] = useState("");  // eslint-disable-line no-unused-vars
-//   const [htmlCode, setHtmlCode] = useState("");
-//   const { height } = useWindowSize();
-//   const chatStore = useChatStore();
-//   const session = chatStore.currentSession();
 
-  // const _renderArtifacts = useDebouncedCallback(() => {
-  //   if (!ref.current) return;
-  //   const mermaidDom = ref.current.querySelector("code.language-mermaid");
-  //   if (mermaidDom) {
-  //     setMermaidCode((mermaidDom as HTMLElement).innerText);
-  //   }
-    // const htmlDom = ref.current.querySelector("code.language-html");
-    // const refText = ref.current.querySelector("code")?.innerText;
-    // if (htmlDom) {
-    //   setHtmlCode((htmlDom as HTMLElement).innerText);
-    // } else if (
-    //   refText?.startsWith("<!DOCTYPE") ||
-    //   refText?.startsWith("<svg") ||
-    //   refText?.startsWith("<?xml")
-    // ) {
-    //   setHtmlCode(refText);
-    // }
-  // }, 600);
-
-//   const config = useAppConfig();
-//   const enableArtifacts =
-//     session.mask?.enableArtifacts !== false && config.enableArtifacts;
+  const renderArtifacts = useDebouncedCallback(() => {
+    if (!ref.current) return;
+    const mermaidDom = ref.current.querySelector("code.language-mermaid");
+    if (mermaidDom) {
+      console.log("mermaidDom", mermaidDom);
+      setMermaidCode((mermaidDom as HTMLElement).innerText);
+    }
+  }, 600);
 
   //Wrap the paragraph for plain-text
   useEffect(() => {
@@ -117,7 +90,7 @@ export function PreCode(props: { children: any }) {
           codeElement.style.whiteSpace = "pre-wrap";
         }
       });
-      // setTimeout(renderArtifacts, 1);
+      renderArtifacts();
     }
   }, []);
 
@@ -139,39 +112,13 @@ export function PreCode(props: { children: any }) {
       {mermaidCode.length > 0 && (
         <Mermaid code={mermaidCode} key={mermaidCode} />
       )}
-      {/* {htmlCode.length > 0 && enableArtifacts && (
-        <FullScreen className="no-dark html" right={70}>
-          <ArtifactsShareButton
-            style={{ position: "absolute", right: 20, top: 10 }}
-            getCode={() => htmlCode}
-          />
-          <IconButton
-            style={{ position: "absolute", right: 120, top: 10 }}
-            bordered
-            icon={<ReloadButtonIcon />}
-            shadow
-            onClick={() => previewRef.current?.reload()}
-          />
-          <HTMLPreview
-            ref={previewRef}
-            code={htmlCode}
-            autoHeight={!document.fullscreenElement}
-            height={!document.fullscreenElement ? 600 : height}
-          />
-        </FullScreen>
-      )} */}
     </>
   );
 }
 
 // eslint-disable-next-line no-explicit-any
 function CustomCode(props: { children: any; className?: string }) {
-  // const chatStore = useChatStore();
-  // const session = chatStore.currentSession();
-  // const config = useAppConfig();
-  // const enableCodeFold =
-  //   session.mask?.enableCodeFold !== false && config.enableCodeFold;
-  const enableCodeFold = false;  // TODO: configure in dashboard
+  const enableCodeFold = true;  // TODO: configure in dashboard
   const ref = useRef<HTMLPreElement>(null);
   const [collapsed, setCollapsed] = useState(true);
   const [showToggle, setShowToggle] = useState(false);
@@ -191,10 +138,13 @@ function CustomCode(props: { children: any; className?: string }) {
     if (showToggle && enableCodeFold && collapsed) {
       return (
         <div
-          className={classnames("show-hide-button", {
+          className={classnames("absolute bottom-0 flex justify-center w-full", {
             collapsed,
             expanded: !collapsed,
           })}
+          style={{
+            backgroundImage: "linear-gradient(180deg,rgba(0,0,0,.8),rgba(0,0,0,.06))"
+          }}
         >
           <button onClick={toggleCollapsed}>Show more</button>
         </div>
