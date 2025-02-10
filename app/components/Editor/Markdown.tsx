@@ -122,26 +122,26 @@ export function PreCode(props: { children: any }) {
   );
 }
 
-// eslint-disable-next-line no-explicit-any
 function CustomCode(props: { children: any; className?: string }) {
   const enableCodeFold = true;  // TODO: configure in dashboard
   const ref = useRef<HTMLPreElement>(null);
   const [collapsed, setCollapsed] = useState(true);
   const [showToggle, setShowToggle] = useState(false);
+  const isInlineCode = !props.className;  // If no className is provided, it's inline code
 
   useEffect(() => {
-    if (ref.current) {
+    if (ref.current && !isInlineCode) {
       const codeHeight = ref.current.scrollHeight;
       setShowToggle(codeHeight > 400);
     }
-  }, [props.children]);
+  }, [props.children, isInlineCode]);
 
   const toggleCollapsed = () => {
     setCollapsed((collapsed) => !collapsed);
   };
 
   const renderToggleButton = () => {
-    if (!showToggle || !enableCodeFold) return null;
+    if (!showToggle || !enableCodeFold || isInlineCode) return null;
 
     return (
       <div
@@ -161,6 +161,19 @@ function CustomCode(props: { children: any; className?: string }) {
       </div>
     );
   };
+
+  if (isInlineCode) {
+    return (
+      <code
+        className={classnames("inline-code", props?.className)}
+        style={{
+          whiteSpace: "break-spaces",
+        }}
+      >
+        {props.children}
+      </code>
+    );
+  }
 
   return (
     <div className="group relative">

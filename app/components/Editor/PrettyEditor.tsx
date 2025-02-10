@@ -7,6 +7,7 @@ import { CategoryModal } from '@/app/components/CategoryTag/CategoryModal';
 import PublishHint from '@/app/components/part/PubilshHint';
 import CategoryTag from '@/app/components/CategoryTag';
 import { AssetModal } from '@/app/components/Asset/AssetModal';
+import { RiEdit2Line, RiEyeLine } from "react-icons/ri";
 
 type PrettyEditorProps = {
   id?: string;
@@ -159,13 +160,6 @@ export const PrettyEditor = ({
               { id && <AssetModal blogId={id} /> }
 
               <button
-                type="button"
-                onClick={() => setIsPreview(!isPreview)}
-                className="px-3 py-1.5 hover:text-blue-500 transition-colors"
-              >
-                {isPreview ? 'Edit' : 'Preview'}
-              </button>
-              <button
                 onClick={onSubmit}
                 className={classNames(
                   "px-3 py-1.5 hover:text-blue-500 transition-colors",
@@ -208,7 +202,19 @@ export const PrettyEditor = ({
             </div>
           </div>
         </div>
+
+        {/* Floating Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setIsPreview(!isPreview)}
+          className="fixed bottom-8 right-8 flex items-center justify-center p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105 z-50"
+          aria-label={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
+          title={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
+        >
+          {isPreview ? <RiEdit2Line size={20} /> : <RiEyeLine size={20} />}
+        </button>
       </div>
+
 
       <CategoryModal
         isOpen={showCategoryModal}
