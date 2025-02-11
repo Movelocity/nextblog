@@ -102,7 +102,7 @@ const SidePanelContent = () => {
     <div className="side-panel-content p-4 flex flex-col text-gray-500 dark:text-gray-300">
       <StyledLink icon={<RiHomeFill className="w-4 h-4" />} name="Home" tgUrl="/posts" />
       <StyledLink icon={<RiBook2Fill className="w-4 h-4" />} name="Categories" tgUrl="/posts/category">
-        {topLevelCategories.map((category) => (
+        {topLevelCategories.sort().map((category) => (
           <Link
             key={category}
             href={`/posts/category/${category}`}

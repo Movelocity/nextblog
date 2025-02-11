@@ -40,32 +40,31 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
   const handleHeadingClick = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
   if (headings.length === 0) return null;
 
   return (
-    <div className={classNames("p-4", className)} style={style}>
+    <div className={classNames("toc p-4 text-gray-700 dark:text-gray-400 min-w-[10rem]", className)} style={style}>
       <div 
         className="flex items-center justify-between mb-2 cursor-pointer select-none"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold">
           TOC
         </h3>
       </div>
       
       {!isCollapsed && (
-        <nav className="space-y-1">
+        <nav className="space-y-1 text-sm  w-36 lg:w-48">
           {headings.map((heading, index) => (
-            <button
+            <div
               key={index}
               onClick={() => handleHeadingClick(heading.id)}
               className={classNames(
-                "block w-full text-left px-2 py-1 text-sm border-l-2 pl-1 border-transparent hover:border-gray-300",
-                "focus:outline-none focus:font-bold",
+                " w-full text-left px-2 py-1 border-l-2 border-transparent hover:border-gray-300 cursor-pointer",
                 {
                   "pl-2": heading.level === 1,
                   "pl-4": heading.level === 2,
@@ -76,8 +75,8 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
                 }
               )}
             >
-              {heading.text}
-            </button>
+              {heading.text.replace(/\*/g, '')}
+            </div>
           ))}
         </nav>
       )}

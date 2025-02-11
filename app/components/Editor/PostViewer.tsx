@@ -53,7 +53,7 @@ export const PostViewer = ({ post, editable }: PostViewerProps) => {
         <div className="sticky top-24 mx-auto w-full z-50">
           <TableOfContents 
             content={post.content} 
-            className="toc absolute min-w-[10rem] max-w-[20rem]"
+            className="absolute"
           />
         </div>
 

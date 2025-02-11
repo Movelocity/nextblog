@@ -48,7 +48,7 @@ export const PrettyEditor = ({
       textarea.style.height = `${Math.max(500, textarea.scrollHeight+100)}px`;
 
       // Restore scroll position
-      window.scrollTo(0, scrollPos);
+      // window.scrollTo(0, scrollPos);
 
       // Restore cursor position
       textarea.setSelectionRange(selectionStart, selectionEnd);
@@ -176,7 +176,7 @@ export const PrettyEditor = ({
         <div className="sticky top-24 mx-auto w-full z-50">
           <TableOfContents 
             content={post.content} 
-            className='toc absolute min-w-[10rem] max-w-[20rem]'
+            className='absolute'
           />
         </div>
 
