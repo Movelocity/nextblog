@@ -2,7 +2,6 @@ import { BlogMeta } from '../../common/types';
 import Link from 'next/link';
 import { FaTags, FaCalendarAlt } from 'react-icons/fa';
 import CategoryTag from '@/app/components/CategoryTag';
-import { textPreview } from '@/app/common/utils';
 import './ArticleItem.css';
 
 interface ArticleItemProps {

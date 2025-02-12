@@ -18,23 +18,35 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
-    // Extract headings from markdown content
-    const headingRegex = /^(#{1,6})\s+(.+)$/gm;
-    const matches = Array.from(content.matchAll(headingRegex));
-    
-    const extractedHeadings = matches.map((match) => {
-      const level = match[1].length;
-      const text = match[2];
-      // Create an id from the heading text
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+    // Extract headings from markdown content, ignoring code blocks
+    const extractHeadings = (content: string): Heading[] => {
+      // Split content by code blocks
+      const codeBlockRegex = /```[\s\S]*?```/g;
+      const sections = content.split(codeBlockRegex);
       
-      return { id, text, level };
-    });
+      // Only process non-code-block sections
+      const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+      const extractedHeadings: Heading[] = [];
+      
+      sections.forEach(section => {
+        const matches = Array.from(section.matchAll(headingRegex));
+        matches.forEach(match => {
+          const level = match[1].length;
+          const text = match[2];
+          // Create an id from the heading text
+          const id = text
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+          
+          extractedHeadings.push({ id, text, level });
+        });
+      });
 
-    setHeadings(extractedHeadings);
+      return extractedHeadings;
+    };
+
+    setHeadings(extractHeadings(content));
   }, [content]);
 
   const handleHeadingClick = (id: string) => {

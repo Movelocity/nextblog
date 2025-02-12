@@ -8,6 +8,7 @@ import PublishHint from '@/app/components/part/PubilshHint';
 import CategoryTag from '@/app/components/CategoryTag';
 import { AssetModal } from '@/app/components/Asset/AssetModal';
 import { RiEdit2Line, RiEyeLine } from "react-icons/ri";
+import { FaTags } from 'react-icons/fa';
 
 type PrettyEditorProps = {
   id?: string;
@@ -207,15 +208,13 @@ export const PrettyEditor = ({
         <button
           type="button"
           onClick={() => setIsPreview(!isPreview)}
-          className="fixed bottom-8 right-8 flex items-center justify-center p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105 z-50"
+          className="fixed bottom-8 right-8 flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105 z-50"
           aria-label={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
           title={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
         >
           {isPreview ? <RiEdit2Line size={20} /> : <RiEyeLine size={20} />}
         </button>
       </div>
-
-
       <CategoryModal
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CreatePostInput, UpdatePostInput } from '@/app/common/types';
 import blogStorage from '@/app/lib/BlogStorage';
 import { requireAuth, authenticateRequest } from '@/app/lib/auth';
-import { textPreview } from '@/app/common/utils';
 
 /**
  * 查询博客列表，支持分页、过滤、搜索、排序等
@@ -72,7 +71,7 @@ export const POST = requireAuth(async (request: NextRequest) => {
     const newBlog = await blogStorage.createBlog({
       id: Date.now().toString(),
       title: body.title,
-      description: textPreview(body.content),
+      description: "",
       content: body.content,
       published: body.published,
       categories: body.categories || [],
@@ -109,7 +108,7 @@ export const PUT = requireAuth(async (request: NextRequest) => {
     const body: UpdatePostInput = await request.json();
     const updatedBlog = await blogStorage.updateBlog(id, {
       title: body.title,
-      description: textPreview(body.content),
+      description: "",
       content: body.content,
       published: body.published,
       categories: body.categories,

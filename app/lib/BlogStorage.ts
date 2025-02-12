@@ -12,7 +12,7 @@ import {
   Asset
 } from '@/app/common/types';
 import { BLOG_CONFIG } from '@/app/common/config';
-
+import { textPreview } from '@/app/common/utils';
 interface ContentCache {
   content: string;
   timestamp: number;
@@ -166,7 +166,7 @@ export class BlogStorage {
     const blogMeta: BlogMeta = {
       id: input.id,
       title: input.title,
-      description: input.description,
+      description: textPreview(input.content),
       createdAt: now,
       updatedAt: now,
       published: input.published ?? false,
@@ -292,7 +292,7 @@ export class BlogStorage {
     const updatedMeta: BlogMeta = {
       ...blogMeta,
       title: input.title ?? blogMeta.title,
-      description: input.description ?? blogMeta.description,
+      description: textPreview(input.content),
       published: input.published ?? blogMeta.published,
       tags: input.tags ?? blogMeta.tags ?? [],
       categories: input.categories ?? blogMeta.categories ?? [],

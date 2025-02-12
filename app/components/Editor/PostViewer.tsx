@@ -25,9 +25,9 @@ export const PostViewer = ({ post, editable }: PostViewerProps) => {
             </h1>
           </div>
 
-          <div className="flex flex-row items-center justify-start mt-4">
+          <div className="flex flex-row items-center justify-start mt-4 gap">
             {post.categories && post.categories.length > 0 && (
-              <div>
+              <div className="space-x-2">
                 {post.categories.map((category) => (
                   <CategoryTag
                     key={category}
