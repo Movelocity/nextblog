@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 
 import { ToastProvider } from '@/app/components/Toast/context';
 import { SidePanelProvider } from '@/app/components/SidePanel/context';
+import Link from "next/link";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -40,6 +41,14 @@ export default function RootLayout({
             {children}
           </main>
         </Providers>
+
+        <div 
+          className="py-2 w-full text-center text-gray-700 dark:text-gray-200" 
+        >
+          <Link href="https://beian.miit.gov.cn/" target="_blank" className="cursor-pointer hover:underline">
+            {process.env.ICP_INFO}
+          </Link>
+        </div>
       </body>
     </html>
   );
