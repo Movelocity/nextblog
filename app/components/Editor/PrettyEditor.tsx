@@ -178,8 +178,6 @@ export const PrettyEditor = ({
                 Categories
               </button>
 
-              { id && <AssetModal blogId={id} /> }
-
               <button
                 onClick={handleSave}
                 className={classNames(
@@ -224,16 +222,26 @@ export const PrettyEditor = ({
           </div>
         </div>
 
-        {/* Floating Toggle Button */}
-        <button
-          type="button"
-          onClick={() => setIsPreview(!isPreview)}
-          className="fixed bottom-8 right-8 flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105 z-50"
-          aria-label={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
-          title={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
-        >
-          {isPreview ? <RiEdit2Line size={20} /> : <RiEyeLine size={20} />}
-        </button>
+        {/* Floating Buttons */}
+        <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
+          {/* Asset Button */}
+          {id && (
+            <div className="flex items-center justify-center">
+              <AssetModal blogId={id} />
+            </div>
+          )}
+
+          {/* Preview Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsPreview(!isPreview)}
+            className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
+            aria-label={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
+            title={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
+          >
+            {isPreview ? <RiEdit2Line size={20} /> : <RiEyeLine size={20} />}
+          </button>
+        </div>
       </div>
       <CategoryModal
         isOpen={showCategoryModal}

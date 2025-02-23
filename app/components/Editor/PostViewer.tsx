@@ -8,13 +8,16 @@ import { RiEdit2Line } from 'react-icons/ri';
 import PublishHint from '@/app/components/part/PubilshHint';
 import { Blog } from '@/app/common/types';
 import CategoryTag from '@/app/components/CategoryTag';
+import { useAuth } from '@/app/hooks/useAuth';
+import { AssetModal } from '@/app/components/Asset/AssetModal';
 
 type PostViewerProps = {
   post: Blog;
-  editable: boolean;
 }
 
-export const PostViewer = ({ post, editable }: PostViewerProps) => {
+export const PostViewer = ({ post }: PostViewerProps) => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="post-content h-full">
       <div className="flex flex-col h-full min-h-[calc(100vh-6rem)]">
@@ -86,17 +89,27 @@ export const PostViewer = ({ post, editable }: PostViewerProps) => {
           <PublishHint published={post.published} />
         </footer>
 
-        {/* Floating Edit Button */}
-        {editable && (
-          <Link
-            href={`/posts/${post.id}/edit`}
-            className="fixed bottom-8 right-8 flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105 z-50"
-            aria-label="Edit post"
-            title="Edit post"
-          >
-            <RiEdit2Line size={20} />
-          </Link>
-        )}
+        {/* Floating Buttons */}
+        <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
+          {/* Asset Button */}
+          {isAuthenticated && (
+            <div className="flex items-center justify-center">
+              <AssetModal blogId={post.id} />
+            </div>
+          )}
+
+          {/* Edit Button */}
+          {isAuthenticated && (
+            <Link
+              href={`/posts/${post.id}/edit`}
+              className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
+              aria-label="Edit post"
+              title="Edit post"
+            >
+              <RiEdit2Line size={20} />
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -4,43 +4,34 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Blog } from '@/app/common/types';
 import { getPost } from '@/app/services/posts';
-import { isAuthenticated } from '@/app/services/auth';
 import { PostViewer } from '@/app/components/Editor/PostViewer';
 
 export default function PostPage() {
   const params = useParams();
   // const router = useRouter();
   const [post, setPost] = useState<Blog | null>(null);
-  const [editable, setEditable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const authStatus = await isAuthenticated();
-      setEditable(authStatus);
-    };
-    checkAuthStatus();
-  }, []);
-
-  useEffect(() => {
-    const fetchPost = async () => {
+    const loadPost = async () => {
       try {
-        const data = await getPost(params.id as string);
+        setLoading(true);
+        if (!params.id || typeof params.id !== 'string') {
+          setError('Invalid post ID');
+          return;
+        }
+        const data = await getPost(params.id);
         setPost(data);
-        document.title = data.title;
-        // Calculate word count
-        // setWordCount(data.content.trim().split(/\s+/).length);
       } catch (error) {
         setError('Failed to load post');
-        console.error('Error fetching post:', error);
+        console.error('Error loading post:', error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchPost();
+    loadPost();
   }, [params.id]);
 
   if (loading) {
@@ -51,23 +42,15 @@ export default function PostPage() {
     );
   }
 
-  if (error) {
+  if (error || !post) {
     return (
       <div className="text-red-500 text-center p-4">
-        {error}
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="text-center p-4">
-        Post not found
+        {error || 'Post not found'}
       </div>
     );
   }
 
   return (
-    <PostViewer post={post} editable={editable} />
+    <PostViewer post={post} />
   );
 } 

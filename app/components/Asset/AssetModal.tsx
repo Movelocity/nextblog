@@ -130,11 +130,11 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
     <>
       <button
         onClick={handleOpen}
-        className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+        className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
         aria-label="Open Asset Manager"
+        title="Asset Manager"
       >
-        <FiImage className="w-4 h-4" />
-        Assets
+        <FiImage size={20} />
       </button>
 
       <Modal
