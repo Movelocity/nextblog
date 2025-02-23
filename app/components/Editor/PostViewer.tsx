@@ -86,6 +86,12 @@ export const PostViewer = ({ post, editable }: PostViewerProps) => {
           <p className="pl-2 border-l-2 border-gray-300 dark:border-gray-700">
             Updated: {new Date(post.updatedAt).toLocaleString()} 
           </p>
+
+          <p>
+            <Link href="https://beian.miit.gov.cn/" target="_blank" className="cursor-pointer hover:underline">
+              {process.env.NEXT_PUBLIC_ICP_INFO}
+            </Link>
+          </p>
         </footer>
       </div>
     </div>

@@ -44,13 +44,13 @@ export default function RootLayout({
           <GlobalLoginModal />
         </Providers>
 
-        <div 
+        {/* <div 
           className="py-2 w-full text-center text-gray-700 dark:text-gray-200" 
         >
           <Link href="https://beian.miit.gov.cn/" target="_blank" className="cursor-pointer hover:underline">
             {process.env.ICP_INFO}
           </Link>
-        </div>
+        </div> */}
       </body>
     </html>
   );
