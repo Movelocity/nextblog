@@ -2,41 +2,44 @@
 
 import { useState, useEffect } from 'react';
 import { getPosts, deletePost } from '@/app/services/posts';
-import LoginModal from '@/app/components/Login/LoginModal';
-import { isAuthenticated as checkAuth } from '@/app/services/auth';
 import PostsTable from '@/app/components/Posts/PostsTable';
 import { updatePost } from '@/app/services/posts';
 import { useToast } from '@/app/components/Toast/context';
 import { BLOG_CONFIG } from '@/app/common/config';
 import { BlogMeta } from '@/app/common/types';
 import Pagination from '@/app/components/Pagination';
+import { useLoginModal } from '@/app/hooks/useLoginModal';
+import { useAuth } from '@/app/hooks/useAuth';
 
 export default function DashboardPage() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
+  const { isAuthenticated, checkAuthStatus } = useAuth();
+  const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
 
   const [postsCnt, setPostsCnt] = useState(0);
   const [page, setPage] = useState(1);
   const totalPages = Math.ceil(postsCnt / BLOG_CONFIG.MAX_POSTS_PER_PAGE);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const authStatus = await checkAuth();
-      setIsAuthenticated(authStatus);
-      if (authStatus) {
-        setIsLoginModalOpen(false);
-        fetchPosts();
+    const init = async () => {
+      await checkAuthStatus();
+      if (!isAuthenticated) {
+        const handleLoginSuccess = () => {
+          fetchPosts();
+        };
+        setLoginSuccess(handleLoginSuccess);
+        setLoginModalOpen(true);
       }
     };
-    checkAuthStatus();
+    init();
   }, []);
 
   useEffect(() => {
-    fetchPosts();
-  }, [page]);
-
+    if (isAuthenticated) {
+      fetchPosts();
+    }
+  }, [page, isAuthenticated]);
 
   const fetchPosts = async () => {
     try {
@@ -47,26 +50,14 @@ export default function DashboardPage() {
       });
       setBlogsInfo(blogs_info);
       setPostsCnt(total);
-      // showToast('Posts fetched successfully', 'success');
     } catch (error) {
       console.error('Error fetching posts:', error);
       showToast('Error fetching posts', 'error');
     } 
   };
 
-  const handleLogin = async () => {
-    setIsAuthenticated(true);
-    fetchPosts();
-  };
-
   if (!isAuthenticated) {
-    return (
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onSuccess={handleLogin}
-      />
-    );
+    return null; // 登录弹窗由全局 GlobalLoginModal 处理
   }
 
   return (

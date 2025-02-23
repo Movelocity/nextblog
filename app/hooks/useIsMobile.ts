@@ -21,8 +21,10 @@ const getMobileDetect = (userAgent: string) => {
 
 export const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 640); // Matches Tailwind's sm breakpoint
     };
@@ -37,7 +39,8 @@ export const useIsMobile = () => {
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
-  return isMobile;
+  // Return false during SSR, actual value after mount
+  return hasMounted ? isMobile : false;
 };
 
 export default useIsMobile; 

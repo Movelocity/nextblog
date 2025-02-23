@@ -3,7 +3,7 @@
 import Link from "next/link";
 import SearchModal from "@/app/components/Searching/SearchModal";
 import ThemeBtn from "@/app/components/part/ThemeBtn";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { removeAuthToken } from '@/app/services/auth';
 import { useRouter } from 'next/navigation';
 import { RiLogoutBoxLine } from 'react-icons/ri';
@@ -19,8 +19,10 @@ export const Navigation = () => {
   const { visible } = useScrollDirection();
   const isMobile = useIsMobile();
   const { isSidePanelOpen } = useSidePanel();
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
     checkAuthStatus();
   }, [checkAuthStatus]);
 
@@ -32,10 +34,10 @@ export const Navigation = () => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-12">
+      <div className="container px-4">
+        <div className="flex justify-between items-center w-[95vw] h-12">
           <div className="flex items-center space-x-4">
-            {!isMobile && <ToggleBtn />}
+            {hasMounted && !isMobile && <ToggleBtn />}
             <Link href="/" className="text-lg font-bold">
               Next Blog
             </Link>

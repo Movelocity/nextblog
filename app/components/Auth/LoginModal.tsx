@@ -5,7 +5,7 @@ import Modal from '../Modal';
 import { login, setAuthToken } from '@/app/services/auth';
 import { FiMail, FiLock, FiLoader } from 'react-icons/fi';
 import classNames from 'classnames';
-import { readAccount, rememberAccount } from '@/app/components/Login/utils';
+import { readAccount, rememberAccount } from '@/app/components/Auth/utils';
 import { useToast } from '@/app/components/Toast/context';
 import { useAuth } from '@/app/hooks/useAuth';
 
