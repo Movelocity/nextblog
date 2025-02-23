@@ -34,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white">
+      <body className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white">
         <Providers>
           <SidePanel />
           <Navigation />
@@ -43,14 +43,6 @@ export default function RootLayout({
           </main>
           <GlobalLoginModal />
         </Providers>
-
-        {/* <div 
-          className="py-2 w-full text-center text-gray-700 dark:text-gray-200" 
-        >
-          <Link href="https://beian.miit.gov.cn/" target="_blank" className="cursor-pointer hover:underline">
-            {process.env.ICP_INFO}
-          </Link>
-        </div> */}
       </body>
     </html>
   );
