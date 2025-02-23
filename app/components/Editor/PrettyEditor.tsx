@@ -9,6 +9,9 @@ import CategoryTag from '@/app/components/CategoryTag';
 import { AssetModal } from '@/app/components/Asset/AssetModal';
 import { RiEdit2Line, RiEyeLine } from "react-icons/ri";
 import { FaTags } from 'react-icons/fa';
+import { isAuthenticated } from '@/app/services/auth';
+import { useLoginModal } from '@/app/hooks/useLoginModal';
+import { useAuth } from '@/app/hooks/useAuth';
 
 type PrettyEditorProps = {
   id?: string;
@@ -30,6 +33,8 @@ export const PrettyEditor = ({
   } = useEditPostStore();
   const [isPreview, setIsPreview] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
+  const { isAuthenticated: globalAuthenticated } = useAuth();
   const wordCount = post.content.trim().match(/[\S]+/g)?.length || 0;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -99,6 +104,15 @@ export const PrettyEditor = ({
     setIsDirty(true);
   };
   
+  const handleSave = async () => {
+    if (!globalAuthenticated) {
+      setLoginSuccess(() => onSubmit);
+      setLoginModalOpen(true);
+      return;
+    }
+    onSubmit();
+  };
+
   return (
     <div className="h-full post-content">
       <div className="flex flex-col h-full mb-64">
@@ -161,7 +175,7 @@ export const PrettyEditor = ({
               { id && <AssetModal blogId={id} /> }
 
               <button
-                onClick={onSubmit}
+                onClick={handleSave}
                 className={classNames(
                   "px-3 py-1.5 hover:text-blue-500 transition-colors",
                   { "opacity-50 cursor-default": loading }

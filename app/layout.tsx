@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 import { ToastProvider } from '@/app/components/Toast/context';
 import { SidePanelProvider } from '@/app/components/SidePanel/context';
 import Link from "next/link";
+import { GlobalLoginModal } from '@/app/components/Auth/GlobalLoginModal';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -40,6 +41,7 @@ export default function RootLayout({
           <main className="py-6 mt-12">
             {children}
           </main>
+          <GlobalLoginModal />
         </Providers>
 
         <div 
