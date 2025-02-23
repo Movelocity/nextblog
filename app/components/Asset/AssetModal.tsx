@@ -141,11 +141,11 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
         isOpen={isOpen}
         onClose={handleClose}
         title="Asset Manager"
-        size="xl"
+        size="full"
       >
-        <div className="p-6">
-          <div className="overflow-y-auto max-h-[calc(90vh-350px)]">
-            <div className="flex flex-wrap gap-4">
+        <div className="p-4 md:p-6">
+          <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               <UploadArea
                 onDrag={handleDrag}
                 onDrop={handleDrop}
@@ -153,7 +153,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
                 isDragActive={dragActive}
               />
               {isLoading ? (
-                <div className="w-full text-center py-8 text-gray-500">Loading assets...</div>
+                <div className="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-8 text-gray-500">Loading assets...</div>
               ) : (
                 assets.map((asset) => (
                   <AssetCard
