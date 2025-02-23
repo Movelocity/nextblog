@@ -14,7 +14,7 @@ import { useAuth } from '@/app/hooks/useAuth';
 export default function DashboardPage() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
-  const { isAuthenticated, checkAuthStatus } = useAuth();
+  const { isAuthenticated, isLoading, checkAuthStatus } = useAuth();
   const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
 
   const [postsCnt, setPostsCnt] = useState(0);
@@ -22,18 +22,18 @@ export default function DashboardPage() {
   const totalPages = Math.ceil(postsCnt / BLOG_CONFIG.MAX_POSTS_PER_PAGE);
 
   useEffect(() => {
-    const init = async () => {
-      await checkAuthStatus();
-      if (!isAuthenticated) {
-        const handleLoginSuccess = () => {
-          fetchPosts();
-        };
-        setLoginSuccess(handleLoginSuccess);
-        setLoginModalOpen(true);
-      }
-    };
-    init();
+    checkAuthStatus();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      const handleLoginSuccess = () => {
+        fetchPosts();
+      };
+      setLoginSuccess(handleLoginSuccess);
+      setLoginModalOpen(true);
+    }
+  }, [isLoading, isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -55,6 +55,14 @@ export default function DashboardPage() {
       showToast('Error fetching posts', 'error');
     } 
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return null; // 登录弹窗由全局 GlobalLoginModal 处理
