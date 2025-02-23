@@ -176,7 +176,7 @@ export class BlogStorage {
 
     const blogConfig: BlogConfig = {
       title: input.title,
-      description: input.description,
+      description: blogMeta.description,
       createdAt: now,
       updatedAt: now,
       published: input.published ?? false,

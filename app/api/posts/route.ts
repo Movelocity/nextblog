@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Protected routes using requireAuth
+// 新建博客
 export const POST = requireAuth(async (request: NextRequest) => {
   try {
     const body: CreatePostInput = await request.json();
@@ -96,6 +96,7 @@ export const POST = requireAuth(async (request: NextRequest) => {
   }
 });
 
+// 更新博客
 export const PUT = requireAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
