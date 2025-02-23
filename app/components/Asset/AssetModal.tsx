@@ -151,6 +151,8 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
                 onDrop={handleDrop}
                 onFileSelect={handleFileSelect}
                 isDragActive={dragActive}
+                blogId={blogId}
+                onUploadComplete={loadAssets}
               />
               {isLoading ? (
                 <div className="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-8 text-gray-500">Loading assets...</div>

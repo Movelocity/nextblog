@@ -59,7 +59,7 @@ export const PostViewer = ({ post }: PostViewerProps) => {
         </div>
 
         {/* Post Footer */}
-        <footer className="flex flex-col md:flex-row gap-4 max-w-[780px] w-full mt-2 pt-2 border-t dark:border-gray-700 text-gray-700 dark:text-gray-400">
+        <footer className="flex flex-row flex-wrap gap-4 max-w-[780px] w-full mt-2 pt-2 border-t dark:border-gray-700 text-gray-700 dark:text-gray-400">
           {post.tags && post.tags.length > 0 && (
             <div className="flex items-center gap-2 mb-4">
               <FaTags className="w-4 h-4" />

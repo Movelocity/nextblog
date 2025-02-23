@@ -2,12 +2,15 @@ import { FiUpload, FiEye, FiUploadCloud, FiX } from 'react-icons/fi';
 import classNames from 'classnames';
 import { useState, useCallback } from 'react';
 import Modal from '@/app/components/Modal';
+import { assetService } from '@/app/services/assets';
 
 type UploadAreaProps = {
   onDrag: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isDragActive: boolean;
+  blogId: string;
+  onUploadComplete: () => void;
 };
 
 export const UploadArea: React.FC<UploadAreaProps> = ({
@@ -15,11 +18,14 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
   onDrop,
   onFileSelect,
   isDragActive,
+  blogId,
+  onUploadComplete,
 }) => {
   const [pastedImage, setPastedImage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handlePaste = useCallback(async (e: React.ClipboardEvent<HTMLInputElement>) => {
     const items = e.clipboardData?.items;
     if (!items) return;
 
@@ -32,19 +38,31 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
             setPastedImage(e.target?.result as string);
           };
           reader.readAsDataURL(file);
-          
-          // Create a properly typed synthetic event
-          const input = document.createElement('input');
-          input.type = 'file';
-          const dataTransfer = new DataTransfer();
-          dataTransfer.items.add(file);
-          input.files = dataTransfer.files;
-          
-          onFileSelect({ target: input } as React.ChangeEvent<HTMLInputElement>);
         }
       }
     }
-  }, [onFileSelect]);
+  }, []);
+
+  const handleUpload = useCallback(async () => {
+    if (!pastedImage) return;
+
+    try {
+      setIsUploading(true);
+      // Convert base64 to File object
+      const response = await fetch(pastedImage);
+      const blob = await response.blob();
+      const file = new File([blob], `pasted-image-${Date.now()}.png`, { type: 'image/png' });
+      
+      await assetService.uploadAsset(blogId, file);
+      onUploadComplete();
+      setPastedImage(null);
+      setShowPreview(false);
+    } catch (error) {
+      console.error('Failed to upload pasted image:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [pastedImage, blogId, onUploadComplete]);
 
   const handleCancel = useCallback(() => {
     setPastedImage(null);
@@ -82,12 +100,14 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
             {/* Action Buttons */}
             <div className="absolute top-2 right-2 flex flex-col gap-2">
               <button
-                onClick={() => {
-                  // Handle upload logic here
-                  setPastedImage(null);
-                  setShowPreview(false);
-                }}
-                className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
+                onClick={handleUpload}
+                disabled={isUploading}
+                className={classNames(
+                  "p-1.5 bg-emerald-600 text-white shadow-sm rounded-full",
+                  isUploading 
+                    ? "cursor-not-allowed"
+                    : "hover:bg-emerald-500"
+                )}
                 aria-label="Upload image"
                 title="Upload Image"
               >
@@ -95,13 +115,26 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
               </button>
               <button
                 onClick={handleCancel}
-                className="p-1.5 text-gray-600 hover:text-red-500 bg-white shadow-sm rounded-full"
+                disabled={isUploading}
+                className={classNames(
+                  "p-1.5 bg-red-600 text-white shadow-sm rounded-full",
+                  isUploading 
+                    ? "cursor-not-allowed"
+                    : "hover:bg-red-500"
+                )}
                 aria-label="Cancel upload"
                 title="Cancel"
               >
                 <FiX size={14} className="md:w-4 md:h-4" />
               </button>
             </div>
+            
+            {/* Loading Overlay */}
+            {isUploading && (
+              <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex-1 flex flex-col justify-center">
@@ -146,6 +179,7 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
           placeholder="Paste image here (Ctrl+V)"
           onPaste={handlePaste}
           aria-label="Paste image input"
+          disabled={isUploading}
         />
       </div>
 
