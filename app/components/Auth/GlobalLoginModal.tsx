@@ -7,8 +7,10 @@ export const GlobalLoginModal = () => {
   const { isOpen, setIsOpen, onSuccess } = useLoginModal();
 
   const handleSuccess = () => {
+    if (onSuccess) {
+      onSuccess();
+    }
     setIsOpen(false);
-    onSuccess?.();
   };
 
   return (

@@ -106,7 +106,13 @@ export const PrettyEditor = ({
   
   const handleSave = async () => {
     if (!globalAuthenticated) {
-      setLoginSuccess(() => onSubmit);
+      // 确保回调函数被正确设置和执行
+      const saveAfterLogin = () => {
+        console.log('Executing save after login');
+        onSubmit();
+      };
+      
+      setLoginSuccess(saveAfterLogin); // 直接传递函数，不需要额外的箭头函数
       setLoginModalOpen(true);
       return;
     }
