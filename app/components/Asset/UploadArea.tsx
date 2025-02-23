@@ -26,6 +26,9 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
       onDragOver={onDrag}
       onDrop={onDrop}
       className={areaClasses}
+      role="button"
+      tabIndex={0}
+      aria-label="Upload files"
     >
       <input
         type="file"
@@ -33,7 +36,7 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
         className="hidden"
         id="file-upload"
         multiple
-        accept="image/*,video/*,audio/*,application/*,text/*"
+        accept="*/*"
       />
       <label
         htmlFor="file-upload"
@@ -41,9 +44,21 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
         role="button"
         tabIndex={0}
       >
-        <FiUpload className="mb-2 text-gray-500" size={20} />
-        <p className="text-gray-600 text-xs md:text-sm text-center">
+        <FiUpload 
+          className={classNames(
+            'mb-2 transition-colors',
+            isDragActive ? 'text-blue-500' : 'text-gray-500'
+          )} 
+          size={24} 
+        />
+        <p className={classNames(
+          'text-sm md:text-base text-center transition-colors',
+          isDragActive ? 'text-blue-600' : 'text-gray-600'
+        )}>
           {isDragActive ? 'Drop files here' : 'Drop files or click to upload'}
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          All file types supported
         </p>
       </label>
     </div>

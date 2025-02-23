@@ -35,11 +35,11 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   return (
     <>
       <div
-        className="relative group bg-white w-full rounded-lg p-2 md:p-3 border border-gray-200 hover:border-blue-400 transition-colors h-full"
+        className="relative group bg-white w-full rounded-lg p-1 border border-gray-200 hover:border-blue-400 transition-colors h-full"
         role="article"
         aria-label={`Asset: ${asset.name}`}
       >
-        <div className="aspect-square mb-2 rounded overflow-hidden">
+        <div className="aspect-square rounded overflow-hidden">
           {asset.size > MAX_PREVIEW_SIZE ? (
             <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-500">
               <FiFileText size={32} className="mb-2" />
