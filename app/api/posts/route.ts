@@ -109,7 +109,6 @@ export const PUT = requireAuth(async (request: NextRequest) => {
     const body: UpdatePostInput = await request.json();
     const updatedBlog = await blogStorage.updateBlog(id, {
       title: body.title,
-      description: "",
       content: body.content,
       published: body.published,
       categories: body.categories,

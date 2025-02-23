@@ -174,6 +174,8 @@ export class BlogStorage {
       categories: Array.isArray(input.categories) ? input.categories : []
     };
 
+    console.log('blogMeta: ', blogMeta);
+
     const blogConfig: BlogConfig = {
       title: input.title,
       description: blogMeta.description,
@@ -183,7 +185,7 @@ export class BlogStorage {
       tags: Array.isArray(input.tags) ? input.tags : [],
       categories: Array.isArray(input.categories) ? input.categories : []
     };
-
+    console.log('blogConfig: ', blogConfig);
     try {
       // Create blog directory and assets subdirectory
       await fs.mkdir(blogDir, { recursive: true });
@@ -292,7 +294,7 @@ export class BlogStorage {
     const updatedMeta: BlogMeta = {
       ...blogMeta,
       title: input.title ?? blogMeta.title,
-      description: textPreview(input.content),
+      description: input.content? textPreview(input.content) : blogMeta.description,
       published: input.published ?? blogMeta.published,
       tags: input.tags ?? blogMeta.tags ?? [],
       categories: input.categories ?? blogMeta.categories ?? [],

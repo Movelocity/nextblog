@@ -80,7 +80,10 @@ export default function DashboardPage() {
           onTogglePublish={async (id, currentStatus) => {
             try {
               await updatePost(id, { published: !currentStatus });
-              fetchPosts();
+              // fetchPosts();
+              setBlogsInfo(blogs_info.map(blog => 
+                blog.id === id ? { ...blog, published: !currentStatus } : blog
+              ));
             } catch (error) {
               console.error('Error toggling post status:', error);
             }
