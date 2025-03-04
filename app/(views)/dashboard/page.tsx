@@ -23,6 +23,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     checkAuthStatus();
+    document.title = 'Dashboard';
   }, []);
 
   useEffect(() => {

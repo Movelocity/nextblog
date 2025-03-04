@@ -21,6 +21,7 @@ export default function CategoryPage() {
         // setLoading(true);
         const response = await getPosts({ categories: [currentCategory] });
         setPosts(response.blogs_info);
+        document.title = currentCategory;
   
         // Extract unique immediate sub-categories
         const subCategories = new Set<string>();

@@ -1,5 +1,4 @@
 import { 
-  FiFile, 
   FiFileText, 
   FiImage, 
   FiMusic, 

@@ -18,6 +18,7 @@ export default function NewPostPage() {
       tags: [],
       published: false,
     });
+    document.title = 'New Post';
   }, [setPost]);
 
   const handleSubmit = async (data: PostEditorData) => {

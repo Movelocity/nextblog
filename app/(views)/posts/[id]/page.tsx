@@ -24,6 +24,7 @@ export default function PostPage() {
         }
         const data = await getPost(params.id);
         setPost(data);
+        document.title = data.title;
       } catch (error) {
         setError('Failed to load post');
         console.error('Error loading post:', error);
