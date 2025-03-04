@@ -12,12 +12,83 @@
   --content-inline-start: max(calc(var(--sidebar-space) + 2rem), 2rem);
   --content-inline-end: max(calc(100vw - var(--content-width) - var(--sidebar-space) - 2rem), 2rem);
   --shadow-color: #bbb;
+
+  /* Category Colors - Light Mode */
+  --category-light: 95%;
+  --category-dark: 30%;
+  --category-saturation: 70%;
 }
 
 :root.dark {
   --background: #0a0a0a;
   --foreground: #ededed;
   --shadow-color: #111;
+
+  /* Category Colors - Dark Mode */
+  --category-light: 25%;
+  --category-dark: 85%;
+  --category-saturation: 60%;
+}
+
+/* Category color classes */
+.category-blue {
+  opacity: 0.8;
+  background-color: hsl(210, var(--category-saturation), var(--category-light));
+  color: hsl(210, var(--category-saturation), var(--category-dark));
+}
+
+.category-green {
+  opacity: 0.8;
+  background-color: hsl(150, var(--category-saturation), var(--category-light));
+  color: hsl(150, var(--category-saturation), var(--category-dark));
+}
+
+.category-purple {
+  opacity: 0.8;
+  background-color: hsl(270, var(--category-saturation), var(--category-light));
+  color: hsl(270, var(--category-saturation), var(--category-dark));
+}
+
+.category-yellow {
+  opacity: 0.8;
+  background-color: hsl(45, var(--category-saturation), var(--category-light));
+  color: hsl(45, var(--category-saturation), var(--category-dark));
+}
+
+.category-pink {
+  opacity: 0.8;
+  background-color: hsl(330, var(--category-saturation), var(--category-light));
+  color: hsl(330, var(--category-saturation), var(--category-dark));
+}
+
+.category-indigo {
+  opacity: 0.8;
+  background-color: hsl(240, var(--category-saturation), var(--category-light));
+  color: hsl(240, var(--category-saturation), var(--category-dark));
+}
+
+.category-red {
+  opacity: 0.8;
+  background-color: hsl(0, var(--category-saturation), var(--category-light));
+  color: hsl(0, var(--category-saturation), var(--category-dark));
+}
+
+.category-teal {
+  opacity: 0.8;
+  background-color: hsl(180, var(--category-saturation), var(--category-light));
+  color: hsl(180, var(--category-saturation), var(--category-dark));
+}
+
+.category-orange {
+  opacity: 0.8;
+  background-color: hsl(30, var(--category-saturation), var(--category-light));
+  color: hsl(30, var(--category-saturation), var(--category-dark));
+}
+
+.category-cyan {
+  opacity: 0.8;
+  background-color: hsl(195, var(--category-saturation), var(--category-light));
+  color: hsl(195, var(--category-saturation), var(--category-dark));
 }
 
 body {

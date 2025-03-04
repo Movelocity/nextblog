@@ -8,8 +8,6 @@ import PublishHint from '@/app/components/part/PubilshHint';
 import CategoryTag from '@/app/components/CategoryTag';
 import { AssetModal } from '@/app/components/Asset/AssetModal';
 import { RiEdit2Line, RiEyeLine } from "react-icons/ri";
-import { FaTags } from 'react-icons/fa';
-import { isAuthenticated } from '@/app/services/auth';
 import { useLoginModal } from '@/app/hooks/useLoginModal';
 import { useAuth } from '@/app/hooks/useAuth';
 
