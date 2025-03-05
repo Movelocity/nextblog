@@ -1,0 +1,14 @@
+---
+description: Code Implementation Guidelines
+globs: 
+alwaysApply: false
+---
+Follow these rules when you write code:
+- Use early returns whenever possible to make the code more readable.
+- Always use Tailwind classes for styling HTML elements; CSS is a second choice.
+- Use descriptive variable and function/const names. Also, event functions should be named with a “handle” prefix, like “handleClick” for onClick and “handleKeyDown” for onKeyDown.
+- Use consts instead of functions, for example, “const toggle = () =>”. Also, define a type if possible.
+- No frontend component should execute a single fetch, all api fetching should be done at services, and make easy to use functions for components to use.
+- Use classnames library for conditional classes.
+- Do not use middleware in nextjs, implement wrappers instead.
+- Use only react-icons for icons.

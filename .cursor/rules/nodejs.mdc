@@ -1,0 +1,9 @@
+---
+description: Package manager guides
+globs: 
+alwaysApply: false
+---
+
+- Use yarn rather than npm.
+- Leave NO todo’s, placeholders or missing pieces.
+- Ensure code is complete! Verify thoroughly finalised.
