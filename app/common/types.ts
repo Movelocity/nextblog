@@ -60,8 +60,8 @@ export interface BlogConfig {
   createdAt: string;
   updatedAt: string;
   published: boolean;
-  tags: string[];
-  categories: string[];
+  tags?: string[];
+  categories?: string[];
 }
 
 export interface BlogMetaCache {
