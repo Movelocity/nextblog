@@ -10,16 +10,18 @@ import { BlogMeta } from '@/app/common/types';
 import Pagination from '@/app/components/Pagination';
 import { useLoginModal } from '@/app/hooks/useLoginModal';
 import { useAuth } from '@/app/hooks/useAuth';
-
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 export default function DashboardPage() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
   const { isAuthenticated, isLoading, checkAuthStatus } = useAuth();
   const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
-
+  const searchParams = useSearchParams();
+  const page = Number(searchParams.get('page')) || 1;
   const [postsCnt, setPostsCnt] = useState(0);
-  const [page, setPage] = useState(1);
   const totalPages = Math.ceil(postsCnt / BLOG_CONFIG.MAX_POSTS_PER_PAGE);
+  const router = useRouter();
 
   useEffect(() => {
     checkAuthStatus();
@@ -69,6 +71,15 @@ export default function DashboardPage() {
     return null; // 登录弹窗由全局 GlobalLoginModal 处理
   }
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    
+    // Update URL with new page number
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`/dashboard?${params.toString()}`);
+  };
+
   return (
     <div className="normal-content">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
@@ -93,7 +104,7 @@ export default function DashboardPage() {
         <Pagination
           currentPage={page}
           totalPages={totalPages}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>

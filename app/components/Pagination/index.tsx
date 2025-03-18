@@ -37,7 +37,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
     }
   };
 
-  const baseButtonClasses = "group p-1 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40 hover:enabled:bg-blue-50 dark:hover:enabled:bg-gray-700";
+  const baseButtonClasses = "group p-1 rounded-md transition-all duration-200 focus:outline-none disabled:opacity-40 hover:enabled:bg-blue-50 dark:hover:enabled:bg-gray-700";
 
   return (
     <nav aria-label="Pagination" className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 text-gray-800 dark:text-gray-400">
@@ -52,12 +52,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
           data-page={currentPage - 1}
           aria-label={`Go to previous page${currentPage <= 1 ? ' (disabled)' : ''}`}
           title="Previous page"
-          className={classNames(
-            baseButtonClasses,
-            ""
-          )}
+          className={baseButtonClasses}
         >
-          <FiChevronLeft className="w-5 h-5 group-hover:enabled:text-blue-600 dark:group-hover:enabled:text-blue-400" />
+          <FiChevronLeft className="w-5 h-5 group-hover:enabled:text-blue-600 dark:group-hover:enabled:text-blue-400 outline-none" />
         </button>
 
         <div className="px-3 py-1.5 rounded-md">
@@ -76,10 +73,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
           data-page={currentPage + 1}
           aria-label={`Go to next page${currentPage >= totalPages ? ' (disabled)' : ''}`}
           title="Next page"
-          className={classNames(
-            baseButtonClasses,
-            ""
-          )}
+          className={baseButtonClasses}
         >
           <FiChevronRight className="w-5 h-5 group-hover:enabled:text-blue-600 dark:group-hover:enabled:text-blue-400" />
         </button>
