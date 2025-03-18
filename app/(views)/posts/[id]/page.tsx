@@ -8,11 +8,9 @@ import { PostViewer } from '@/app/components/Editor/PostViewer';
 
 export default function PostPage() {
   const params = useParams();
-  // const router = useRouter();
   const [post, setPost] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
     const loadPost = async () => {

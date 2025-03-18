@@ -50,13 +50,39 @@ class BlogStorage {
 
   async listAssets(blogId: string): Promise<Asset[]> {
     const blog = await this.manager.getBlog(blogId);
-    return blog.assets.map(name => ({
-      name,
-      path: `${blogId}/assets/${name}`,
-      size: 0, // 这里可以从文件系统获取实际大小
-      type: this.getAssetType(name),
-      lastModified: new Date().toISOString() // 这里可以从文件系统获取实际修改时间
+    const assets = await Promise.all(blog.assets.map(async (name) => {
+      const assetInfo = await this.manager.getAsset(blogId, name);
+      return {
+        name,
+        path: `${blogId}/assets/${name}`,
+        size: assetInfo?.size || 0,
+        type: this.getAssetType(name),
+        lastModified: assetInfo?.lastModified || new Date().toISOString()
+      };
     }));
+    
+    return assets;
+  }
+
+  async getAsset(blogId: string, fileName: string): Promise<{ buffer: Buffer, size: number, lastModified: string } | null> {
+    // Check if blog exists first
+    await this.manager.getBlog(blogId);
+    // Let's add getAsset to BlogManager class
+    return this.manager.getAsset(blogId, fileName);
+  }
+
+  async addAsset(blogId: string, fileName: string, content: Buffer): Promise<string> {
+    // Check if blog exists first
+    await this.manager.getBlog(blogId);
+    // Let's add addAsset to BlogManager class
+    return this.manager.addAsset(blogId, fileName, content);
+  }
+
+  async deleteAsset(blogId: string, fileName: string): Promise<void> {
+    // Check if blog exists first
+    await this.manager.getBlog(blogId);
+    // Let's add deleteAsset to BlogManager class
+    return this.manager.deleteAsset(blogId, fileName);
   }
 
   private getAssetType(fileName: string): string {

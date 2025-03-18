@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
 
     const fileName = searchParams.get('fileName');
     if (fileName) {
-      const asset = await blogStorage.getAsset(blogId, fileName);
-      if (!asset) {
+      const assetData = await blogStorage.getAsset(blogId, fileName);
+      if (!assetData) {
         return NextResponse.json(
           { error: 'Asset not found' },
           { status: 404 }
@@ -100,12 +100,13 @@ export async function GET(request: NextRequest) {
       }
 
       // Create response with proper headers using the standard Response object for binary data
-      return new Response(asset, {
+      return new Response(assetData.buffer, {
         status: 200,
         headers: {
           'Content-Type': contentType,
           'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
           'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+          'Content-Length': assetData.size.toString()
         },
       });
     }

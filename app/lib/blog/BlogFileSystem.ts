@@ -141,6 +141,54 @@ export class BlogFileSystem {
     }
   }
 
+  // 读取资源文件
+  async getAsset(id: string, fileName: string): Promise<{ buffer: Buffer, size: number, lastModified: string } | null> {
+    try {
+      const assetPath = path.join(this.rootDir, id, BLOG_CONFIG.ASSETS_DIR, fileName);
+      if (!existsSync(assetPath)) {
+        return null;
+      }
+      const buffer = await fs.readFile(assetPath);
+      const stats = await fs.stat(assetPath);
+      return {
+        buffer,
+        size: stats.size,
+        lastModified: stats.mtime.toISOString()
+      };
+    } catch (error) {
+      console.error(`Error reading asset ${fileName} for blog ${id}:`, error);
+      return null;
+    }
+  }
+
+  // 添加资源文件
+  async addAsset(id: string, fileName: string, content: Buffer): Promise<string> {
+    try {
+      const assetsDir = path.join(this.rootDir, id, BLOG_CONFIG.ASSETS_DIR);
+      // 确保assets目录存在
+      await fs.mkdir(assetsDir, { recursive: true });
+      
+      const assetPath = path.join(assetsDir, fileName);
+      await fs.writeFile(assetPath, content);
+      
+      return `${id}/assets/${fileName}`;
+    } catch (error) {
+      throw new Error(`Failed to add asset ${fileName} to blog ${id}: ${error}`);
+    }
+  }
+
+  // 删除资源文件
+  async deleteAsset(id: string, fileName: string): Promise<void> {
+    try {
+      const assetPath = path.join(this.rootDir, id, BLOG_CONFIG.ASSETS_DIR, fileName);
+      if (existsSync(assetPath)) {
+        await fs.unlink(assetPath);
+      }
+    } catch (error) {
+      throw new Error(`Failed to delete asset ${fileName} from blog ${id}: ${error}`);
+    }
+  }
+
   // 批量处理目录
   async processBlogDirectories<T>(
     processor: (dir: string) => Promise<T | null>,

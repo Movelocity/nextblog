@@ -283,4 +283,19 @@ export class BlogManager {
 
     return { blogs_info: sortedBlogs, total };
   }
+
+  // 获取资源文件
+  async getAsset(blogId: string, fileName: string): Promise<{ buffer: Buffer, size: number, lastModified: string } | null> {
+    return this.fileSystem.getAsset(blogId, fileName);
+  }
+
+  // 添加资源文件
+  async addAsset(blogId: string, fileName: string, content: Buffer): Promise<string> {
+    return this.fileSystem.addAsset(blogId, fileName, content);
+  }
+
+  // 删除资源文件
+  async deleteAsset(blogId: string, fileName: string): Promise<void> {
+    return this.fileSystem.deleteAsset(blogId, fileName);
+  }
 } 
