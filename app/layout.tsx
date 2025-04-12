@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 
 import { ToastProvider } from '@/app/components/Toast/context';
 import { SidePanelProvider } from '@/app/components/SidePanel/context';
-import Link from "next/link";
 import { GlobalLoginModal } from '@/app/components/Auth/GlobalLoginModal';
 
 interface ProvidersProps {
