@@ -3,5 +3,5 @@ import { redirect } from 'next/navigation';
 export default function Posts() {
   // redirect to /posts
   redirect('/posts');
-  return <div>index</div>;
+  return <div>Redirect failed</div>;
 }

@@ -50,10 +50,10 @@ export default function CategoryPage() {
     crumbs.push(
       <Link 
         key="home" 
-        href="/posts"
+        href="/categories"
         className="text-blue-500 hover:text-blue-700"
       >
-        Posts
+        Categories
       </Link>
     );
 
@@ -65,7 +65,7 @@ export default function CategoryPage() {
       crumbs.push(
         <Link
           key={path}
-          href={`/posts/category/${path}`}
+          href={`/categories/${path}`}
           className={`${
             index === categoryPath.length - 1
               ? 'text-gray-800 dark:text-gray-300 font-semibold'
@@ -91,7 +91,7 @@ export default function CategoryPage() {
             {availableSubCategories.map(subCategory => (
               <Link
                 key={subCategory}
-                href={`/posts/category/${currentCategory}/${subCategory}`}
+                href={`/categories/${currentCategory}/${subCategory}`}
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-200 transition-colors"
               >
                 {subCategory}

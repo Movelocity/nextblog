@@ -57,12 +57,25 @@ interface StyledLinkProps {
 
 const StyledLink = ({icon, name, tgUrl, children}: StyledLinkProps) => {
   const [isOpen, setIsOpen] = useState(true);
+  const handleClick = () => {
+    setIsOpen(!isOpen);
+    if(children) {
+      setIsOpen(true);
+    }
+  }
   if(children) { // optional children, if children is provided, then we need to render a dropdown
     return (
       <div className="flex flex-col">
-        <div className="flex items-center gap-1 px-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1" onClick={() => setIsOpen(!isOpen)}>
+        <Link 
+          href={tgUrl} 
+          className={classnames(
+            "flex items-center gap-1 px-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1",
+            isOpen && "bg-zinc-100 dark:bg-zinc-800"
+          )} 
+          onClick={handleClick}
+        >
           {icon} {name}
-        </div>
+        </Link>
         {isOpen && children}
       </div>
     )
@@ -101,11 +114,11 @@ const SidePanelContent = () => {
   return (
     <div className="side-panel-content p-4 flex flex-col text-gray-500 dark:text-gray-300">
       <StyledLink icon={<RiHomeFill className="w-4 h-4" />} name="Home" tgUrl="/posts" />
-      <StyledLink icon={<RiBook2Fill className="w-4 h-4" />} name="Categories" tgUrl="/posts/category">
+      <StyledLink icon={<RiBook2Fill className="w-4 h-4" />} name="Categories" tgUrl="/categories">
         {topLevelCategories.sort().map((category) => (
           <Link
             key={category}
-            href={`/posts/category/${category}`}
+            href={`/categories/${category}`}
             className="py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md"
           >
             {category}
