@@ -5,6 +5,20 @@ import { BlogMeta, Blog, CreateBlogInput, UpdateBlogInput, BlogMetaCache } from 
 import { BLOG_CONFIG } from '@/app/common/config';
 import { textPreview } from '@/app/common/utils';
 
+/**
+ * 博客管理器
+ * 
+ * 博客管理器是博客管理系统的核心组件，负责处理博客的创建、读取、更新和删除操作。
+ * 它提供了以下功能：
+ * 1. 创建博客
+ * 2. 读取博客
+ * 3. 更新博客
+ * 4. 删除博客
+ * 5. 列出博客
+ * 6. 获取资源文件
+ * 7. 添加资源文件
+ * 8. 删除资源文件
+ */
 export class BlogManager {
   private fileSystem: BlogFileSystem;
   private index: BlogIndex;
@@ -23,6 +37,9 @@ export class BlogManager {
 
   private static instance: BlogManager | null = null;
 
+  /**
+   * 获取博客管理器实例，单例模式
+   */
   public static getInstance(rootDir?: string): BlogManager {
     if (!BlogManager.instance) {
       BlogManager.instance = new BlogManager(rootDir || BLOG_CONFIG.ROOT_DIR);
@@ -32,19 +49,25 @@ export class BlogManager {
     return BlogManager.instance;
   }
 
-  // 初始化
+  /**
+   * 初始化文件系统和索引。
+   */
   private async init(): Promise<void> {
     await this.fileSystem.init();
     await this.refreshMetaCache();
   }
 
-  // 刷新元数据缓存
+  /**
+   * 刷新元数据缓存
+   */
   private async refreshMetaCache(): Promise<void> {
     this.metaCache = await this.fileSystem.loadMeta();
     this.index.rebuild(this.metaCache.blogs);
   }
 
-  // 获取元数据
+  /**
+   * 获取元数据
+   */
   private async getMeta(): Promise<BlogMetaCache> {
     if (!this.metaCache) {
       await this.refreshMetaCache();

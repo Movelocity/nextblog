@@ -7,13 +7,32 @@ export interface BlogIndexData {
   tagIndex: Map<string, Set<string>>;     // tag -> blogIds
 }
 
+/**
+ * 博客索引
+ * 
+ * 博客索引是博客管理系统的核心组件，负责处理博客索引的构建和搜索。
+ * 主要目的是减少硬盘读取次数，提高加载效率。
+ * 它提供了以下功能：
+ * 1. 重建索引
+ * 2. 添加博客到索引
+ * 3. 从索引中移除博客
+ * 4. 更新博客索引
+ * 5. 搜索博客
+ * 6. 按分类搜索
+ * 7. 按标签搜索
+ * 8. 清空索引
+ */
 export class BlogIndex {
   private titleIndex: Map<string, Set<string>> = new Map();
   private contentIndex: Map<string, Set<string>> = new Map();
   private categoryIndex: Map<string, Set<string>> = new Map();
   private tagIndex: Map<string, Set<string>> = new Map();
 
-  // 重建索引
+  /**
+   * 重建索引
+   * 
+   * 重建索引，清除现有索引并重新构建。
+   */
   rebuild(blogs: Record<string, BlogMeta>): void {
     this.clear();
     
@@ -22,7 +41,11 @@ export class BlogIndex {
     }
   }
 
-  // 添加单个博客到索引
+  /**
+   * 添加单个博客到索引
+   * 
+   * 添加单个博客到索引，将博客的标题、分类和标签添加到索引中。
+   */
   addBlog(id: string, blog: BlogMeta): void {
     // 标题索引
     const titleWords = blog.title.toLowerCase().split(/\W+/);
@@ -51,7 +74,9 @@ export class BlogIndex {
     });
   }
 
-  // 从索引中移除博客
+  /**
+   * 将博客的标题、分类和标签从索引中移除。
+   */
   removeBlog(id: string, blog: BlogMeta): void {
     // 从标题索引中移除
     const titleWords = blog.title.toLowerCase().split(/\W+/);
@@ -89,13 +114,17 @@ export class BlogIndex {
     });
   }
 
-  // 更新博客索引
+  /**
+   * 将博客的标题、分类和标签从索引中移除，并添加新的博客。
+   */
   updateBlog(id: string, oldBlog: BlogMeta, newBlog: BlogMeta): void {
     this.removeBlog(id, oldBlog);
     this.addBlog(id, newBlog);
   }
 
-  // 搜索博客
+  /**
+   * 搜索博客，返回符合条件的博客ID集合。
+   */
   search(query: string): Set<string> {
     const words = query.toLowerCase().split(/\W+/).filter(Boolean);
     let result: Set<string> | null = null;
@@ -116,7 +145,9 @@ export class BlogIndex {
     return result || new Set();
   }
 
-  // 按分类搜索
+  /**
+   * 按分类搜索，返回符合条件的博客ID集合。
+   */
   searchByCategories(categories: string[]): Set<string> {
     let result: Set<string> | null = null;
 
@@ -134,7 +165,9 @@ export class BlogIndex {
     return result || new Set();
   }
 
-  // 按标签搜索
+  /**
+   * 按标签搜索，返回符合条件的博客ID集合。
+   */
   searchByTags(tags: string[]): Set<string> {
     let result: Set<string> | null = null;
 
@@ -152,7 +185,9 @@ export class BlogIndex {
     return result || new Set();
   }
 
-  // 清空索引
+  /**
+   * 清除所有索引。
+   */
   clear(): void {
     this.titleIndex.clear();
     this.contentIndex.clear();

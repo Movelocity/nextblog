@@ -1,9 +1,9 @@
 ---
-description: Code Implementation Guidelines
+description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
-Follow these rules when you write code:
+Follow these rules when you write react code:
 - Use early returns whenever possible to make the code more readable.
 - Always use Tailwind classes for styling HTML elements; CSS is a second choice.
 - Use descriptive variable and function/const names. Also, event functions should be named with a “handle” prefix, like “handleClick” for onClick and “handleKeyDown” for onKeyDown.
@@ -12,3 +12,4 @@ Follow these rules when you write code:
 - Use classnames library for conditional classes.
 - Do not use middleware in nextjs, implement wrappers instead.
 - Use only react-icons for icons.
+- Each new class or method should have document inside comment /** */
