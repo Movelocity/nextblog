@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { getPosts, deletePost } from '@/app/services/posts';
 import PostsTable from '@/app/components/Posts/PostsTable';
 import { updatePost } from '@/app/services/posts';
@@ -12,7 +12,8 @@ import { useLoginModal } from '@/app/hooks/useLoginModal';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-export default function DashboardPage() {
+
+function DashboardContent() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
   const { isAuthenticated, isLoading, checkAuthStatus } = useAuth();
@@ -108,5 +109,17 @@ export default function DashboardPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
