@@ -31,7 +31,7 @@ export class BlogManager {
     this.contentCache = new LRUCache<string>({
       maxSize: 50 * 1024 * 1024, // 50MB
       maxAge: 30 * 60 * 1000,    // 30 minutes
-      maxItems: 100              // 最多缓存100篇文章
+      maxItems: 500              // 最多缓存500篇文章
     });
   }
 
@@ -256,45 +256,74 @@ export class BlogManager {
     query?: string
   } = {}): Promise<{ blogs_info: BlogMeta[], total: number }> {
     const meta = await this.getMeta();
-    let matchedIds = new Set<string>();
+    
+    // Start with all blog IDs
+    let candidateIds = new Set<string>(Object.keys(meta.blogs));
 
-    // 使用索引进行搜索
-    if (options.query) {
-      matchedIds = this.index.search(options.query);
+    // Apply pre-filters (published, categories, tags)
+    if (options.published_only) {
+        candidateIds = new Set([...candidateIds].filter(id => meta.blogs[id].published));
     }
 
     if (options.categories?.length) {
-      const categoryMatches = this.index.searchByCategories(options.categories);
-      matchedIds = matchedIds.size ? 
-        new Set([...matchedIds].filter(id => categoryMatches.has(id))) :
-        categoryMatches;
+        const categoryMatches = this.index.searchByCategories(options.categories);
+        candidateIds = new Set([...candidateIds].filter(id => categoryMatches.has(id)));
     }
 
     if (options.tags?.length) {
-      const tagMatches = this.index.searchByTags(options.tags);
-      matchedIds = matchedIds.size ? 
-        new Set([...matchedIds].filter(id => tagMatches.has(id))) :
-        tagMatches;
+        const tagMatches = this.index.searchByTags(options.tags);
+        candidateIds = new Set([...candidateIds].filter(id => tagMatches.has(id)));
     }
 
-    // 如果没有任何过滤条件，使用所有博客
-    if (!matchedIds.size && !options.query && !options.categories?.length && !options.tags?.length) {
-      matchedIds = new Set(Object.keys(meta.blogs));
+    let finalMatchedIds: Set<string>;
+
+    if (options.query) {
+        const queryLower = options.query.toLowerCase();
+        // Perform index search first
+        const indexSearchResults = this.index.search(options.query);
+        
+        // Filter index results to include only those that passed pre-filters
+        const filteredIndexMatches = new Set([...indexSearchResults].filter(id => candidateIds.has(id)));
+
+        const cacheMatches = new Set<string>();
+
+        // Check cache for candidates not found by index search
+        for (const id of candidateIds) {
+            if (!filteredIndexMatches.has(id)) {
+                const cachedContent = this.contentCache.get(id);
+                if (cachedContent && cachedContent.toLowerCase().includes(queryLower)) {
+                    cacheMatches.add(id);
+                }
+                // Optionally: If not in cache, load content and search? 
+                // This could be slow, depends on requirements.
+                else {
+                  try {
+                    const content = await this.fileSystem.readBlogContent(id);
+                    this.contentCache.set(id, content); // Cache it after reading
+                    if (content.toLowerCase().includes(queryLower)) {
+                        cacheMatches.add(id);
+                    }
+                  } catch(err) { /* handle error reading content */ }
+                }
+            }
+        }
+        
+        finalMatchedIds = new Set([...filteredIndexMatches, ...cacheMatches]);
+
+    } else {
+        // If no query, all candidates are final matches
+        finalMatchedIds = candidateIds;
     }
 
-    // 过滤已发布状态
-    if (options.published_only) {
-      matchedIds = new Set([...matchedIds].filter(id => meta.blogs[id].published));
-    }
-
-    // 按创建时间排序
-    const sortedBlogs = [...matchedIds]
+    // Map IDs to metadata and sort
+    const sortedBlogs = [...finalMatchedIds]
       .map(id => meta.blogs[id])
+      .filter(Boolean) // Ensure no undefined entries if an ID somehow doesn't map
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     const total = sortedBlogs.length;
 
-    // 应用分页
+    // Apply pagination
     if (options.page && options.page_size) {
       const start = (options.page - 1) * options.page_size;
       const end = start + options.page_size;

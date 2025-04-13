@@ -2,7 +2,6 @@ import { BlogMeta } from '@/app/common/types';
 
 export interface BlogIndexData {
   titleIndex: Map<string, Set<string>>;  // word -> blogIds
-  contentIndex: Map<string, Set<string>>; // word -> blogIds
   categoryIndex: Map<string, Set<string>>; // category -> blogIds
   tagIndex: Map<string, Set<string>>;     // tag -> blogIds
 }
@@ -24,7 +23,6 @@ export interface BlogIndexData {
  */
 export class BlogIndex {
   private titleIndex: Map<string, Set<string>> = new Map();
-  private contentIndex: Map<string, Set<string>> = new Map();
   private categoryIndex: Map<string, Set<string>> = new Map();
   private tagIndex: Map<string, Set<string>> = new Map();
 
@@ -42,8 +40,6 @@ export class BlogIndex {
   }
 
   /**
-   * 添加单个博客到索引
-   * 
    * 添加单个博客到索引，将博客的标题、分类和标签添加到索引中。
    */
   addBlog(id: string, blog: BlogMeta): void {
@@ -129,20 +125,19 @@ export class BlogIndex {
     const words = query.toLowerCase().split(/\W+/).filter(Boolean);
     let result: Set<string> | null = null;
 
+    // 按标题搜索
     words.forEach(word => {
-      const titleMatches = this.titleIndex.get(word) || new Set();
-      const contentMatches = this.contentIndex.get(word) || new Set();
-      const matches = new Set([...titleMatches, ...contentMatches]);
-
+      const titleMatches = this.titleIndex.get(word) || new Set<string>();
+      const matches = new Set<string>([...titleMatches]);
       if (result === null) {
         result = matches;
-      } else {
-        // 交集
-        result = new Set([...result].filter(x => matches.has(x)));
+      } else { // 交集
+        result = new Set<string>([...result].filter((x: string) => matches.has(x)));
       }
     });
 
-    return result || new Set();
+    const finalResult: Set<string> = result || new Set<string>();
+    return finalResult;
   }
 
   /**
@@ -190,7 +185,6 @@ export class BlogIndex {
    */
   clear(): void {
     this.titleIndex.clear();
-    this.contentIndex.clear();
     this.categoryIndex.clear();
     this.tagIndex.clear();
   }

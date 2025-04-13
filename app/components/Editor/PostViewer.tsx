@@ -5,7 +5,7 @@ import { Markdown } from '@/app/components/Editor/Markdown';
 import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import { FaTags } from 'react-icons/fa';
 import { RiEdit2Line } from 'react-icons/ri';
-import PublishHint from '@/app/components/part/PubilshHint';
+// import PublishHint from '@/app/components/part/PubilshHint';
 import { Blog } from '@/app/common/types';
 import CategoryTag from '@/app/components/CategoryTag';
 import { useAuth } from '@/app/hooks/useAuth';

@@ -4,6 +4,7 @@ import debounce from 'lodash/debounce';
 import { getTaxonomy } from '../../services/posts';
 import CategoryTag from '@/app/components/CategoryTag';
 import { getPosts } from '@/app/services/posts';
+import { useAuth } from '@/app/hooks/useAuth';
 
 interface SearchPostsProps {
   onResult: (result: BlogMeta[]) => void;
@@ -16,6 +17,7 @@ export default function SearchPosts({
   open = false,
   initialCategory 
 }: SearchPostsProps) {
+  const { isAuthenticated } = useAuth();
   const [query, setQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     initialCategory ? [initialCategory] : []
@@ -53,7 +55,8 @@ export default function SearchPosts({
     query: query.trim() || undefined,
     categories: selectedCategories.length ? selectedCategories : undefined,
     tags: selectedTags.length ? selectedTags : undefined,
-  }), [query, selectedCategories, selectedTags]);
+    pubOnly: isAuthenticated ? false : true,
+  }), [query, selectedCategories, selectedTags, isAuthenticated]);
 
   // Memoize the debounced search function
   const debouncedSearch = useMemo(

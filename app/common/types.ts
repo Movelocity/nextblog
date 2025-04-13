@@ -2,6 +2,7 @@ export interface BlogMeta {
   id: string;  // Same as folder name
   title: string;
   description: string;
+  content?: string;
   createdAt: string;
   updatedAt: string;
   published: boolean;
