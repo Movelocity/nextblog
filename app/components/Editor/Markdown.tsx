@@ -168,6 +168,7 @@ function CustomCode(props: { children: any; className?: string }) {
         className={classnames("inline-code", props?.className)}
         style={{
           whiteSpace: "break-spaces",
+          fontWeight: "inherit"
         }}
       >
         {props.children}
