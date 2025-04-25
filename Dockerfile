@@ -39,7 +39,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Create and set permissions for required directories
 RUN mkdir -p .next blogs && \
-    chown nextjs:nodejs .next blogs
+    chown -R nextjs:nodejs . && \
+    chmod -R 755 .
 
 USER nextjs
 
