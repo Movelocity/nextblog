@@ -29,20 +29,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+# Create blogs directory and declare as volume
+RUN mkdir -p .next blogs
+VOLUME /app/blogs
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Create and set permissions for required directories
-RUN mkdir -p .next blogs && \
-    chown -R nextjs:nodejs . && \
-    chmod -R 755 .
-
-USER nextjs
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 # Set environment variables with default values
 ENV BLOG_ROOT_DIR=blogs
