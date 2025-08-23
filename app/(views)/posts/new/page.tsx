@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 
 export default function NewPostPage() {
   const router = useRouter();
-  const {setPost} = useEditPostStore();
+  const {setPost, setIsDirty} = useEditPostStore();
 
   useEffect(() => {
     setPost({
@@ -23,6 +23,7 @@ export default function NewPostPage() {
 
   const handleSubmit = async (data: PostEditorData) => {
     const newPost = await createPost(data);
+    setIsDirty(false);
     router.push(`/posts/${newPost.id}/edit`);
   };
 

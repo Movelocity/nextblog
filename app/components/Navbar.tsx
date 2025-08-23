@@ -12,6 +12,7 @@ import { useScrollDirection } from '@/app/hooks/useScrollDirection';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 // import { useSidePanel } from '@/app/components/SidePanel/context';
 import { useAuth } from '@/app/hooks/useAuth';
+import cn from 'classnames'
 
 export const Navigation = () => {
   const { isAuthenticated, setIsAuthenticated, checkAuthStatus } = useAuth();
@@ -33,7 +34,13 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
+    <nav className={cn(
+      "fixed top-0 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 transition-transform duration-300", 
+      {
+        'translate-y-0': visible,
+        '-translate-y-full': !visible
+      }
+    )}>
       <div className="container px-4">
         <div className="flex justify-between items-center w-[95vw] h-12">
           <div className="flex items-center space-x-4">

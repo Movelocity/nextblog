@@ -125,7 +125,7 @@ export function PreCode(props: { children: any }) {
 function CustomCode(props: { children: any; className?: string }) {
   const enableCodeFold = true;  // TODO: configure in dashboard
   const ref = useRef<HTMLPreElement>(null);
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const [showToggle, setShowToggle] = useState(false);
   const isInlineCode = !props.className;  // If no className is provided, it's inline code
 

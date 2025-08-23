@@ -14,10 +14,10 @@
   transition-timing-function: cubic-bezier(.4, 0, .2, 1);
   transform: translateX(-100%);  /* 默认隐藏侧边面板 */
 }
-
-.has-side-panel .side-panel {  /* 显示侧边面板 */
+ /* 显示侧边面板 */
+/* .has-side-panel .side-panel { 
   transform: translateX(0);
-}
+} */
 
 .side-panel-toggle-btn {
   display: block;
@@ -39,7 +39,7 @@
   background-color: #111111;
 }
 
-@media (max-width: 780px) {
+/* @media (max-width: 780px) {
   .has-side-panel .side-panel-toggle-bar {
     width: calc(100vw - var(--sidebar-width));
     background-color: transparent;
@@ -50,7 +50,7 @@
     background-color: transparent;
     color: transparent;
   }
-}
+} */
 
 .side-panel-content {
   width: var(--sidebar-width);

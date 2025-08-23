@@ -70,7 +70,7 @@ export const PrettyEditor = ({
     });
 
     return () => observer.disconnect();
-  }, [post.content]);
+  }, [post.content, isPreview]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -117,16 +117,23 @@ export const PrettyEditor = ({
     onSubmit();
   };
 
+  const onPublishToggle = () => {
+    setPostPublished(!post.published);
+    setIsDirty(true);
+  }
+
+  const onTitleChange = (title: string) => {
+    setPostTitle(title);
+    setIsDirty(true);
+  }
+
   return (
-    <div className="h-full post-content">
-      <div className="flex flex-col h-full mb-64">
+    <div className="w-full">
+      <div className="flex flex-col h-full mb-64 max-w-[780px] mx-auto">
         {/* Title and Controls */}
-        <div className="flex flex-col pb-4 max-w-[780px] w-full border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col w-full border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-row items-center justify-between">
-            <PublishHint published={post.published} onClick={() => {
-              setPostPublished(!post.published);
-              setIsDirty(true);
-            }} />
+            <PublishHint published={post.published} onClick={onPublishToggle} />
           </div>
             
           <div className="pt-4">
@@ -134,10 +141,7 @@ export const PrettyEditor = ({
               type="text"
               id="title"
               value={post.title}
-              onChange={(e) => {
-                setPostTitle(e.target.value);
-                setIsDirty(true);
-              }}
+              onChange={(e) => onTitleChange(e.target.value)}
               className="block w-full px-0 text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Post title"
               required
@@ -155,17 +159,15 @@ export const PrettyEditor = ({
             </div>
 
             <div className="flex items-center space-x-3 text-sm font-medium">
-              {post.categories && post.categories.length > 0 && (
-                <div className="flex gap-2 pr-4 border-r border-gray-300 dark:border-gray-600">
-                  {post.categories.map((category) => (
-                    <CategoryTag
-                      key={category}
-                      category={category}
-                      showLink={false}
-                    />
-                  ))}
-                </div>
-              )}
+              <div className="flex gap-2 pr-4 border-r border-gray-300 dark:border-gray-600">
+                {post.categories.map((category) => (
+                  <CategoryTag
+                    key={category}
+                    category={category}
+                    showLink={false}
+                  />
+                ))}
+              </div>
               <button
                 type="button"
                 title="Edit categories and tags"
@@ -188,18 +190,13 @@ export const PrettyEditor = ({
             </div>
           </div>
         </div>
-
-        {/* Table of Contents */}
-        <div className="sticky top-24 mx-auto w-full z-50">
-          <TableOfContents 
-            content={post.content} 
-            className='absolute'
-          />
-        </div>
-
         {/* Content Area */}
-        <div className="flex-1 max-w-[780px] w-full mt-4">
-          <div className={classNames(isPreview ? 'absolute opacity-0 pointer-events-none' : '')}>
+        <div className="flex-1 w-full mt-4">
+          {isPreview ? (
+            <div className="prose max-w-none">
+              <Markdown content={post.content} />
+            </div>
+          ) : (
             <textarea
               ref={textareaRef}
               id="content"
@@ -212,35 +209,38 @@ export const PrettyEditor = ({
               placeholder="Write your post content here..."
               required
             />
-          </div>
-          <div className={classNames(!isPreview ? 'absolute opacity-0 pointer-events-none' : '')}>
-            <div className="prose max-w-none">
-              <Markdown content={post.content} />
-            </div>
-          </div>
+          ) }
         </div>
 
-        {/* Floating Buttons */}
-        <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
-          {/* Asset Button */}
-          {id && (
-            <div className="flex items-center justify-center">
-              <AssetModal blogId={id} />
-            </div>
-          )}
-
-          {/* Preview Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setIsPreview(!isPreview)}
-            className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
-            aria-label={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
-            title={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
-          >
-            {isPreview ? <RiEdit2Line size={20} /> : <RiEyeLine size={20} />}
-          </button>
-        </div>
+        {/* TOC. Table of Contents */}
+        {/* <div className="sticky top-24 mx-auto w-full z-50">
+          <TableOfContents 
+            content={post.content} 
+            className='absolute'
+          />
+        </div> */}
       </div>
+      {/* Floating Buttons */}
+      <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
+        {/* Asset Button */}
+        {id && (
+          <div className="flex items-center justify-center">
+            <AssetModal blogId={id} />
+          </div>
+        )}
+
+        {/* Preview Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setIsPreview(!isPreview)}
+          className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
+          aria-label={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
+          title={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
+        >
+          {isPreview ? <RiEdit2Line size={20} /> : <RiEyeLine size={20} />}
+        </button>
+      </div>
+
       <CategoryModal
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
@@ -251,6 +251,6 @@ export const PrettyEditor = ({
         onCategoryChange={handleCategoryChange}
         onTagChange={handleTagChange}
       />
-    </div>  
+    </div>
   )
 };

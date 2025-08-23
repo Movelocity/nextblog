@@ -19,27 +19,26 @@ export const PostViewer = ({ post }: PostViewerProps) => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="post-content h-full">
-      <div className="flex flex-col h-full min-h-[calc(100vh-6rem)]">
+    <div className="h-full w-full">
+      <div className="flex flex-col h-full min-h-[calc(100vh-6rem)] max-w-[780px] mx-auto">
         {/* Title and Controls */}
         <div className="flex flex-col pb-4 max-w-[780px] w-full">
-
           <h1 className="block w-full px-0 text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white">
             {post.title}
           </h1>
 
           <div className="flex flex-row items-center justify-start mt-4 gap">
-            {post.categories && post.categories.length > 0 && (
-              <div className="space-x-2">
-                {post.categories.map((category) => (
-                  <CategoryTag
-                    key={category}
-                    category={category}
-                    showLink={false}
-                  />
-                ))}
-              </div>
-            )}
+            {/* {post.categories && post.categories.length > 0 && ( */}
+            <div className="space-x-2">
+              {post.categories?.map((category) => (
+                <CategoryTag
+                  key={category}
+                  category={category}
+                  showLink={false}
+                />
+              ))}
+            </div>
+            {/* )} */}
           </div>
         </div>
 

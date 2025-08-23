@@ -35,10 +35,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white">
         <Providers>
-          <SidePanel />
           <Navigation />
-          <main className="py-6 mt-12">
-            {children}
+          <main className="flex flex-row">
+            <SidePanel />
+            <div className="pb-6 pt-16 flex-1">
+              {children}
+            </div>
           </main>
           <GlobalLoginModal />
         </Providers>
