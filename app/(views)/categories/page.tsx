@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { getTaxonomy } from '@/app/services/posts';
-import CategoryTag from '@/app/components/CategoryTag';
+// import CategoryTag from '@/app/components/CategoryTag';
 
 /**
  * Page component to display all available categories as cards.
@@ -33,20 +33,20 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  if (loading) {
-    return <div className="normal-content text-center p-8">Loading categories...</div>;
-  }
+  const renderContent = useMemo(() => {
+    if (loading) {
+      return <div className="text-center p-8">Loading categories...</div>;
+    }
+  
+    if (error) {
+      return <div className="text-center p-8 text-red-500">{error}</div>;
+    }
 
-  if (error) {
-    return <div className="normal-content text-center p-8 text-red-500">{error}</div>;
-  }
-
-  return (
-    <div className="normal-content">
-      <div className="px-2">
+    return (
+      <div>
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
         {categories.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3  gap-4">
             {categories.map((category) => (
               <Link
                 key={category}
@@ -61,6 +61,12 @@ export default function CategoriesPage() {
           <p className="text-gray-600 dark:text-gray-400">No categories found.</p>
         )}
       </div>
+    )
+  }, [categories, loading, error])
+
+  return (
+    <div className="px-4 max-w-[720px] mx-auto">
+      {renderContent}
     </div>
   );
 } 

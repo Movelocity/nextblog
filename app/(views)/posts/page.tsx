@@ -49,7 +49,7 @@ function Page() {
   };
 
   return (
-    <div className="normal-content">
+    <div className="max-w-[720px] mx-auto">
       <PostsList posts={posts} isLoading={loading} />
       
       {totalPages > 1 && (

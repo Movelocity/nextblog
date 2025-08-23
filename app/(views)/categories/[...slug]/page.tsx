@@ -81,7 +81,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="normal-content">
+    <div className="px-4 max-w-[720px] mx-auto">
       {renderBreadcrumbs()}
 
       {availableSubCategories.length > 0 && (

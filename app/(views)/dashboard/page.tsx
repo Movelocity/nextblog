@@ -81,33 +81,37 @@ function DashboardContent() {
     router.push(`/dashboard?${params.toString()}`);
   };
 
+  const handleDelete = (id: string) => {
+    if (!id) return;
+    deletePost(id).then(() => {
+      fetchPosts();
+    });
+  }
+
+  const handleTogglePublish = (id: string, currentStatus: boolean) => {
+    if (!id) return;
+    updatePost(id, { published: !currentStatus }).then(()=> {
+      setBlogsInfo(blogs_info.map(blog => 
+        blog.id === id ? { ...blog, published: !currentStatus } : blog
+      ));
+    }).catch((error) => {
+      console.error('Error toggling post status:', error);
+    });
+            
+  }
+
   return (
-    <div className="normal-content">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
-        <PostsTable 
-          posts={blogs_info} 
-          onDelete={async (id) => {
-            await deletePost(id);
-            fetchPosts();
-          }}
-          onTogglePublish={async (id, currentStatus) => {
-            try {
-              await updatePost(id, { published: !currentStatus });
-              // fetchPosts();
-              setBlogsInfo(blogs_info.map(blog => 
-                blog.id === id ? { ...blog, published: !currentStatus } : blog
-              ));
-            } catch (error) {
-              console.error('Error toggling post status:', error);
-            }
-          }}
-        />
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden m-4">
+      <PostsTable 
+        posts={blogs_info} 
+        onDelete={handleDelete}
+        onTogglePublish={handleTogglePublish}
+      />
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }

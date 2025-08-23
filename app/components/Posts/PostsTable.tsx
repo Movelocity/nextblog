@@ -31,10 +31,10 @@ const DeleteConfirmationModal = ({
 }) => (
   <Modal isOpen={isOpen} onClose={onClose} title="Confirm Delete" size="sm">
     <div className="space-y-4">
-      <p className="text-gray-700 dark:text-gray-300">
+      <p className="text-gray-700 dark:text-gray-300 px-4">
         Are you sure you want to delete the post &quot;<span className="font-medium">{postTitle}</span>&quot;? This action cannot be undone.
       </p>
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 p-2">
         <button
           onClick={onClose}
           className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -109,23 +109,19 @@ const ActionButtons = ({ post, onDelete }: { post: BlogMeta } & Pick<PostsTableP
           <span>Edit</span>
         </Link>
         
-        {onDelete && (
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2.5 text-red-700 bg-red-50 dark:bg-transparent hover:bg-red-100 dark:hover:bg-gray-600 dark:text-red-400 rounded-lg transition-colors"
-          >
-            <FaTrash className="w-4 h-4" />
-          </button>
-        )}
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-2.5 text-red-700 bg-red-50 dark:bg-transparent hover:bg-red-100 dark:hover:bg-gray-600 dark:text-red-400 rounded-lg transition-colors"
+        >
+          <FaTrash className="w-4 h-4" />
+        </button>
       </div>
 
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={() => {
-          if (onDelete) {
-            onDelete(post.id);
-          }
+          onDelete?.(post.id);
           setShowDeleteModal(false);
         }}
         postTitle={post.title}
@@ -137,7 +133,6 @@ const ActionButtons = ({ post, onDelete }: { post: BlogMeta } & Pick<PostsTableP
 const TableHeader = ({
   selectedPosts,
   onTogglePublish,
-  onDelete,
   setSelectedPosts
 }: {
   selectedPosts: string[];
@@ -170,19 +165,6 @@ const TableHeader = ({
                   Unpublish Selected
                 </button>
               </>
-            )}
-            {onDelete && (
-              <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to delete the selected posts?')) {
-                    selectedPosts.forEach(id => onDelete(id));
-                    setSelectedPosts([]);
-                  }
-                }}
-                className="inline-flex items-center px-3 py-1.5 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50"
-              >
-                Delete Selected
-              </button>
             )}
           </>
         )}
