@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useCategoryStore } from '@/app/stores/CategoryStore';
+// import { useCategoryStore } from '@/app/stores/CategoryStore';
 import classNames from 'classnames';
 
 interface CategoryTagProps {
@@ -17,8 +17,9 @@ const CategoryTag = ({
   onClick,
   selected, 
 }: CategoryTagProps) => {
-  const getColorForCategory = useCategoryStore(state => state.getColorForCategory);
-  const colorClasses = getColorForCategory(category);
+  // const getColorForCategory = useCategoryStore(state => state.getColorForCategory);
+  // const colorClasses = getColorForCategory(category);
+  const colorClasses = 'category-blue';
   
   const baseClasses = classNames(
     'px-1.5 py-0.5 rounded-sm text-xs font-bold transition-colors',

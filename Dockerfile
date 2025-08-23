@@ -20,7 +20,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # Build the application
-RUN yarn build
+RUN echo "Installing dependencies..." && \
+    npm install -g pnpm && \
+    pnpm install --prefer-frozen-lockfile && \
+    pnpm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner

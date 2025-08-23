@@ -50,11 +50,10 @@ export default function CategoriesPage() {
             {categories.map((category) => (
               <Link
                 key={category}
-                href={`/posts/category/${category}`}
-                className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow duration-200"
+                href={`/categories/${category}`}
+                className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md hover:scale-105 transition-all duration-200"
               >
-                <CategoryTag category={category} showLink={false} className="text-lg" />
-                {/* Optional: Add category description or post count here */}
+                {category}
               </Link>
             ))}
           </div>
