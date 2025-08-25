@@ -66,7 +66,7 @@ app/
 
 2. Install dependencies:
    ```bash
-   yarn install
+   pnpm install
    ```
 
 3. Configure environment variables:
@@ -80,7 +80,7 @@ app/
 
 4. Start the development server:
    ```bash
-   yarn dev
+   pnpm dev
    ```
 
 5. Access the system:
@@ -147,7 +147,7 @@ const publishedBlogs = await blogStorage.listBlogs({ published: true });
 6. Submit a Pull Request
 
 ## Development Guidelines
-1. Use yarn for dependency management
+1. Use pnpm for dependency management
 2. Avoid excessive use of third-party libraries, prefer native methods when possible
 
 ## License

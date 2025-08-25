@@ -11,7 +11,7 @@ interface SidePanelContextType {
 const SidePanelContext = createContext<SidePanelContextType | undefined>(undefined);
 
 export function SidePanelProvider({ children }: { children: React.ReactNode }) {
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
   // useEffect(() => {
   //   document.body.classList.toggle('has-side-panel', isSidePanelOpen);
   // }, [isSidePanelOpen]);

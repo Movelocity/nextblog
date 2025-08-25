@@ -76,7 +76,7 @@ app/
 
 2. 安装依赖：
    ```bash
-   yarn install
+   pnpm install
    ```
 
 3. 配置环境变量：
@@ -90,7 +90,7 @@ app/
 
 4. 启动开发服务器：
    ```bash
-   yarn dev
+   pnpm dev
    ```
 
 5. 访问系统：
@@ -157,7 +157,7 @@ const publishedBlogs = await blogStorage.listBlogs({ published: true });
 6. 提交 Pull Request
 
 ## 开发规范
-1. 使用 yarn 管理依赖
+1. 使用 pnpm 管理依赖
 2. 避免过度使用第三方库，尽量使用原生方法
 
 ## 许可证

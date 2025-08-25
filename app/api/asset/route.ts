@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Create response with proper headers using the standard Response object for binary data
-      return new Response(assetData.buffer, {
+      return new Response(new Uint8Array(assetData.buffer), {
         status: 200,
         headers: {
           'Content-Type': contentType,
