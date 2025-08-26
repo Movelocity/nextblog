@@ -1,8 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Markdown } from '@/app/components/Editor/Markdown';
-import { TableOfContents } from '@/app/components/Posts/TableOfContents';
+// import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import { FaTags } from 'react-icons/fa';
 import { RiArrowUpLine, RiEdit2Line } from 'react-icons/ri';
 // import PublishHint from '@/app/components/part/PubilshHint';
@@ -13,12 +14,19 @@ import { AssetModal } from '@/app/components/Asset/AssetModal';
 import { PAGE_WIDTH } from '@/app/common/utils';
 import cn from 'classnames';
 
+
 type PostViewerProps = {
   post: Blog;
 }
 
 export const PostViewer = ({ post }: PostViewerProps) => {
   const { isAuthenticated } = useAuth();
+  const [icpInfo, setIcpInfo] = useState<string>("");
+
+  useEffect(() => {
+    const icpInfo = document.querySelector('body')?.getAttribute('data-icp-info');
+    setIcpInfo(icpInfo || "");
+  }, [])
 
   return (
     <div className="h-full w-full">
@@ -84,7 +92,7 @@ export const PostViewer = ({ post }: PostViewerProps) => {
 
           <p>
             <Link href="https://beian.miit.gov.cn/" target="_blank" className="cursor-pointer hover:underline">
-              {process.env.NEXT_PUBLIC_ICP_INFO}
+              {icpInfo}
             </Link>
           </p>
         </footer>

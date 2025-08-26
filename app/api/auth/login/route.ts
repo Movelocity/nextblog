@@ -6,7 +6,7 @@ import { LoginCredentials } from '@/app/services/auth';
 export async function POST(request: Request) {
     try {
         const credentials: LoginCredentials = await request.json();
-        
+
         if (
             credentials.email !== ADMIN_CREDENTIALS.email ||
             credentials.password !== ADMIN_CREDENTIALS.password

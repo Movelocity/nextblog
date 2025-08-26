@@ -33,7 +33,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white">
+      <body 
+        className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white"
+        data-icp-info={process.env.ICP_INFO}
+      >
         <Providers>
           <Navigation />
           <main className="flex flex-row">
