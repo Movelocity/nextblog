@@ -7,7 +7,7 @@ export const BLOG_CONFIG = {
 };
 
 export const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
-export const JWT_EXPIRES_IN = '24h';
+export const JWT_EXPIRES_IN = '7d';
 
 export const ADMIN_CREDENTIALS = {
     email: process.env.ADMIN_EMAIL || 'nextblog@example.com',

@@ -27,7 +27,7 @@ const CategoryTag = ({
     {
       'hover:opacity-90': showLink && !onClick,
       'cursor-pointer hover:opacity-80': onClick,
-      'opacity-50': selected === false  // transparent for false. normal for undefined
+      'ring-2 ring-blue-500': selected === true,
     },
     className
   );

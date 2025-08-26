@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import classNames from 'classnames';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
+import cn from 'classnames';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  className?: string;
 }
 
 const sizeClasses = {
@@ -21,7 +22,7 @@ const sizeClasses = {
   full: 'max-w-[90vw] h-[90vh]'
 };
 
-export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, size = 'md', className }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
@@ -56,23 +57,26 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   return createPortal(
     <div
       ref={overlayRef}
-      onClick={handleOverlayClick}
-      className={classNames(
+      onMouseDown={handleOverlayClick}
+      className={cn(
         "fixed inset-0 bg-black/50 flex z-50 justify-center",
-        isMobile ? "items-start pt-4" : "items-center",
+        isMobile ? "items-start pt-4" : "items-center", // 全屏半透明背景
       )}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
+      {/* 内容区域 */}
       <div 
-        className={classNames(
+        className={cn(
           'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full overflow-hidden flex flex-col',
           sizeClasses[size],
-          isMobile && 'mb-32'
+          isMobile && 'mb-32',
+          className
         )}
       >
-        {title && (  // title is optional
+        {/** 标题区域（可选），右侧自带关闭按钮 */}
+        {title && (
           <div className="flex justify-between items-center p-2 px-4 border-b dark:border-gray-700">
             <h2 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">
               {title}
@@ -98,12 +102,9 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
             </button>
           </div>
         )}
-        <div className={classNames(
-          "flex-1 overflow-y-auto",
-          isMobile && "pb-8"
-        )}>
-          {children}
-        </div>
+        
+        {/** 内容区域 */}
+        {children}
       </div>
     </div>,
     document.body

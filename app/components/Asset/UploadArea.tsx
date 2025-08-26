@@ -157,16 +157,13 @@ export const UploadArea: React.FC<UploadAreaProps> = ({
                   'mb-2 transition-colors',
                   isDragActive ? 'text-blue-500' : 'text-gray-500'
                 )} 
-                size={24} 
+                size={48} 
               />
               <p className={classNames(
-                'text-sm md:text-base text-center transition-colors',
-                isDragActive ? 'text-blue-600' : 'text-gray-600'
+                'md:text-base text-center transition-colors',
+                isDragActive ? 'text-blue-600' : 'text-gray-400'
               )}>
                 {isDragActive ? 'Drop files here' : 'Drop files or click to upload'}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                All file types supported
               </p>
             </label>
           </div>

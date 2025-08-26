@@ -14,8 +14,12 @@ import { useIsMobile } from '@/app/hooks/useIsMobile';
 export function SidePanel() {
   const isMobile = useIsMobile();
   const [topLevelCategories, setTopLevelCategories] = useState<string[]>([]);
-  const { isSidePanelOpen, toggleSidePanel } = useSidePanel();
-
+  const { isSidePanelOpen, toggleSidePanel, closeSidePanel } = useSidePanel();
+  useEffect(() => {
+    if(isMobile) {
+      closeSidePanel();
+    }
+  }, [isMobile])
   useEffect(() => {
     const init = async () => {
       try {
@@ -46,7 +50,7 @@ export function SidePanel() {
             !isSidePanelOpen && "hidden",
           )}
           style={{
-            filter: isMobile && isSidePanelOpen ? "drop-shadow(0 0 10px #000a)" : ""
+            filter: isMobile && isSidePanelOpen ? "drop-shadow(0 0 20px #0009)" : ""
           }}
         >
           <StyledLink icon={<RiHomeFill className="w-4 h-4" />} name="Home" tgUrl="/posts" />
@@ -68,11 +72,12 @@ export function SidePanel() {
         {/** toggle bar */}
         <div 
           className={cn(
-            "h-full cursor-pointer px-1",
-            "bg-transparent",
-            !(isMobile && isSidePanelOpen) && "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80",
-            "text-transparent text-gray-400/50 hover:text-gray-400 text-sm",
-            "flex justify-center items-center",
+            "h-full cursor-pointer flex justify-center items-center px-1",
+            "bg-transparent text-transparent text-gray-400/50 hover:text-gray-400 text-sm",
+            {
+              "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80": !(isMobile && isSidePanelOpen),
+              "hover:text-transparent": isMobile && isSidePanelOpen
+            }
           )}
           style={{
             width: isMobile && isSidePanelOpen ? "calc(100vw - 12rem)" : ""

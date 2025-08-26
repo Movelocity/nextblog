@@ -6,6 +6,8 @@ import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/Posts/PostsList';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { PAGE_WIDTH } from '@/app/common/utils';
+import cn from 'classnames';
 
 export default function CategoryPage() {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
@@ -51,7 +53,7 @@ export default function CategoryPage() {
       <Link 
         key="home" 
         href="/categories"
-        className="text-blue-500 hover:text-blue-700"
+        className="text-2xl font-bold hover:underline"
       >
         Categories
       </Link>
@@ -66,11 +68,7 @@ export default function CategoryPage() {
         <Link
           key={path}
           href={`/categories/${path}`}
-          className={`${
-            index === categoryPath.length - 1
-              ? 'text-gray-800 dark:text-gray-300 font-semibold'
-              : 'text-blue-500 dark:text-blue-400 hover:text-blue-700'
-          }`}
+          className={"text-gray-800 dark:text-gray-300 font-semibold hover:underline"}
         >
           {segment}
         </Link>
@@ -81,7 +79,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="px-4 max-w-[720px] mx-auto">
+    <div className={PAGE_WIDTH}>
       {renderBreadcrumbs()}
 
       {availableSubCategories.length > 0 && (

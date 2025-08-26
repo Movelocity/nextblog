@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { Markdown } from '@/app/components/Editor/Markdown';
 import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import { FaTags } from 'react-icons/fa';
-import { RiEdit2Line } from 'react-icons/ri';
+import { RiArrowUpLine, RiEdit2Line } from 'react-icons/ri';
 // import PublishHint from '@/app/components/part/PubilshHint';
 import { Blog } from '@/app/common/types';
 import CategoryTag from '@/app/components/CategoryTag';
 import { useAuth } from '@/app/hooks/useAuth';
 import { AssetModal } from '@/app/components/Asset/AssetModal';
+import { PAGE_WIDTH } from '@/app/common/utils';
+import cn from 'classnames';
 
 type PostViewerProps = {
   post: Blog;
@@ -20,45 +22,46 @@ export const PostViewer = ({ post }: PostViewerProps) => {
 
   return (
     <div className="h-full w-full">
-      <div className="flex flex-col h-full min-h-[calc(100vh-6rem)] max-w-[780px] mx-auto">
+      <div className="flex flex-col h-full min-h-[calc(100vh-6rem)]">
         {/* Title and Controls */}
-        <div className="flex flex-col pb-4 max-w-[780px] w-full">
+        <div className={cn("flex flex-col pb-4 border-b border-gray-200 dark:border-gray-700 w-full", PAGE_WIDTH)}>
           <h1 className="block w-full px-0 text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white">
             {post.title}
           </h1>
 
-          <div className="flex flex-row items-center justify-start mt-4 gap">
-            {/* {post.categories && post.categories.length > 0 && ( */}
-            <div className="space-x-2">
-              {post.categories?.map((category) => (
-                <CategoryTag
-                  key={category}
-                  category={category}
-                  showLink={false}
-                />
-              ))}
-            </div>
-            {/* )} */}
+          <div className="flex flex-row items-center justify-start mt-4 gap-2">
+            {post.categories?.map((category) => (
+              <CategoryTag
+                key={category}
+                category={category}
+                showLink={false}
+              />
+            ))}
           </div>
         </div>
 
         {/* Table of Contents */}
-        <div className="sticky top-24 mx-auto w-full z-50">
+        {/* <div className="sticky top-24 mx-auto w-full z-50">
           <TableOfContents 
             content={post.content} 
             className="absolute"
           />
-        </div>
+        </div> */}
 
         {/* Content Area */}
-        <div className="flex-1 max-w-[780px] w-full mt-4 mb-64">
-          <div className="prose max-w-none">
-            <Markdown content={post.content} />
-          </div>
+        <div className={cn(
+          "flex-1 w-full mt-4 mb-64 prose",
+          PAGE_WIDTH
+        )}>
+          <Markdown content={post.content} />
         </div>
 
         {/* Post Footer */}
-        <footer className="text-xs flex flex-row flex-wrap gap-4 max-w-[780px] w-full mt-2 pt-2 border-t dark:border-gray-700 text-gray-700 dark:text-gray-400">
+        <footer className={cn(
+          "text-sm flex flex-row w-full pt-4 border-t",
+          "dark:border-gray-700 text-gray-700 dark:text-gray-400",
+          "flex justify-center flex-wrap gap-4"
+        )}>
           {post.tags && post.tags.length > 0 && (
             <div className="flex items-center gap-2 mb-4">
               <FaTags className="w-4 h-4" />
@@ -88,6 +91,13 @@ export const PostViewer = ({ post }: PostViewerProps) => {
 
         {/* Floating Buttons */}
         <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
+          {/** To Top Button */}
+          <div className="flex items-center justify-center">
+            <button className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105">
+              <RiArrowUpLine size={20} />
+            </button>
+          </div>
+
           {/* Asset Button */}
           {isAuthenticated && (
             <div className="flex items-center justify-center">

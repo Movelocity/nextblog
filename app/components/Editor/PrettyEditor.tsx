@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { Markdown } from '@/app/components/Editor/Markdown';
-import { TableOfContents } from '@/app/components/Posts/TableOfContents';
+// import { TableOfContents } from '@/app/components/Posts/TableOfContents';
+import { PAGE_WIDTH } from '@/app/common/utils';
+import cn from 'classnames';
 import classNames from 'classnames';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { CategoryModal } from '@/app/components/CategoryTag/CategoryModal';
@@ -129,7 +131,7 @@ export const PrettyEditor = ({
 
   return (
     <div className="w-full">
-      <div className="flex flex-col h-full mb-64 max-w-[780px] mx-auto">
+      <div className={cn(PAGE_WIDTH, 'flex flex-col h-full mb-64')}>
         {/* Title and Controls */}
         <div className="flex flex-col w-full border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-row items-center justify-between">
@@ -193,9 +195,7 @@ export const PrettyEditor = ({
         {/* Content Area */}
         <div className="flex-1 w-full mt-4">
           {isPreview ? (
-            <div className="prose max-w-none">
-              <Markdown content={post.content} />
-            </div>
+            <Markdown content={post.content} />
           ) : (
             <textarea
               ref={textareaRef}

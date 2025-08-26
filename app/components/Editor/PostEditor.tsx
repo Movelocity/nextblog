@@ -3,6 +3,8 @@ import { getTaxonomy, updatePost } from '@/app/services/posts';
 import { PrettyEditor } from '@/app/components/Editor/PrettyEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useToast } from '@/app/components/Toast/context';
+import { PAGE_WIDTH } from '@/app/common/utils';
+import cn from 'classnames';
 
 export interface PostEditorData {
   title: string;
@@ -64,15 +66,13 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] mx-auto">
-      <div className="mx-auto">
-        <PrettyEditor 
-          id={id}
-          onSubmit={handleSubmit}
-          availableCategories={availableCategories}
-          availableTags={availableTags}
-        />
-      </div>
+    <div className="min-h-[calc(100vh-6rem)]">
+      <PrettyEditor 
+        id={id}
+        onSubmit={handleSubmit}
+        availableCategories={availableCategories}
+        availableTags={availableTags}
+      />
     </div>
   );
 }; 

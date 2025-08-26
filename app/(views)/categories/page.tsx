@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { getTaxonomy } from '@/app/services/posts';
 // import CategoryTag from '@/app/components/CategoryTag';
+import { PAGE_WIDTH } from '@/app/common/utils';
+import cn from 'classnames';
 
 /**
  * Page component to display all available categories as cards.
@@ -44,14 +46,14 @@ export default function CategoriesPage() {
 
     return (
       <div>
-        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
+        <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
         {categories.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3  gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {categories.map((category) => (
               <Link
                 key={category}
                 href={`/categories/${category}`}
-                className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md hover:scale-105 transition-all duration-200"
+                className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md hover:translate-y-[-2px] transition-all duration-200"
               >
                 {category}
               </Link>
@@ -65,7 +67,7 @@ export default function CategoriesPage() {
   }, [categories, loading, error])
 
   return (
-    <div className="px-4 max-w-[720px] mx-auto">
+    <div className={PAGE_WIDTH}>
       {renderContent}
     </div>
   );

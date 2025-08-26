@@ -58,75 +58,76 @@ export const CategoryModal = ({
       isOpen={isOpen}
       onClose={onClose}
       size="md"
+      className="space-y-6 p-4"
     >
-      <div className="space-y-6 p-4">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Categories</h3>
-          <input
-            type="text"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, handleAddCategory)}
-            placeholder="Type a category and press Enter"
-            className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            aria-label="New category name"
-          />
-          <div className="flex flex-wrap gap-2">
-            {availableCategories.map((category) => (
-              <CategoryTag
-                key={category}
-                category={category}
-                onClick={() => onCategoryChange(category)}
-                showLink={false}
-                selected={selectedCategories.includes(category)}
-              />
-            ))}
-            {customCategories.map((category) => (
-              <CategoryTag
-                key={category}
-                category={category}
-                onClick={() => onCategoryChange(category)}
-                showLink={false}
-                selected={selectedCategories.includes(category)}
-                className="border-2"
-              />
-            ))}
-          </div>
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Categories</h3>
+        <input
+          name="newCategory"
+          type="text"
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, handleAddCategory)}
+          placeholder="Type a category and press Enter"
+          className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+          aria-label="New category name"
+        />
+        <div className="flex flex-wrap gap-2">
+          {availableCategories.map((category) => (
+            <CategoryTag
+              key={category}
+              category={category}
+              onClick={() => onCategoryChange(category)}
+              showLink={false}
+              selected={selectedCategories.includes(category)}
+            />
+          ))}
+          {customCategories.map((category) => (
+            <CategoryTag
+              key={category}
+              category={category}
+              onClick={() => onCategoryChange(category)}
+              showLink={false}
+              selected={selectedCategories.includes(category)}
+              className="border-2"
+            />
+          ))}
         </div>
+      </div>
 
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Tags</h3>
-          <input
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, handleAddTag)}
-            placeholder="Type a tag and press Enter"
-            className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            aria-label="New tag name"
-          />
-          <div className="flex flex-wrap gap-2">
-            {availableTags.map((tag) => (
-              <CategoryTag
-                key={tag}
-                category={tag}
-                onClick={() => onTagChange(tag)}
-                showLink={false}
-                selected={selectedTags.includes(tag)}
-                className="bg-green-100 text-green-800 hover:bg-green-200"
-              />
-            ))}
-            {customTags.map((tag) => (
-              <CategoryTag
-                key={tag}
-                category={tag}
-                onClick={() => onTagChange(tag)}
-                showLink={false}
-                selected={selectedTags.includes(tag)}
-                className="bg-green-100 text-green-800 hover:bg-green-200 border-2 border-green-200"
-              />
-            ))}
-          </div>
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Tags</h3>
+        <input
+          name="newTag"
+          type="text"
+          value={newTag}
+          onChange={(e) => setNewTag(e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, handleAddTag)}
+          placeholder="Type a tag and press Enter"
+          className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+          aria-label="New tag name"
+        />
+        <div className="flex flex-wrap gap-2">
+          {availableTags.map((tag) => (
+            <CategoryTag
+              key={tag}
+              category={tag}
+              onClick={() => onTagChange(tag)}
+              showLink={false}
+              selected={selectedTags.includes(tag)}
+              className="bg-green-100 text-green-800 hover:bg-green-200"
+            />
+          ))}
+          {customTags.map((tag) => (
+            <CategoryTag
+              key={tag}
+              category={tag}
+              onClick={() => onTagChange(tag)}
+              showLink={false}
+              selected={selectedTags.includes(tag)}
+              className="bg-green-100 text-green-800 hover:bg-green-200 border-2 border-green-200"
+            />
+          ))}
         </div>
       </div>
     </Modal>

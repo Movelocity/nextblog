@@ -17,7 +17,7 @@ import cn from 'classnames'
 export const Navigation = () => {
   const { isAuthenticated, setIsAuthenticated, checkAuthStatus } = useAuth();
   const router = useRouter();
-  const { visible } = useScrollDirection();
+  const { visible, } = useScrollDirection();
   const isMobile = useIsMobile();
   // const { isSidePanelOpen } = useSidePanel();
   const [hasMounted, setHasMounted] = useState(false);
@@ -41,28 +41,26 @@ export const Navigation = () => {
         '-translate-y-full': !visible
       }
     )}>
-      <div className="container px-4">
-        <div className="flex justify-between items-center w-[95vw] h-12">
-          <div className="flex items-center space-x-4">
-            {hasMounted && !isMobile && <ToggleBtn />}
-            <Link href="/" className="text-lg font-bold">
-              Next Blog
-            </Link>
-          </div>
+      <div className="px-4 flex justify-between items-center w-full h-12">
+        <div className="flex items-center space-x-4">
+          {hasMounted && !isMobile && <ToggleBtn />}
+          <Link href="/" className="text-lg font-bold">
+            Next Blog
+          </Link>
+        </div>
 
-          <div className="flex items-center space-x-4">
-            <SearchModal />
-            <ThemeBtn />
-            {isAuthenticated && (
-              <button
-                onClick={handleLogout}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                aria-label="Logout"
-              >
-                <RiLogoutBoxLine size={20} />
-              </button>
-            )}
-          </div>
+        <div className="flex items-center space-x-4">
+          <SearchModal />
+          <ThemeBtn />
+          {isAuthenticated && (
+            <button
+              onClick={handleLogout}
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              aria-label="Logout"
+            >
+              <RiLogoutBoxLine size={20} />
+            </button>
+          )}
         </div>
       </div>
     </nav>
