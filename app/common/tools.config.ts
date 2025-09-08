@@ -1,0 +1,164 @@
+/**
+ * Configuration for all available tools in the tools aggregation page
+ */
+
+import { 
+  RiCodeSSlashLine, 
+  RiFileTextLine, 
+  RiPaletteLine, 
+  RiCalculatorLine,
+  RiTranslate,
+  RiTimeLine,
+  RiLockPasswordLine,
+  RiQrCodeLine,
+  RiImageEditLine,
+  RiFileCodeLine
+} from 'react-icons/ri';
+import { IconType } from 'react-icons';
+
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  category: ToolCategory;
+  icon: IconType;
+  path: string;
+  isNew?: boolean;
+  isPopular?: boolean;
+}
+
+export enum ToolCategory {
+  TEXT = 'text',
+  DATA = 'data',
+  DEVELOPER = 'developer',
+  CONVERTER = 'converter',
+  SECURITY = 'security',
+  MEDIA = 'media'
+}
+
+export const toolCategories: Record<ToolCategory, { name: string; color: string }> = {
+  [ToolCategory.TEXT]: { name: '文本处理', color: 'category-blue' },
+  [ToolCategory.DATA]: { name: '数据转换', color: 'category-green' },
+  [ToolCategory.DEVELOPER]: { name: '开发工具', color: 'category-purple' },
+  [ToolCategory.CONVERTER]: { name: '格式转换', color: 'category-yellow' },
+  [ToolCategory.SECURITY]: { name: '安全工具', color: 'category-red' },
+  [ToolCategory.MEDIA]: { name: '媒体处理', color: 'category-teal' }
+};
+
+export const tools: Tool[] = [
+  {
+    id: 'json-formatter',
+    name: 'JSON 格式化',
+    description: '格式化、压缩、验证 JSON 数据，支持智能检测垃圾文本中的有效 JSON',
+    category: ToolCategory.DEVELOPER,
+    icon: RiFileCodeLine,
+    path: '/tools/json',
+    isNew: true,
+    isPopular: true
+  },
+  // Future tools placeholder
+  {
+    id: 'text-diff',
+    name: '文本对比',
+    description: '对比两段文本的差异，高亮显示不同之处',
+    category: ToolCategory.TEXT,
+    icon: RiFileTextLine,
+    path: '/tools/text-diff'
+  },
+  {
+    id: 'color-picker',
+    name: '颜色选择器',
+    description: '选择和转换颜色格式 (HEX, RGB, HSL)',
+    category: ToolCategory.DEVELOPER,
+    icon: RiPaletteLine,
+    path: '/tools/color-picker'
+  },
+  {
+    id: 'base64',
+    name: 'Base64 编解码',
+    description: '编码和解码 Base64 字符串',
+    category: ToolCategory.CONVERTER,
+    icon: RiCodeSSlashLine,
+    path: '/tools/base64'
+  },
+  {
+    id: 'calculator',
+    name: '计算器',
+    description: '科学计算器，支持复杂运算',
+    category: ToolCategory.DATA,
+    icon: RiCalculatorLine,
+    path: '/tools/calculator'
+  },
+  {
+    id: 'translator',
+    name: '翻译工具',
+    description: '多语言文本翻译',
+    category: ToolCategory.TEXT,
+    icon: RiTranslate,
+    path: '/tools/translator'
+  },
+  {
+    id: 'timestamp',
+    name: '时间戳转换',
+    description: 'Unix 时间戳与日期时间互转',
+    category: ToolCategory.CONVERTER,
+    icon: RiTimeLine,
+    path: '/tools/timestamp'
+  },
+  {
+    id: 'password-generator',
+    name: '密码生成器',
+    description: '生成安全的随机密码',
+    category: ToolCategory.SECURITY,
+    icon: RiLockPasswordLine,
+    path: '/tools/password'
+  },
+  {
+    id: 'qr-code',
+    name: '二维码生成',
+    description: '生成和解析二维码',
+    category: ToolCategory.MEDIA,
+    icon: RiQrCodeLine,
+    path: '/tools/qr-code'
+  },
+  {
+    id: 'image-compress',
+    name: '图片压缩',
+    description: '压缩图片文件大小',
+    category: ToolCategory.MEDIA,
+    icon: RiImageEditLine,
+    path: '/tools/image-compress'
+  }
+];
+
+/**
+ * Get tools by category
+ */
+export const getToolsByCategory = (category: ToolCategory): Tool[] => {
+  return tools.filter(tool => tool.category === category);
+};
+
+/**
+ * Get popular tools
+ */
+export const getPopularTools = (): Tool[] => {
+  return tools.filter(tool => tool.isPopular);
+};
+
+/**
+ * Get new tools
+ */
+export const getNewTools = (): Tool[] => {
+  return tools.filter(tool => tool.isNew);
+};
+
+/**
+ * Search tools by name or description
+ */
+export const searchTools = (query: string): Tool[] => {
+  const lowerQuery = query.toLowerCase();
+  return tools.filter(tool => 
+    tool.name.toLowerCase().includes(lowerQuery) ||
+    tool.description.toLowerCase().includes(lowerQuery)
+  );
+};

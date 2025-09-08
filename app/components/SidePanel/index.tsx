@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useSidePanel } from './context';
 import { getTaxonomy } from '@/app/services/posts';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { RiBook2Fill, RiHomeFill, RiDashboardFill } from 'react-icons/ri';
+import { RiBook2Fill, RiHomeFill, RiDashboardFill, RiToolsFill } from 'react-icons/ri';
 // import './index.css';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 
@@ -54,6 +54,7 @@ export function SidePanel() {
           }}
         >
           <StyledLink icon={<RiHomeFill className="w-4 h-4" />} name="Home" tgUrl="/posts" />
+          <StyledLink icon={<RiToolsFill className="w-4 h-4" />} name="Tools" tgUrl="/tools"/>
           <StyledLink icon={<RiBook2Fill className="w-4 h-4" />} name="Categories" tgUrl="/categories">
             {topLevelCategories.sort().map((category) => (
               <Link
@@ -65,6 +66,7 @@ export function SidePanel() {
               </Link>
             ))}
           </StyledLink>
+          
           <StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard"/>
           <StyledLink icon={<RiAddFill className="w-4 h-4" />} name="New Post" tgUrl="/posts/new"/>
         </div>
