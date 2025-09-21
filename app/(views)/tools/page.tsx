@@ -11,7 +11,7 @@ import {
   getPopularTools,
   getNewTools 
 } from '@/app/common/tools.config';
-import { RiSearchLine, RiStarFill, RiFireFill, RiSparklingFill } from 'react-icons/ri';
+import { RiSearchLine, RiFireFill } from 'react-icons/ri';
 import cn from 'classnames';
 
 /**
@@ -21,8 +21,8 @@ import cn from 'classnames';
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all'>('all');
-  const [showOnlyNew, setShowOnlyNew] = useState(false);
-  const [showOnlyPopular, setShowOnlyPopular] = useState(false);
+  // const [showOnlyNew, setShowOnlyNew] = useState(false);
+  // const [showOnlyPopular, setShowOnlyPopular] = useState(false);
 
   // Filter tools based on search, category and flags
   const filteredTools = useMemo(() => {
@@ -38,16 +38,9 @@ export default function ToolsPage() {
       result = result.filter(tool => tool.category === selectedCategory);
     }
 
-    // Apply new/popular filters
-    if (showOnlyNew) {
-      result = result.filter(tool => tool.isNew);
-    }
-    if (showOnlyPopular) {
-      result = result.filter(tool => tool.isPopular);
-    }
 
     return result;
-  }, [searchQuery, selectedCategory, showOnlyNew, showOnlyPopular]);
+  }, [searchQuery, selectedCategory]);
 
   // Get recommended tools (popular and new)
   const recommendedTools = useMemo(() => {
@@ -66,7 +59,7 @@ export default function ToolsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-8">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -119,38 +112,10 @@ export default function ToolsPage() {
               </button>
             ))}
           </div>
-
-          {/* Quick Filters */}
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showOnlyNew}
-                onChange={(e) => setShowOnlyNew(e.target.checked)}
-                className="rounded"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                <RiSparklingFill className="text-yellow-500" />
-                仅显示新工具
-              </span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showOnlyPopular}
-                onChange={(e) => setShowOnlyPopular(e.target.checked)}
-                className="rounded"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                <RiFireFill className="text-orange-500" />
-                仅显示热门工具
-              </span>
-            </label>
-          </div>
         </div>
 
         {/* Recommended Tools Section */}
-        {!searchQuery && selectedCategory === 'all' && !showOnlyNew && !showOnlyPopular && (
+        {/* {!searchQuery && selectedCategory === 'all' && (
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <RiStarFill className="text-yellow-500" />
@@ -186,7 +151,7 @@ export default function ToolsPage() {
               ))}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Tools Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

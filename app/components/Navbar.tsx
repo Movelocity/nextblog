@@ -10,7 +10,6 @@ import { RiLogoutBoxLine } from 'react-icons/ri';
 import { ToggleBtn } from "@/app/components/SidePanel";
 import { useScrollDirection } from '@/app/hooks/useScrollDirection';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
-// import { useSidePanel } from '@/app/components/SidePanel/context';
 import { useAuth } from '@/app/hooks/useAuth';
 import cn from 'classnames'
 
@@ -19,7 +18,6 @@ export const Navigation = () => {
   const router = useRouter();
   const { visible, } = useScrollDirection();
   const isMobile = useIsMobile();
-  // const { isSidePanelOpen } = useSidePanel();
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -42,7 +40,7 @@ export const Navigation = () => {
       }
     )}>
       <div className="px-4 flex justify-between items-center w-full h-12">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           {hasMounted && !isMobile && <ToggleBtn />}
           <Link href="/" className="text-lg font-bold">
             Next Blog

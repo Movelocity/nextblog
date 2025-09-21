@@ -21,8 +21,8 @@ import cn from 'classnames';
  * Supports smart detection of JSON in garbage text, formatting, minification, and validation
  */
 export default function JsonFormatterPage() {
-  const [inputText, setInputText] = useState('');
-  const [outputText, setOutputText] = useState('');
+  const [jsonText, setJsonText] = useState('');
+  // const [outputText, setOutputText] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
   const [indentSize, setIndentSize] = useState(2);
   const [error, setError] = useState<string>('');
@@ -32,7 +32,7 @@ export default function JsonFormatterPage() {
    */
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
-    setInputText(text);
+    setJsonText(text);
     
     // Clear error when input changes
     if (error) {
@@ -44,25 +44,23 @@ export default function JsonFormatterPage() {
    * Formats the JSON content
    */
   const handleFormat = () => {
-    if (!inputText.trim()) {
+    if (!jsonText.trim()) {
       setError('请输入一些文本');
       return;
     }
 
     try {
-      const result = detectJsonInText(inputText);
+      const result = detectJsonInText(jsonText);
       
       if (result.valid) {
         const formatted = formatJson(result.jsonString, indentSize);
-        setOutputText(formatted);
+        setJsonText(formatted);
         setError('');
       } else {
         setError(result.error || '未检测到有效的 JSON');
-        setOutputText('');
       }
     } catch (error) {
       setError((error as Error).message);
-      setOutputText('');
     }
   };
 
@@ -70,25 +68,23 @@ export default function JsonFormatterPage() {
    * Minifies the JSON content
    */
   const handleMinify = () => {
-    if (!inputText.trim()) {
+    if (!jsonText.trim()) {
       setError('请输入一些文本');
       return;
     }
 
     try {
-      const result = detectJsonInText(inputText);
+      const result = detectJsonInText(jsonText);
       
       if (result.valid) {
         const minified = minifyJson(result.jsonString);
-        setOutputText(minified);
+        setJsonText(minified);
         setError('');
       } else {
         setError(result.error || '未检测到有效的 JSON');
-        setOutputText('');
       }
     } catch (error) {
       setError((error as Error).message);
-      setOutputText('');
     }
   };
 
@@ -97,7 +93,7 @@ export default function JsonFormatterPage() {
    * Copies the output to clipboard
    */
   const handleCopy = async () => {
-    const textToCopy = outputText || inputText;
+    const textToCopy = jsonText;
     if (!textToCopy) return;
 
     try {
@@ -113,26 +109,14 @@ export default function JsonFormatterPage() {
    * Clears all input and output
    */
   const handleClear = () => {
-    setInputText('');
-    setOutputText('');
+    setJsonText('');
     setError('');
     setCopySuccess(false);
   };
 
-  /**
-   * Replaces input with formatted output
-   */
-  const handleReplaceInput = () => {
-    if (outputText) {
-      setInputText(outputText);
-      setOutputText('');
-      setError('');
-    }
-  };
-
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-8">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">
@@ -142,7 +126,7 @@ export default function JsonFormatterPage() {
         </div>
 
         {/* Toolbar */}
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4 mb-4">
+        <div className="bg-gray-50 dark:bg-zinc-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4 mb-4">
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex flex-wrap gap-2">
               <button
@@ -194,6 +178,21 @@ export default function JsonFormatterPage() {
           </div>
         </div>
 
+        {/* Editor Area */}
+        <div className="bg-gray-50 dark:bg-zinc-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
+          <textarea
+            value={jsonText}
+            onChange={handleInputChange}
+            placeholder="在此粘贴包含 JSON 的文本，点击格式化或压缩按钮处理"
+            className={cn(
+              "w-full h-[500px] p-4 font-mono text-sm bg-transparent text-gray-900 dark:text-white",
+              "placeholder-gray-400 dark:placeholder-gray-600",
+              "focus:outline-none resize-none border-0"
+            )}
+            spellCheck={false}
+          />
+        </div>
+
         {/* Error Display */}
         {error && (
           <div className="rounded-lg p-3 mb-4 flex items-center gap-2 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
@@ -201,53 +200,6 @@ export default function JsonFormatterPage() {
             <span>{error}</span>
           </div>
         )}
-
-        {/* Editor Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Input Area */}
-          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
-            <div className="p-3 border-b border-gray-200 dark:border-gray-800">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">输入</h3>
-            </div>
-            <textarea
-              value={inputText}
-              onChange={handleInputChange}
-              placeholder="在此粘贴包含 JSON 的文本，点击格式化或压缩按钮处理"
-              className={cn(
-                "w-full h-[500px] p-4 font-mono text-sm bg-transparent text-gray-900 dark:text-white",
-                "placeholder-gray-400 dark:placeholder-gray-600",
-                "focus:outline-none resize-none border-0"
-              )}
-              spellCheck={false}
-            />
-          </div>
-
-          {/* Output Area */}
-          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
-            <div className="p-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">输出</h3>
-              {outputText && (
-                <button
-                  onClick={handleReplaceInput}
-                  className="px-2 py-1 bg-gray-800 text-white text-xs rounded hover:bg-gray-700 transition-colors"
-                >
-                  使用此结果
-                </button>
-              )}
-            </div>
-            <textarea
-              value={outputText}
-              onChange={(e) => setOutputText(e.target.value)}
-              placeholder="格式化或压缩后的结果将显示在这里"
-              className={cn(
-                "w-full h-[500px] p-4 font-mono text-sm bg-transparent text-gray-900 dark:text-white",
-                "placeholder-gray-400 dark:placeholder-gray-600",
-                "focus:outline-none resize-none border-0"
-              )}
-              spellCheck={false}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );

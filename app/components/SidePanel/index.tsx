@@ -8,7 +8,6 @@ import { useSidePanel } from './context';
 import { getTaxonomy } from '@/app/services/posts';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { RiBook2Fill, RiHomeFill, RiDashboardFill, RiToolsFill } from 'react-icons/ri';
-// import './index.css';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 export function SidePanel() {
