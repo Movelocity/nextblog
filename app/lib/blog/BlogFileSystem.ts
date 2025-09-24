@@ -17,7 +17,7 @@ import { BLOG_CONFIG } from '@/app/common/config';
  * 5. 写入博客内容
  */
 export class BlogFileSystem {
-  constructor(private rootDir: string) {}
+  constructor(private rootDir: string, private metaFile: string) {}
 
   /**
    * 初始化存储目录
@@ -29,7 +29,7 @@ export class BlogFileSystem {
   async init(): Promise<void> {
     try {
       await fs.mkdir(this.rootDir, { recursive: true });
-      const metaPath = path.join(this.rootDir, BLOG_CONFIG.META_FILE);
+      const metaPath = path.join(this.rootDir, this.metaFile);
       
       try {
         await fs.access(metaPath);
@@ -54,7 +54,7 @@ export class BlogFileSystem {
   async loadMeta(): Promise<BlogMetaCache> {
     try {
       const content = await fs.readFile(
-        path.join(this.rootDir, BLOG_CONFIG.META_FILE), 
+        path.join(this.rootDir, this.metaFile), 
         'utf-8'
       );
       return JSON.parse(content);
@@ -77,7 +77,7 @@ export class BlogFileSystem {
   async saveMeta(meta: BlogMetaCache): Promise<void> {
     try {
       await fs.writeFile(
-        path.join(this.rootDir, BLOG_CONFIG.META_FILE),
+        path.join(this.rootDir, this.metaFile),
         JSON.stringify(meta, null, 2)
       );
     } catch (error) {
@@ -293,29 +293,5 @@ export class BlogFileSystem {
     } catch (error) {
       throw new Error(`Failed to process blog directories: ${error}`);
     }
-  }
-
-  /**
-   * 重试操作
-   * 
-   * 重试操作，返回操作结果。
-   */
-  async retryOperation<T>(
-    operation: () => Promise<T>,
-    maxRetries = 3,
-    delay = 1000
-  ): Promise<T> {
-    let lastError;
-    
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await operation();
-      } catch (error) {
-        lastError = error;
-        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
-      }
-    }
-    
-    throw lastError;
   }
 } 

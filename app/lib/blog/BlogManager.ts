@@ -26,7 +26,7 @@ export class BlogManager {
   private metaCache: BlogMetaCache | null = null;
 
   private constructor(rootDir: string) {
-    this.fileSystem = new BlogFileSystem(rootDir);
+    this.fileSystem = new BlogFileSystem(rootDir, BLOG_CONFIG.META_FILE);
     this.index = new BlogIndex();
     this.contentCache = new LRUCache<string>({
       maxSize: 50 * 1024 * 1024, // 50MB
