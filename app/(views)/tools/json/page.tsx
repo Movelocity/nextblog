@@ -114,31 +114,30 @@ export default function JsonFormatterPage() {
     setCopySuccess(false);
   };
 
-
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            JSON 格式化工具
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            JSON 格式化
           </h1>
         </div>
 
         {/* Toolbar */}
-        <div className="bg-gray-50 dark:bg-zinc-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4 mb-4">
+        <div className="bg-gray-50 dark:bg-zinc-950 rounded-t-lg shadow-sm border-t border-x border-gray-200 dark:border-gray-800 px-4 py-2">
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleFormat}
-                className="px-3 py-1.5 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
               >
                 <RiCodeSSlashLine className="w-4 h-4" />
                 格式化
               </button>
               <button
                 onClick={handleMinify}
-                className="px-3 py-1.5 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
               >
                 <RiFileReduceLine className="w-4 h-4" />
                 压缩
@@ -148,8 +147,8 @@ export default function JsonFormatterPage() {
                 className={cn(
                   "px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1.5",
                   copySuccess 
-                    ? "bg-green-600 text-white" 
-                    : "bg-gray-800 text-white hover:bg-gray-700"
+                    ? "" 
+                    : "hover:bg-gray-700"
                 )}
               >
                 {copySuccess ? <RiCheckLine className="w-4 h-4" /> : <RiFileCopyLine className="w-4 h-4" />}
@@ -157,7 +156,7 @@ export default function JsonFormatterPage() {
               </button>
               <button
                 onClick={handleClear}
-                className="px-3 py-1.5 bg-gray-800 text-white rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
               >
                 <RiDeleteBinLine className="w-4 h-4" />
                 清空
@@ -179,7 +178,7 @@ export default function JsonFormatterPage() {
         </div>
 
         {/* Editor Area */}
-        <div className="bg-gray-50 dark:bg-zinc-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
+        <div className="bg-gray-50 dark:bg-zinc-950 rounded-b-lg shadow-sm border border-gray-200 dark:border-gray-800">
           <textarea
             value={jsonText}
             onChange={handleInputChange}

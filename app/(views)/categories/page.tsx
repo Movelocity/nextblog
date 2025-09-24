@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getTaxonomy } from '@/app/services/posts';
 // import CategoryTag from '@/app/components/CategoryTag';
 import { PAGE_WIDTH } from '@/app/common/utils';
-import cn from 'classnames';
+// import cn from 'classnames';
 
 /**
  * Page component to display all available categories as cards.
@@ -35,16 +35,19 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  const renderContent = useMemo(() => {
-    if (loading) {
-      return <div className="text-center p-8">Loading categories...</div>;
-    }
-  
-    if (error) {
-      return <div className="text-center p-8 text-red-500">{error}</div>;
-    }
+  // const renderContent = useMemo(() => {
+  // }, [categories, loading, error])
 
-    return (
+  if (loading) {
+    return <div className="text-center p-8">Loading categories...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-8 text-red-500">{error}</div>;
+  }
+
+  return (
+    <div className={PAGE_WIDTH}>
       <div>
         <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
         {categories.length > 0 ? (
@@ -63,12 +66,6 @@ export default function CategoriesPage() {
           <p className="text-gray-600 dark:text-gray-400">No categories found.</p>
         )}
       </div>
-    )
-  }, [categories, loading, error])
-
-  return (
-    <div className={PAGE_WIDTH}>
-      {renderContent}
     </div>
   );
 } 
