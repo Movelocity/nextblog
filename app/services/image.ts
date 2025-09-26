@@ -37,33 +37,40 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-// 文件管理相关服务 - 使用统一的 asset API
+// 文件管理相关服务 - 使用新的独立图片存储结构
 export const fileService = {
   /**
-   * Downloads a file by ID from image-edit storage
+   * Downloads a file by ID
    * @param id File ID
    * @param thumbnail Whether to get thumbnail version
    * @returns Promise with the file blob
    */
   downloadFile: async (id: string, thumbnail: boolean = false): Promise<Blob> => {
-    // 使用新的统一 asset API，image-edit 作为特殊 blogId
-    const params = new URLSearchParams({
-      blogId: 'image-edit',
-      fileName: id,
-      ...(thumbnail && { thumbnail: 'true' })
-    });
-    
-    const response = await fetch(`/api/asset/image?${params}`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to download file: ${response.statusText}`);
+    if (thumbnail) {
+      const response = await fetch(`/api/asset/thumbnail/${id}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to download thumbnail: ${response.statusText}`);
+      }
+      
+      return response.blob();
+    } else {
+      const params = new URLSearchParams({
+        fileName: id
+      });
+      
+      const response = await fetch(`/api/asset/image?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.statusText}`);
+      }
+      
+      return response.blob();
     }
-    
-    return response.blob();
   },
 
   /**
-   * Uploads a file to the image-edit storage with automatic thumbnail generation
+   * Uploads a file with automatic thumbnail generation
    * @param file File to upload
    * @param generateThumbnail Whether to generate thumbnail
    * @returns Promise with upload response containing file ID and optional thumbnail
@@ -73,7 +80,6 @@ export const fileService = {
     formData.append('file', file);
 
     const params = new URLSearchParams({
-      blogId: 'image-edit',
       generateThumbnail: generateThumbnail.toString()
     });
 
@@ -81,14 +87,13 @@ export const fileService = {
   },
 
   /**
-   * Deletes a file by ID from image-edit storage
+   * Deletes a file by ID (including its thumbnail)
    * @param id File ID to delete
    * @returns Promise with success status
    */
   deleteFile: async (id: string): Promise<{ success: boolean }> => {
     return del<{ success: boolean }>('/api/asset/image', {
       params: { 
-        blogId: 'image-edit',
         fileName: id 
       }
     });
@@ -101,13 +106,15 @@ export const fileService = {
    * @returns File URL
    */
   getFileUrl: (id: string, thumbnail: boolean = false): string => {
-    const params = new URLSearchParams({
-      blogId: 'image-edit',
-      fileName: id,
-      ...(thumbnail && { thumbnail: 'true' })
-    });
-    
-    return `/api/asset/image?${params}`;
+    if (thumbnail) {
+      return `/api/asset/thumbnail/${id}`;
+    } else {
+      const params = new URLSearchParams({
+        fileName: id
+      });
+      
+      return `/api/asset/image?${params}`;
+    }
   },
 };
 

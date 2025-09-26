@@ -3,39 +3,35 @@ import { BLOG_CONFIG } from '@/app/common/globals';
 import { TaskInfo, TaskResponse } from './types';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import sharp from 'sharp';
-import blogStorage from '@/app/lib/BlogStorage';
+import imageStorage from '@/app/lib/ImageStorage';
 
 export const INDEX_FILE = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'index.json');
-export const IMAGE_DIR = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'assets');
 
-// Special blogId for image-edit storage
-const IMAGE_EDIT_BLOG_ID = 'image-edit';
-
-// 确保目录存在
-if(!existsSync(IMAGE_DIR)) {
-  mkdirSync(IMAGE_DIR, { recursive: true });
+// 确保索引目录存在
+const indexDir = path.dirname(INDEX_FILE);
+if(!existsSync(indexDir)) {
+  mkdirSync(indexDir, { recursive: true });
 }
 // 确保索引文件存在
 if(!existsSync(INDEX_FILE)) {
   writeFileSync(INDEX_FILE, JSON.stringify({ tasks: [] }));
 }
 
-// 从Buffer创建缩略图并保存到blogStorage
-async function createThumbnailFromBuffer(buffer: Buffer, edge_size?: number): Promise<string> {
+// 从Buffer创建缩略图并保存到imageStorage
+async function createThumbnailFromBuffer(buffer: Buffer, fileName: string, edge_size?: number): Promise<string> {
   if(!buffer) {
     throw new Error("buffer is required");
   }
   edge_size = edge_size || 180;
-  const thumbnail_id = generateId("thumb.png");
   
   const thumbnailBuffer = await sharp(buffer)
     .resize(edge_size, edge_size)
     .jpeg({ quality: 80 })
     .toBuffer();
   
-  // Save thumbnail using blogStorage
-  await blogStorage.addAsset(IMAGE_EDIT_BLOG_ID, thumbnail_id, thumbnailBuffer);
-  return thumbnail_id;
+  // Save thumbnail using imageStorage with the same fileName
+  await imageStorage.saveThumbnail(fileName, thumbnailBuffer);
+  return fileName; // Return the same fileName as the ID
 }
 
 /**  
@@ -67,7 +63,7 @@ export function generateId(ext?: string) : string {
 }
 
 export async function get_image_base64(image_id: string): Promise<string> {
-  const assetData = await blogStorage.getAsset(IMAGE_EDIT_BLOG_ID, image_id);
+  const assetData = await imageStorage.getImage(image_id);
   if (!assetData) {
     throw new Error(`Image ${image_id} not found`);
   }
@@ -171,7 +167,7 @@ async function start_task(task_id: string) {
     throw new Error("Result image base64 is not found");
   }
   const result_image_id = generateId("png");
-  let result_thumbnail_id = "none";
+  let result_thumbnail_id = result_image_id; // Same ID for thumbnail
   try {
     // 移除Base64前缀（如果有）
     const base64Data = result_image_base64.replace(/^data:image\/\w+;base64,/, '');
@@ -179,9 +175,9 @@ async function start_task(task_id: string) {
     // 将Base64字符串转换为Buffer
     const buffer = Buffer.from(base64Data, 'base64');
     
-    // Save result image using blogStorage
-    await blogStorage.addAsset(IMAGE_EDIT_BLOG_ID, result_image_id, buffer);
-    result_thumbnail_id = await createThumbnailFromBuffer(buffer);
+    // Save result image using imageStorage
+    await imageStorage.saveImage(result_image_id, buffer);
+    result_thumbnail_id = await createThumbnailFromBuffer(buffer, result_image_id);
     
     console.log('文件保存成功:', result_image_id);
   } catch (error: any) {
