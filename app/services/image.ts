@@ -1,25 +1,50 @@
 import { baseFetch, get, post, put, del } from './utils';
 
 // 图片编辑相关类型定义
+/**
+ * Image data structure containing only IDs for efficient storage and transfer
+ * Use fileService.getFileUrl() or fileService.downloadFile() to get actual images
+ */
 export interface ImageData {
+  /** Original image file ID */
   id: string;
+  /** Thumbnail image file ID */
   thumb_id: string;
 }
 
+/**
+ * Task response from image-edit API
+ * Contains only image IDs, not URLs or base64 data
+ */
 export interface TaskResponse {
+  /** Unique task identifier */
   id: string;
+  /** Current task status */
   status: 'processing' | 'completed' | 'failed';
+  /** Original image data (IDs only) */
   original_image: ImageData;
+  /** Result image data (IDs only, available when completed) */
   result_image?: ImageData;
+  /** User-provided editing instruction */
   prompt: string;
+  /** Error or status message */
   message?: string;
+  /** Task creation timestamp */
   created_at: number;
+  /** Last update timestamp */
   updated_at: number;
 }
 
+/**
+ * Input for creating a new image editing task
+ * All image references must be IDs, not URLs or base64 data
+ */
 export interface CreateTaskInput {
+  /** Original image file ID */
   orig_img: string;
+  /** Thumbnail image file ID */
   orig_thumb: string;
+  /** Editing instruction prompt */
   prompt: string;
 }
 

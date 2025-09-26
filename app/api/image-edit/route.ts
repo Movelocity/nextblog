@@ -3,6 +3,21 @@ import { requireAuth } from '@/app/lib/auth';
 import { generateId, task_manager } from "./utils";
 
 
+/**
+ * Get task status and details
+ * GET /api/image-edit?task_id={task_id}
+ * 
+ * Response includes:
+ * - id: string (task ID)
+ * - status: "processing" | "completed" | "failed"
+ * - original_image: { id: string, thumb_id: string } (image IDs only)
+ * - result_image: { id: string, thumb_id: string } (image IDs only)
+ * - prompt: string
+ * - created_at: number
+ * - updated_at: number
+ * 
+ * Note: All image references are IDs only, use /api/asset/image/{id} to get actual images
+ */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const task_id = searchParams.get('task_id');
@@ -19,14 +34,21 @@ export async function GET(request: NextRequest) {
 /**
  * Start a task
  * POST /api/image-edit
- * // only accept file id but not base64
- * Body: { orig_img: string, orig_thumb: string, prompt: string }
+ * 
+ * Request Body: 
+ * - orig_img: string (image ID, not URL or base64)
+ * - prompt: string (editing instruction)
+ * 
+ * Response:
+ * - task_id: string (unique task identifier)
+ * 
+ * Note: Only accepts image IDs for efficient processing
  */
 export const POST = requireAuth(async (request: NextRequest) => {
   try {
-    const body: { orig_img: string, orig_thumb: string, prompt: string } = await request.json();
-    const { orig_img, orig_thumb, prompt } = body;
-    if(!orig_img || !orig_thumb || !prompt) {
+    const body: { orig_img: string, prompt: string } = await request.json();
+    const { orig_img, prompt } = body;
+    if(!orig_img || !prompt) {
       return NextResponse.json({ error: "orig_img, orig_thumb, prompt are required" }, { status: 400 });
     }
     const task_id = generateId();
@@ -34,15 +56,9 @@ export const POST = requireAuth(async (request: NextRequest) => {
       id: task_id,
       timeout: null,
       status: "processing",
-      original_image: {
-        id: orig_img,
-        thumb_id: orig_thumb,
-      },
+      original_image: orig_img,
       prompt: prompt,
-      result_image: {
-        id: "",
-        thumb_id: "",
-      },
+      result_image: "",
       created_at: Date.now(),
       updated_at: Date.now(),
     });
@@ -60,6 +76,9 @@ export const POST = requireAuth(async (request: NextRequest) => {
 /**
  * Delete a task
  * DELETE /api/image-edit?task_id={task_id}
+ * 
+ * Stops the task if running and removes it from storage.
+ * Response: { message: "Task stopped" }
  */
 export const DELETE = requireAuth(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
@@ -72,8 +91,12 @@ export const DELETE = requireAuth(async (request: NextRequest) => {
 });
 
 
-/** stop a task
+/**
+ * Stop a running task
  * PUT /api/image-edit?task_id={task_id}
+ * 
+ * Stops task execution but keeps it in storage with "failed" status.
+ * Response: { message: "Task stopped" }
  */
 export const PUT = requireAuth(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);

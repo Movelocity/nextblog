@@ -156,7 +156,7 @@ async function start_task(task_id: string) {
   task_info.controller = controller;
   task_info.status = "processing";
 
-  const image_base64 = await get_image_base64(original_image.id);
+  const image_base64 = await get_image_base64(original_image);
   console.log(`🐍 Starting task ${task_id} with image base64 length ${image_base64.length}`);
   update_task(task_info);
   const result = await edit_image_with_gemini(image_base64, prompt, controller.signal);
@@ -187,10 +187,6 @@ async function start_task(task_id: string) {
     return false;
   }
 
-  task_info.result_image = {
-    id: result_image_id,
-    thumb_id: result_thumbnail_id,
-  };
   if(task_info.timeout) {
     clearTimeout(task_info.timeout);
     task_info.timeout = null;
