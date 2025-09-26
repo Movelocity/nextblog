@@ -2,7 +2,7 @@ import path from 'path';
 import { BLOG_CONFIG } from '@/app/common/config';
 import { TaskInfo, TaskResponse } from './types';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-
+import sharp from 'sharp';
 export const INDEX_FILE = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'index.json');
 export const IMAGE_DIR = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'assets');
 
@@ -15,8 +15,27 @@ if(!existsSync(INDEX_FILE)) {
   writeFileSync(INDEX_FILE, JSON.stringify({ tasks: [] }));
 }
 
-/**  yyyymmddhhmmssmmm-rand6 */
-export function generateId() : string {
+// 从Buffer创建
+async function createThumbnailFromBuffer(buffer: Buffer, edge_size?: number): Promise<string> {
+  if(!buffer) {
+    throw new Error("buffer, width, height are required");
+  }
+  edge_size = edge_size || 180;
+  const thumbnail_id = generateId("thumb.png");
+  const thumbnail_path = path.join(IMAGE_DIR, thumbnail_id);
+  await sharp(buffer)
+    .resize(edge_size, edge_size)
+    .jpeg({ quality: 80 })
+    .toFile(thumbnail_path);
+  return thumbnail_id;
+}
+
+/**  
+ * basic: yyyymmddhhmmssmmm-rand6
+ * ext: png | thumb.png | etc.
+ * result: yyyymmddhhmmssmmm-rand6.ext
+ */
+export function generateId(ext?: string) : string {
   // 获取当前时间
   const now = new Date();
   
@@ -33,8 +52,10 @@ export function generateId() : string {
   
   // 生成6位随机数
   const randomPart = Math.random().toString().slice(2, 8);
-  
-  return `${timestamp}-${randomPart}`;
+  if(ext && !ext.startsWith('.')) {
+    ext = '.' + ext;
+  }
+  return `${timestamp}-${randomPart}${ext ?? ''}`;
 }
 
 export function get_image_base64(image_id: string) {
@@ -134,6 +155,37 @@ async function start_task(task_id: string) {
   console.log(`🐍 Starting task ${task_id} with image base64 length ${image_base64.length}`);
   update_task(task_info);
   const result = await edit_image_with_gemini(image_base64, prompt, controller.signal);
+
+  // save the result image to the storage
+  const result_image_base64 = result.candidates[0].content.parts[1].inlineData?.data;
+  if(!result_image_base64) {
+    throw new Error("Result image base64 is not found");
+  }
+  const result_image_id = generateId("png");
+  let result_thumbnail_id = "none";
+  try {
+    // 移除Base64前缀（如果有）
+    const base64Data = result_image_base64.replace(/^data:image\/\w+;base64,/, '');
+    
+    // 将Base64字符串转换为Buffer
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // 写入文件
+    writeFileSync(path.join(IMAGE_DIR, result_image_id), buffer);
+    result_thumbnail_id = await createThumbnailFromBuffer(buffer);
+    
+    console.log('文件保存成功:', result_image_id);
+  } catch (error: any) {
+    console.error('保存文件失败:', error);
+    task_info.message = error.message;
+    stop_task(task_id);
+    return false;
+  }
+
+  task_info.result_image = {
+    id: result_image_id,
+    thumb_id: result_thumbnail_id,
+  };
   if(task_info.timeout) {
     clearTimeout(task_info.timeout);
     task_info.timeout = null;
@@ -186,6 +238,16 @@ const BASE_URL = process.env.GEMINI_API_URL;
 const ENDPOINT = process.env.GEMINI_API_ENDPOINT;
 const API_KEY = process.env.GEMINI_API_KEY;
 
+type GeminiResponse = {
+  candidates: {
+    content: {
+      parts: {
+        text?: string;
+        inlineData?: Record<string, any>;
+      }[];
+    };
+  }[];
+}
 /**
  * Edit image with Gemini API
  * @param image_base64 - The base64 encoded image
@@ -193,7 +255,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
  * @param abort_signal - The abort signal
  * @returns The response from the Gemini API
  */
-async function edit_image_with_gemini(image_base64: string, edit_prompt: string, abort_signal: AbortSignal) {
+async function edit_image_with_gemini(image_base64: string, edit_prompt: string, abort_signal: AbortSignal) : Promise<GeminiResponse> {
   if (!BASE_URL || !ENDPOINT || !API_KEY) {
     throw new Error("GEMINI_API_URL, GEMINI_API_ENDPOINT, GEMINI_API_KEY are not set");
   }
@@ -223,7 +285,7 @@ async function edit_image_with_gemini(image_base64: string, edit_prompt: string,
   // });
 
   // mock response
-  const response = {
+  const response: GeminiResponse = {
     "candidates": [
       {
         "content": {

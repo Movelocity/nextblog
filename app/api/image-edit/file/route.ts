@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { IMAGE_DIR } from "../utils";
+import { IMAGE_DIR, generateId } from "../utils";
 import fs from 'fs'
 import path from 'path'
 import { requireAuth } from '@/app/lib/auth';
@@ -72,7 +72,7 @@ export const POST = requireAuth(async (request: NextRequest) => {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const ext = path.extname(file.name).toLowerCase();
-    const id = file.name + ext;
+    const id = generateId(ext);
     const filePath = path.join(IMAGE_DIR, id)
     const fileBuffer = await file.arrayBuffer()
     fs.writeFileSync(filePath, Buffer.from(fileBuffer))

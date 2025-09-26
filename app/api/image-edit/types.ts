@@ -11,6 +11,7 @@ export type TaskInfo = {
   original_image: ImageData;  // file id
   result_image?: ImageData;  // file id
   prompt: string;
+  message?: string;
   created_at: number;
   updated_at: number;
 }
