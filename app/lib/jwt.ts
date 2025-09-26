@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET, JWT_EXPIRES_IN } from '@/app/common/config';
+import { JWT_SECRET, JWT_EXPIRES_IN } from '@/app/common/globals';
 
 export interface JWTPayload {
     email: string;

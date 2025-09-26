@@ -1,15 +1,15 @@
-import { API_ROUTES } from '@/app/common/config';
-import { Asset } from '@/app/common/types';
 
+import { Asset } from '@/app/common/types';
+import { get, post, del } from './utils';
 
 export const assetService = {
   /**
    * List all assets for a blog
    */
   listAssets: async (blogId: string): Promise<Asset[]> => {
-    const response = await fetch(`${API_ROUTES.ASSET}?blogId=${blogId}`);
-    if (!response.ok) throw new Error('Failed to fetch assets');
-    const data = await response.json();
+    const data = await get<{ assets: Asset[] }>('/api/asset', { 
+      params: { blogId } 
+    });
     return data.assets;
   },
 
@@ -20,31 +20,24 @@ export const assetService = {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${API_ROUTES.ASSET}?blogId=${blogId}`, {
-      method: 'POST',
-      body: formData,
+    return post<{ assetPath: string }>('/api/asset', formData, {
+      params: { blogId }
     });
-
-    if (!response.ok) throw new Error('Failed to upload asset');
-    return response.json();
   },
 
   /**
    * Delete an asset
    */
   deleteAsset: async (blogId: string, fileName: string): Promise<void> => {
-    const response = await fetch(
-      `${API_ROUTES.ASSET}?blogId=${blogId}&fileName=${fileName}`,
-      { method: 'DELETE' }
-    );
-    
-    if (!response.ok) throw new Error('Failed to delete asset');
+    return del<void>('/api/asset', {
+      params: { blogId, fileName }
+    });
   },
 
   /**
    * Get asset URL
    */
   getAssetUrl: (blogId: string, fileName: string): string => {
-    return `${API_ROUTES.ASSET}?blogId=${blogId}&fileName=${fileName}`;
+    return `/api/asset?blogId=${blogId}&fileName=${fileName}`;
   }
 }; 

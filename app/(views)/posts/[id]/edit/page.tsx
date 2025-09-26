@@ -1,5 +1,5 @@
 'use client';
-import { use, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';

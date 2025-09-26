@@ -6,10 +6,9 @@ import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/Posts/PostsList';
 import { useToast } from '@/app/components/Toast/context';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BLOG_CONFIG } from '@/app/common/config';
+import { BLOG_CONFIG } from '@/app/common/globals';
 import Pagination from '@/app/components/Pagination';
 import { PAGE_WIDTH } from '@/app/common/utils';
-import cn from 'classnames';
 
 function Page() {
   const [posts, setPosts] = useState<BlogMeta[]>([]);

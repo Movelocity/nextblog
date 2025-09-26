@@ -1,4 +1,4 @@
-import { API_ROUTES } from '../common/config';
+import { post, get, getCookie } from './utils';
 
 export interface LoginCredentials {
   email: string;
@@ -17,35 +17,57 @@ export interface AuthCheckResponse {
   error?: string;
 }
 
-export const login = async (credentials: LoginCredentials): Promise<LoginResponse | null> => {
-  const response = await fetch(API_ROUTES.LOGIN, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(credentials),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Invalid credentials' }));
-    throw new Error(error.message || 'Invalid credentials');
-  }
-
-  return response.json();
+/**
+ * 用户登录
+ * @param credentials 登录凭据
+ * @returns 登录响应或null
+ */
+export const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+  return post<LoginResponse>('/api/auth/login', credentials);
 };
 
+/**
+ * 设置认证token到localStorage (兼容旧版本)
+ * @param token 认证token
+ */
 export const setAuthToken = (token: string) => {
   localStorage.setItem('authToken', token);
 };
 
+/**
+ * 获取认证token (优先从cookie，回退到localStorage)
+ * @returns 认证token或null
+ */
 export const getAuthToken = (): string | null => {
-  return localStorage.getItem('authToken');
+  // 优先使用cookie中的auth-token
+  const cookieToken = getCookie('auth-token');
+  if (cookieToken) {
+    return cookieToken;
+  }
+  
+  // 回退到localStorage (兼容旧版本)
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem('authToken');
+  }
+  
+  return null;
 };
 
+/**
+ * 移除认证token
+ */
 export const removeAuthToken = () => {
   localStorage.removeItem('authToken');
+  // 也可以尝试清除cookie (需要后端配合)
+  if (typeof document !== 'undefined') {
+    document.cookie = 'auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  }
 };
 
+/**
+ * 检查用户是否已认证
+ * @returns 是否已认证
+ */
 export const isAuthenticated = async (): Promise<boolean> => {
   const token = getAuthToken();
   if (!token) {
@@ -53,13 +75,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
   }
 
   try {
-    const response = await fetch(API_ROUTES.CHECK_AUTH, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    const data: AuthCheckResponse = await response.json();
+    const data = await get<AuthCheckResponse>('/api/auth/check');
     
     if (!data.valid) {
       removeAuthToken(); // Clear invalid token

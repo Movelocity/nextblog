@@ -5,7 +5,7 @@ import { getPosts, deletePost } from '@/app/services/posts';
 import PostsTable from '@/app/components/Posts/PostsTable';
 import { updatePost } from '@/app/services/posts';
 import { useToast } from '@/app/components/Toast/context';
-import { BLOG_CONFIG } from '@/app/common/config';
+import { BLOG_CONFIG } from '@/app/common/globals';
 import { BlogMeta } from '@/app/common/types';
 import Pagination from '@/app/components/Pagination';
 import { useLoginModal } from '@/app/hooks/useLoginModal';

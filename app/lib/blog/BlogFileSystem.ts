@@ -3,7 +3,7 @@ import path from 'path';
 import yaml from 'yaml';
 import { existsSync } from 'fs';
 import { BlogConfig, BlogMetaCache } from '@/app/common/types';
-import { BLOG_CONFIG } from '@/app/common/config';
+import { BLOG_CONFIG } from '@/app/common/globals';
 
 /**
  * 博客文件系统

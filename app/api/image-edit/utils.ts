@@ -1,5 +1,5 @@
 import path from 'path';
-import { BLOG_CONFIG } from '@/app/common/config';
+import { BLOG_CONFIG } from '@/app/common/globals';
 import { TaskInfo, TaskResponse } from './types';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import sharp from 'sharp';
@@ -8,7 +8,7 @@ export const IMAGE_DIR = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'assets')
 
 // 确保目录存在
 if(!existsSync(IMAGE_DIR)) {
-  mkdirSync(IMAGE_DIR);
+  mkdirSync(IMAGE_DIR, { recursive: true });
 }
 // 确保索引文件存在
 if(!existsSync(INDEX_FILE)) {

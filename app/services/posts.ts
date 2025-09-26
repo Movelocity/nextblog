@@ -1,14 +1,5 @@
-import { API_ROUTES } from '../common/config';
 import { CreatePostInput, UpdatePostInput, SearchParams, Blog, BlogMeta } from "../common/types"
-import { getAuthToken } from './auth';
-
-const getAuthHeaders = () => {
-  const token = getAuthToken();
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
+import { get, post, put, del } from './utils';
 
 /**
  * Fetches all available categories and tags from the API.
@@ -17,15 +8,7 @@ const getAuthHeaders = () => {
  * @throws {Error} Throws an error if the fetch operation fails
  */
 export const getTaxonomy = async (): Promise<{ categories: string[]; tags: string[] }> => {
-  const response = await fetch(API_ROUTES.TAXONOMY, {
-    headers: getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch taxonomy');
-  }
-
-  return response.json();
+  return get<{ categories: string[]; tags: string[] }>('/api/taxonomy');
 };
 
 /**
@@ -36,75 +19,45 @@ export const getTaxonomy = async (): Promise<{ categories: string[]; tags: strin
  * @throws {Error} Throws an error if the fetch operation fails
  */
 export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info: BlogMeta[]; total: number }> => {
-  const searchParams = new URLSearchParams();
-  
-  if (params.query) searchParams.set('query', params.query);
-  if (params.categories?.length) searchParams.set('categories', JSON.stringify(params.categories));
-  if (params.tags?.length) searchParams.set('tags', JSON.stringify(params.tags));
-  if (params.page) searchParams.set('page', params.page.toString());
-  if (params.limit) searchParams.set('limit', params.limit.toString());
-  if (params.pubOnly !== undefined) searchParams.set('pubOnly', params.pubOnly.toString());
-
   // console.log("params", params)
-  console.log("service: ", `${API_ROUTES.POSTS}?${searchParams.toString()}`)
-  const response = await fetch(`${API_ROUTES.POSTS}?${searchParams.toString()}`, {
-    headers: getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch posts');
-  }
-
-  return response.json();
+  console.log("service: ", `/api/posts with params:`, params)
+  
+  return get<{ blogs_info: BlogMeta[]; total: number }>('/api/posts', { params });
 };
 
+/**
+ * Fetches a single post by ID
+ * @param id Post ID
+ * @returns Promise with post data
+ */
 export const getPost = async (id: string): Promise<Blog> => {
-  const response = await fetch(`${API_ROUTES.POSTS}?id=${id}`, {
-    headers: getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch post');
-  }
-
-  return response.json();
+  return get<Blog>('/api/posts', { params: { id } });
 };
 
+/**
+ * Creates a new post
+ * @param input Post creation input
+ * @returns Promise with created post metadata
+ */
 export const createPost = async (input: CreatePostInput): Promise<BlogMeta> => {
-  const response = await fetch(API_ROUTES.POSTS, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(input),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create post');
-  }
-
-  return response.json();
+  return post<BlogMeta>('/api/posts', input);
 };
 
+/**
+ * Updates an existing post
+ * @param id Post ID to update
+ * @param input Post update input
+ * @returns Promise with updated post metadata
+ */
 export const updatePost = async (id: string, input: UpdatePostInput): Promise<BlogMeta> => {
-  const response = await fetch(`${API_ROUTES.POSTS}?id=${id}`, {
-    method: 'PUT',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(input),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to update post');
-  }
-
-  return response.json();
+  return put<BlogMeta>('/api/posts', input, { params: { id } });
 };
 
+/**
+ * Deletes a post by ID
+ * @param id Post ID to delete
+ * @returns Promise with void
+ */
 export const deletePost = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_ROUTES.POSTS}?id=${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to delete post');
-  }
+  return del<void>('/api/posts', { params: { id } });
 };

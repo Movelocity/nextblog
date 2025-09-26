@@ -2,7 +2,7 @@ import { BlogFileSystem } from './BlogFileSystem';
 import { BlogIndex } from './BlogIndex';
 import { LRUCache } from '../cache/LRUCache';
 import { BlogMeta, Blog, CreateBlogInput, UpdateBlogInput, BlogMetaCache } from '@/app/common/types';
-import { BLOG_CONFIG } from '@/app/common/config';
+import { BLOG_CONFIG } from '@/app/common/globals';
 import { textPreview } from '@/app/common/utils';
 
 /**

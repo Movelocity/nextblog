@@ -233,6 +233,7 @@
 .mkd-body [type="button"],
 .mkd-body [type="reset"],
 .mkd-body [type="submit"] {
+  appearance: button;
   -webkit-appearance: button; 
 }
 

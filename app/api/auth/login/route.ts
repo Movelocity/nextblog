@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ADMIN_CREDENTIALS } from "@/app/common/config";
+import { ADMIN_CREDENTIALS } from "@/app/common/globals";
 import { generateToken } from "@/app/lib/jwt";
 import { LoginCredentials } from "@/app/services/auth";
 
