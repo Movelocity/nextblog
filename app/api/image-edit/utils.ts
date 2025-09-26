@@ -3,8 +3,13 @@ import { BLOG_CONFIG } from '@/app/common/globals';
 import { TaskInfo, TaskResponse } from './types';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import sharp from 'sharp';
+import blogStorage from '@/app/lib/BlogStorage';
+
 export const INDEX_FILE = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'index.json');
 export const IMAGE_DIR = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'assets');
+
+// Special blogId for image-edit storage
+const IMAGE_EDIT_BLOG_ID = 'image-edit';
 
 // 确保目录存在
 if(!existsSync(IMAGE_DIR)) {
@@ -15,18 +20,21 @@ if(!existsSync(INDEX_FILE)) {
   writeFileSync(INDEX_FILE, JSON.stringify({ tasks: [] }));
 }
 
-// 从Buffer创建
+// 从Buffer创建缩略图并保存到blogStorage
 async function createThumbnailFromBuffer(buffer: Buffer, edge_size?: number): Promise<string> {
   if(!buffer) {
-    throw new Error("buffer, width, height are required");
+    throw new Error("buffer is required");
   }
   edge_size = edge_size || 180;
   const thumbnail_id = generateId("thumb.png");
-  const thumbnail_path = path.join(IMAGE_DIR, thumbnail_id);
-  await sharp(buffer)
+  
+  const thumbnailBuffer = await sharp(buffer)
     .resize(edge_size, edge_size)
     .jpeg({ quality: 80 })
-    .toFile(thumbnail_path);
+    .toBuffer();
+  
+  // Save thumbnail using blogStorage
+  await blogStorage.addAsset(IMAGE_EDIT_BLOG_ID, thumbnail_id, thumbnailBuffer);
   return thumbnail_id;
 }
 
@@ -58,11 +66,12 @@ export function generateId(ext?: string) : string {
   return `${timestamp}-${randomPart}${ext ?? ''}`;
 }
 
-export function get_image_base64(image_id: string) {
-  const image_path = path.join(IMAGE_DIR, image_id);
-  const image_buffer = readFileSync(image_path);
-  const image_base64 = image_buffer.toString('base64');
-  return image_base64;
+export async function get_image_base64(image_id: string): Promise<string> {
+  const assetData = await blogStorage.getAsset(IMAGE_EDIT_BLOG_ID, image_id);
+  if (!assetData) {
+    throw new Error(`Image ${image_id} not found`);
+  }
+  return Buffer.from(assetData.buffer).toString('base64');
 }
 
 /**
@@ -151,7 +160,7 @@ async function start_task(task_id: string) {
   task_info.controller = controller;
   task_info.status = "processing";
 
-  const image_base64 = get_image_base64(original_image.id);
+  const image_base64 = await get_image_base64(original_image.id);
   console.log(`🐍 Starting task ${task_id} with image base64 length ${image_base64.length}`);
   update_task(task_info);
   const result = await edit_image_with_gemini(image_base64, prompt, controller.signal);
@@ -170,8 +179,8 @@ async function start_task(task_id: string) {
     // 将Base64字符串转换为Buffer
     const buffer = Buffer.from(base64Data, 'base64');
     
-    // 写入文件
-    writeFileSync(path.join(IMAGE_DIR, result_image_id), buffer);
+    // Save result image using blogStorage
+    await blogStorage.addAsset(IMAGE_EDIT_BLOG_ID, result_image_id, buffer);
     result_thumbnail_id = await createThumbnailFromBuffer(buffer);
     
     console.log('文件保存成功:', result_image_id);

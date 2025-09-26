@@ -18,79 +18,100 @@
 
 ## API 接口
 
-### 1. 文件管理 (`/api/image-edit/file`)
+### 1. 文件管理 (`/api/asset/image`) - 统一图片资产管理
 
-#### 1.1 获取文件
+#### 1.1 获取图片文件
 
-**GET** `/api/image-edit/file?id={id}`
+**GET** `/api/asset/image?blogId={blogId}&fileName={fileName}&thumbnail={true/false}`
 
-获取指定ID的文件。
+获取指定的图片文件，支持缩略图生成。
 
 **参数:**
-- `id` (query, required): 文件ID
+- `blogId` (query, required): 博客ID，使用 `image-edit` 作为图片编辑独立存储空间
+- `fileName` (query, required): 文件名
+- `thumbnail` (query, optional): 是否返回缩略图版本 (true/false)
 
 **响应:**
 - **200**: 返回文件内容
   - Headers:
     - `Content-Type`: 根据文件扩展名设置的MIME类型
-    - `Content-Disposition`: `attachment; filename="{id}"`
+    - `Content-Disposition`: `attachment; filename="{fileName}"`
+    - `Cache-Control`: `public, max-age=31536000`
     - `Content-Length`: 文件大小
-- **400**: 无效的文件名
+- **400**: 无效的参数
 - **404**: 文件不存在
 - **500**: 服务器错误
 
 **示例:**
 ```bash
-GET /api/image-edit/file?id=20240101120000000-123456.png
+# 获取原图
+GET /api/asset/image?blogId=image-edit&fileName=20240101120000000-123456.png
+
+# 获取缩略图
+GET /api/asset/image?blogId=image-edit&fileName=20240101120000000-123456.png&thumbnail=true
 ```
 
-#### 1.2 上传文件
+#### 1.2 上传图片文件
 
-**POST** `/api/image-edit/file` 🔒
+**POST** `/api/asset/image?blogId={blogId}&generateThumbnail={true/false}` 🔒
 
-上传新文件到系统。
+上传新的图片文件到系统，支持自动生成缩略图。
 
 **认证:** 需要认证
 
+**参数:**
+- `blogId` (query, required): 博客ID，使用 `image-edit` 作为图片编辑独立存储空间
+- `generateThumbnail` (query, optional): 是否生成缩略图 (true/false)
+
 **请求体:** `multipart/form-data`
-- `file` (File, required): 要上传的文件
+- `file` (File, required): 要上传的图片文件 (支持 JPG, PNG, WebP)
 
 **响应:**
 - **200**: 上传成功
   ```json
   {
-    "id": "20240101120000000-123456.png"
+    "success": true,
+    "assetPath": "image-edit/20240101120000000-123456.png",
+    "id": "20240101120000000-123456.png",
+    "originalName": "original-filename.png",
+    "thumbnail": {
+      "id": "20240101120000001-654321.thumb.png",
+      "path": "image-edit/20240101120000001-654321.thumb.png"
+    }
   }
   ```
+- **400**: 不支持的文件类型
 - **500**: 服务器错误
 
 **示例:**
 ```bash
-POST /api/image-edit/file
+POST /api/asset/image?blogId=image-edit&generateThumbnail=true
 Content-Type: multipart/form-data
 
 file: [binary data]
 ```
 
-#### 1.3 删除文件
+#### 1.3 删除图片文件
 
-**DELETE** `/api/image-edit/file?id={id}` 🔒
+**DELETE** `/api/asset/image?blogId={blogId}&fileName={fileName}` 🔒
 
-删除指定ID的文件。
+删除指定的图片文件。
 
 **认证:** 需要认证
 
 **参数:**
-- `id` (query, required): 文件ID
+- `blogId` (query, required): 博客ID
+- `fileName` (query, required): 文件名
 
 **响应:**
 - **200**: 删除成功
   ```json
   {
-    "success": true
+    "success": true,
+    "message": "Image asset deleted successfully"
   }
   ```
-- **400**: ID参数缺失
+- **400**: 参数缺失或无效
 - **404**: 文件不存在
 - **500**: 服务器错误
 
@@ -237,8 +258,11 @@ file: [binary data]
 
 1. **上传原始图片**
    ```bash
-   POST /api/image-edit/file
-   # 返回: { "id": "original_image_id.png" }
+   POST /api/asset/image?blogId=image-edit&generateThumbnail=true
+   # 返回: { 
+   #   "id": "original_image_id.png",
+   #   "thumbnail": { "id": "original_thumb_id.png" }
+   # }
    ```
 
 2. **创建编辑任务**
@@ -260,7 +284,11 @@ file: [binary data]
 
 4. **下载结果图片**
    ```bash
-   GET /api/image-edit/file?id=result_image_id.png
+   # 下载原图
+   GET /api/asset/image?blogId=image-edit&fileName=result_image_id.png
+   
+   # 下载缩略图
+   GET /api/asset/image?blogId=image-edit&fileName=result_image_id.png&thumbnail=true
    ```
 
 ## 错误处理
@@ -284,7 +312,7 @@ file: [binary data]
 1. **认证要求**: 标记🔒的接口需要用户认证
 2. **文件安全**: 文件ID包含路径遍历保护，不允许包含`..`和`/`字符
 3. **任务超时**: 任务默认600秒超时，超时后自动停止
-4. **文件存储**: 文件存储在`{BLOG_CONFIG.ROOT_DIR}/image-edit/assets/`目录
+4. **文件存储**: 文件通过统一的 BlogStorage 系统存储，`image-edit` 作为特殊 blogId 拥有独立存储空间
 5. **缩略图**: 系统会自动为结果图片生成180x180的缩略图
 6. **ID生成规则**: 文件ID格式为`yyyymmddhhmmssmmm-rand6.ext`
 

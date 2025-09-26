@@ -25,6 +25,11 @@ export interface CreateTaskInput {
 
 export interface UploadFileResponse {
   id: string;
+  originalName: string;
+  thumbnail?: {
+    id: string;
+    path: string;
+  };
 }
 
 export interface ApiResponse<T> {
@@ -32,16 +37,23 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-// 文件管理相关服务
+// 文件管理相关服务 - 使用统一的 asset API
 export const fileService = {
   /**
-   * Downloads a file by ID
+   * Downloads a file by ID from image-edit storage
    * @param id File ID
+   * @param thumbnail Whether to get thumbnail version
    * @returns Promise with the file blob
    */
-  downloadFile: async (id: string): Promise<Blob> => {
-    // 对于文件下载，我们需要直接使用fetch因为需要返回blob
-    const response = await fetch(`/api/image-edit/file?id=${encodeURIComponent(id)}`);
+  downloadFile: async (id: string, thumbnail: boolean = false): Promise<Blob> => {
+    // 使用新的统一 asset API，image-edit 作为特殊 blogId
+    const params = new URLSearchParams({
+      blogId: 'image-edit',
+      fileName: id,
+      ...(thumbnail && { thumbnail: 'true' })
+    });
+    
+    const response = await fetch(`/api/asset/image?${params}`);
     
     if (!response.ok) {
       throw new Error(`Failed to download file: ${response.statusText}`);
@@ -51,35 +63,51 @@ export const fileService = {
   },
 
   /**
-   * Uploads a file to the server
+   * Uploads a file to the image-edit storage with automatic thumbnail generation
    * @param file File to upload
-   * @returns Promise with upload response containing file ID
+   * @param generateThumbnail Whether to generate thumbnail
+   * @returns Promise with upload response containing file ID and optional thumbnail
    */
-  uploadFile: async (file: File): Promise<UploadFileResponse> => {
+  uploadFile: async (file: File, generateThumbnail: boolean = true): Promise<UploadFileResponse> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    return post<UploadFileResponse>('/api/image-edit/file', formData);
+    const params = new URLSearchParams({
+      blogId: 'image-edit',
+      generateThumbnail: generateThumbnail.toString()
+    });
+
+    return post<UploadFileResponse>(`/api/asset/image?${params}`, formData);
   },
 
   /**
-   * Deletes a file by ID
+   * Deletes a file by ID from image-edit storage
    * @param id File ID to delete
    * @returns Promise with success status
    */
   deleteFile: async (id: string): Promise<{ success: boolean }> => {
-    return del<{ success: boolean }>('/api/image-edit/file', {
-      params: { id }
+    return del<{ success: boolean }>('/api/asset/image', {
+      params: { 
+        blogId: 'image-edit',
+        fileName: id 
+      }
     });
   },
 
   /**
    * Gets file URL for display purposes
    * @param id File ID
+   * @param thumbnail Whether to get thumbnail version
    * @returns File URL
    */
-  getFileUrl: (id: string): string => {
-    return `/api/image-edit/file?id=${encodeURIComponent(id)}`;
+  getFileUrl: (id: string, thumbnail: boolean = false): string => {
+    const params = new URLSearchParams({
+      blogId: 'image-edit',
+      fileName: id,
+      ...(thumbnail && { thumbnail: 'true' })
+    });
+    
+    return `/api/asset/image?${params}`;
   },
 };
 
@@ -198,7 +226,7 @@ export const imageEditService = {
       if (onProgress) onProgress('creating');
       const taskResponse = await taskService.createTask({
         orig_img: uploadResponse.id,
-        orig_thumb: uploadResponse.id, // Using same ID for thumb for now
+        orig_thumb: uploadResponse.thumbnail?.id || uploadResponse.id, // Use thumbnail ID if available
         prompt,
       });
       
