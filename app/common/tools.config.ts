@@ -58,6 +58,15 @@ export const tools: Tool[] = [
   },
   // Future tools placeholder
   {
+    id: 'image-api-test',
+    name: '图片 API 测试',
+    description: '测试图片上传、编辑和资产管理 API',
+    category: ToolCategory.DEVELOPER,
+    icon: RiImageEditLine,
+    path: '/tools/image',
+    isNew: true
+  },
+  {
     id: 'text-diff',
     name: '文本对比',
     description: '对比两段文本的差异，高亮显示不同之处',
@@ -128,7 +137,7 @@ export const tools: Tool[] = [
     category: ToolCategory.MEDIA,
     icon: RiImageEditLine,
     path: '/tools/image-compress'
-  }
+  },
 ];
 
 /**

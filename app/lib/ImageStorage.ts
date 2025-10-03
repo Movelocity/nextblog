@@ -27,6 +27,8 @@ export class ImageStorage {
   public static getInstance(): ImageStorage {
     if (!ImageStorage.instance) {
       ImageStorage.instance = new ImageStorage();
+      ImageStorage.instance.init();
+      console.log('ImageStorage initialized');
     }
     return ImageStorage.instance;
   }

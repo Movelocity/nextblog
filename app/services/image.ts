@@ -1,341 +1,276 @@
-import { baseFetch, get, post, put, del } from './utils';
+import { get, post, put, del } from './utils';
 
-// 图片编辑相关类型定义
-/**
- * Image data structure containing only IDs for efficient storage and transfer
- * Use fileService.getFileUrl() or fileService.downloadFile() to get actual images
- */
-export interface ImageData {
-  /** Original image file ID */
-  id: string;
-  /** Thumbnail image file ID */
-  thumb_id: string;
-}
+// ===== 类型定义 =====
 
 /**
- * Task response from image-edit API
- * Contains only image IDs, not URLs or base64 data
+ * 图片编辑任务状态
  */
-export interface TaskResponse {
-  /** Unique task identifier */
+export type ImageEditTaskStatus = 'processing' | 'completed' | 'failed';
+
+/**
+ * 图片编辑任务信息
+ */
+export interface ImageEditTask {
   id: string;
-  /** Current task status */
-  status: 'processing' | 'completed' | 'failed';
-  /** Original image data (IDs only) */
-  original_image: ImageData;
-  /** Result image data (IDs only, available when completed) */
-  result_image?: ImageData;
-  /** User-provided editing instruction */
+  status: ImageEditTaskStatus;
+  original_image: string;
+  result_image?: string;
   prompt: string;
-  /** Error or status message */
   message?: string;
-  /** Task creation timestamp */
   created_at: number;
-  /** Last update timestamp */
   updated_at: number;
 }
 
 /**
- * Input for creating a new image editing task
- * All image references must be IDs, not URLs or base64 data
+ * 开始图片编辑任务的请求参数
  */
-export interface CreateTaskInput {
-  /** Original image file ID */
+export interface StartImageEditRequest {
   orig_img: string;
-  /** Thumbnail image file ID */
-  orig_thumb: string;
-  /** Editing instruction prompt */
   prompt: string;
 }
 
-export interface UploadFileResponse {
+/**
+ * 开始图片编辑任务的响应
+ */
+export interface StartImageEditResponse {
+  task_id: string;
+}
+
+/**
+ * 图片上传响应
+ */
+export interface ImageUploadResponse {
+  success: boolean;
   id: string;
   originalName: string;
-  thumbnail?: {
-    id: string;
-    path: string;
-  };
 }
 
-export interface ApiResponse<T> {
-  data?: T;
-  error?: string;
+/**
+ * 图片删除响应
+ */
+export interface ImageDeleteResponse {
+  success: boolean;
+  message: string;
 }
 
-// 文件管理相关服务 - 使用新的独立图片存储结构
-export const fileService = {
-  /**
-   * Downloads a file by ID
-   * @param id File ID
-   * @param thumbnail Whether to get thumbnail version
-   * @returns Promise with the file blob
-   */
-  downloadFile: async (id: string, thumbnail: boolean = false): Promise<Blob> => {
-    if (thumbnail) {
-      const response = await fetch(`/api/asset/thumbnail/${id}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to download thumbnail: ${response.statusText}`);
-      }
-      
-      return response.blob();
-    } else {
-      const params = new URLSearchParams({
-        fileName: id
-      });
-      
-      const response = await fetch(`/api/asset/image?${params}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to download file: ${response.statusText}`);
-      }
-      
-      return response.blob();
-    }
-  },
+/**
+ * 任务停止/删除响应
+ */
+export interface TaskActionResponse {
+  message: string;
+}
 
-  /**
-   * Uploads a file with automatic thumbnail generation
-   * @param file File to upload
-   * @param generateThumbnail Whether to generate thumbnail
-   * @returns Promise with upload response containing file ID and optional thumbnail
-   */
-  uploadFile: async (file: File, generateThumbnail: boolean = true): Promise<UploadFileResponse> => {
-    const formData = new FormData();
-    formData.append('file', file);
+// ===== 图片编辑服务 =====
 
-    const params = new URLSearchParams({
-      generateThumbnail: generateThumbnail.toString()
-    });
-
-    return post<UploadFileResponse>(`/api/asset/image?${params}`, formData);
-  },
-
-  /**
-   * Deletes a file by ID (including its thumbnail)
-   * @param id File ID to delete
-   * @returns Promise with success status
-   */
-  deleteFile: async (id: string): Promise<{ success: boolean }> => {
-    return del<{ success: boolean }>('/api/asset/image', {
-      params: { 
-        fileName: id 
-      }
-    });
-  },
-
-  /**
-   * Gets file URL for display purposes
-   * @param id File ID
-   * @param thumbnail Whether to get thumbnail version
-   * @returns File URL
-   */
-  getFileUrl: (id: string, thumbnail: boolean = false): string => {
-    if (thumbnail) {
-      return `/api/asset/thumbnail/${id}`;
-    } else {
-      const params = new URLSearchParams({
-        fileName: id
-      });
-      
-      return `/api/asset/image?${params}`;
-    }
-  },
-};
-
-// 任务管理相关服务
-export const taskService = {
-  /**
-   * Queries task status and details
-   * @param taskId Task ID
-   * @returns Promise with task response
-   */
-  getTask: async (taskId: string): Promise<TaskResponse> => {
-    return get<TaskResponse>('/api/image-edit', {
-      params: { task_id: taskId }
-    });
-  },
-
-  /**
-   * Creates a new image editing task
-   * @param input Task creation input
-   * @returns Promise with task ID
-   */
-  createTask: async (input: CreateTaskInput): Promise<{ task_id: string }> => {
-    return post<{ task_id: string }>('/api/image-edit', input);
-  },
-
-  /**
-   * Stops a running task
-   * @param taskId Task ID to stop
-   * @returns Promise with success message
-   */
-  stopTask: async (taskId: string): Promise<{ message: string }> => {
-    return put<{ message: string }>('/api/image-edit', undefined, {
-      params: { task_id: taskId }
-    });
-  },
-
-  /**
-   * Deletes a task (stops it first if running)
-   * @param taskId Task ID to delete
-   * @returns Promise with success message
-   */
-  deleteTask: async (taskId: string): Promise<{ message: string }> => {
-    return del<{ message: string }>('/api/image-edit', {
-      params: { task_id: taskId }
-    });
-  },
-
-  /**
-   * Polls task status until completion or failure
-   * @param taskId Task ID to poll
-   * @param onProgress Optional callback for progress updates
-   * @param pollInterval Polling interval in milliseconds (default: 2000)
-   * @param maxAttempts Maximum polling attempts (default: 150, ~5 minutes)
-   * @returns Promise with final task response
-   */
-  pollTaskStatus: async (
-    taskId: string,
-    onProgress?: (task: TaskResponse) => void,
-    pollInterval: number = 2000,
-    maxAttempts: number = 150
-  ): Promise<TaskResponse> => {
-    let attempts = 0;
-    
-    while (attempts < maxAttempts) {
-      try {
-        const task = await taskService.getTask(taskId);
-        
-        if (onProgress) {
-          onProgress(task);
-        }
-        
-        if (task.status === 'completed' || task.status === 'failed') {
-          return task;
-        }
-        
-        // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-        attempts++;
-      } catch (error) {
-        console.error('Error polling task status:', error);
-        attempts++;
-        
-        if (attempts >= maxAttempts) {
-          throw error;
-        }
-        
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-      }
-    }
-    
-    throw new Error('Task polling timeout: Maximum attempts reached');
-  },
-};
-
-// 综合的图片编辑服务
 export const imageEditService = {
   /**
-   * Complete workflow: upload image, create task, and poll for completion
-   * @param file Original image file
-   * @param prompt Editing prompt
-   * @param onProgress Optional progress callback
-   * @returns Promise with completed task response
+   * 获取图片编辑任务状态
+   * @param taskId 任务ID
+   * @returns 任务信息
    */
-  editImage: async (
+  getTaskStatus: async (taskId: string): Promise<ImageEditTask> => {
+    return get<ImageEditTask>('/api/image-edit', {
+      params: { task_id: taskId }
+    });
+  },
+
+  /**
+   * 开始新的图片编辑任务
+   * @param request 编辑请求参数
+   * @returns 任务ID
+   */
+  startEditTask: async (request: StartImageEditRequest): Promise<StartImageEditResponse> => {
+    return post<StartImageEditResponse>('/api/image-edit', request);
+  },
+
+  /**
+   * 停止正在运行的任务（保留在存储中，状态设为failed）
+   * @param taskId 任务ID
+   * @returns 操作结果
+   */
+  stopTask: async (taskId: string): Promise<TaskActionResponse> => {
+    return put<TaskActionResponse>('/api/image-edit', undefined, {
+      params: { task_id: taskId }
+    });
+  },
+
+  /**
+   * 删除任务（停止任务并从存储中完全删除）
+   * @param taskId 任务ID
+   * @returns 操作结果
+   */
+  deleteTask: async (taskId: string): Promise<TaskActionResponse> => {
+    return del<TaskActionResponse>('/api/image-edit', {
+      params: { task_id: taskId }
+    });
+  },
+
+  /**
+   * 轮询任务状态直到完成或失败
+   * @param taskId 任务ID
+   * @param pollInterval 轮询间隔（毫秒），默认2000ms
+   * @param maxAttempts 最大轮询次数，默认150次（5分钟）
+   * @returns 完成的任务信息
+   */
+  pollTaskStatus: async (
+    taskId: string, 
+    pollInterval: number = 2000, 
+    maxAttempts: number = 150
+  ): Promise<ImageEditTask> => {
+    let attempts = 0;
+    
+    const poll = async (): Promise<ImageEditTask> => {
+      attempts++;
+      const task = await imageEditService.getTaskStatus(taskId);
+      
+      if (task.status === 'completed' || task.status === 'failed') {
+        return task;
+      }
+      
+      if (attempts >= maxAttempts) {
+        throw new Error(`Task polling timeout after ${maxAttempts} attempts`);
+      }
+      
+      // 等待指定时间后继续轮询
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      return poll();
+    };
+    
+    return poll();
+  }
+};
+
+// ===== 图片资产服务 =====
+
+export const imageAssetService = {
+  /**
+   * 上传图片资产
+   * @param file 图片文件
+   * @param generateThumbnail 是否生成缩略图，默认为false
+   * @returns 上传结果
+   */
+  uploadImage: async (file: File, generateThumbnail: boolean = false): Promise<ImageUploadResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return post<ImageUploadResponse>('/api/asset/image', formData, {
+      params: { generateThumbnail: generateThumbnail.toString() }
+    });
+  },
+
+  /**
+   * 获取图片URL
+   * @param id 图片ID
+   * @returns 图片URL
+   */
+  getImageUrl: (id: string): string => {
+    return `/api/asset/image/${id}`;
+  },
+
+  /**
+   * 获取缩略图URL
+   * @param id 图片ID（与原图ID相同）
+   * @returns 缩略图URL
+   */
+  getThumbnailUrl: (id: string): string => {
+    return `/api/asset/thumbnail/${id}`;
+  },
+
+  /**
+   * 删除图片资产及其缩略图
+   * @param id 图片ID
+   * @returns 删除结果
+   */
+  deleteImage: async (id: string): Promise<ImageDeleteResponse> => {
+    return del<ImageDeleteResponse>(`/api/asset/image/${id}`);
+  },
+
+  /**
+   * 下载图片为Blob对象
+   * @param id 图片ID
+   * @returns 图片Blob
+   */
+  downloadImage: async (id: string): Promise<Blob> => {
+    const response = await fetch(`/api/asset/image/${id}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.statusText}`);
+    }
+    
+    return response.blob();
+  },
+
+  /**
+   * 下载缩略图为Blob对象
+   * @param id 图片ID
+   * @returns 缩略图Blob
+   */
+  downloadThumbnail: async (id: string): Promise<Blob> => {
+    const response = await fetch(`/api/asset/thumbnail/${id}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download thumbnail: ${response.statusText}`);
+    }
+    
+    return response.blob();
+  }
+};
+
+// ===== 综合图片服务 =====
+
+/**
+ * 综合图片服务，包含编辑和资产管理功能
+ */
+export const imageService = {
+  // 图片编辑功能
+  edit: imageEditService,
+  
+  // 图片资产管理功能
+  asset: imageAssetService,
+
+  /**
+   * 完整的图片编辑工作流：上传图片 -> 开始编辑 -> 等待完成
+   * @param file 原始图片文件
+   * @param prompt 编辑指令
+   * @param generateThumbnail 是否为原图生成缩略图
+   * @param onProgress 进度回调函数
+   * @returns 编辑完成的任务信息
+   */
+  editImageWorkflow: async (
     file: File,
     prompt: string,
-    onProgress?: (status: 'uploading' | 'creating' | 'processing', data?: any) => void
-  ): Promise<TaskResponse> => {
+    generateThumbnail: boolean = true,
+    onProgress?: (status: string, task?: ImageEditTask) => void
+  ): Promise<ImageEditTask> => {
     try {
-      // Step 1: Upload original image
-      if (onProgress) onProgress('uploading');
-      const uploadResponse = await fileService.uploadFile(file);
+      // 1. 上传原始图片
+      onProgress?.('Uploading image...');
+      const uploadResult = await imageAssetService.uploadImage(file, generateThumbnail);
       
-      // Step 2: Create editing task
-      if (onProgress) onProgress('creating');
-      const taskResponse = await taskService.createTask({
-        orig_img: uploadResponse.id,
-        orig_thumb: uploadResponse.thumbnail?.id || uploadResponse.id, // Use thumbnail ID if available
-        prompt,
+      // 2. 开始编辑任务
+      onProgress?.('Starting edit task...');
+      const editResult = await imageEditService.startEditTask({
+        orig_img: uploadResult.id,
+        prompt
       });
       
-      // Step 3: Poll for completion
-      if (onProgress) onProgress('processing');
-      const finalTask = await taskService.pollTaskStatus(
-        taskResponse.task_id,
-        (task) => {
-          if (onProgress) {
-            onProgress('processing', task);
-          }
-        }
+      // 3. 轮询任务状态
+      onProgress?.('Processing image...');
+      const completedTask = await imageEditService.pollTaskStatus(
+        editResult.task_id,
+        2000, // 2秒轮询间隔
+        150,  // 最多5分钟
       );
       
-      return finalTask;
+      onProgress?.('Completed!', completedTask);
+      return completedTask;
+      
     } catch (error) {
-      console.error('Image editing workflow failed:', error);
+      onProgress?.(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
-  },
-
-  /**
-   * Downloads the result image from a completed task
-   * @param task Completed task response
-   * @returns Promise with result image blob
-   */
-  downloadResult: async (task: TaskResponse): Promise<Blob> => {
-    if (!task.result_image) {
-      throw new Error('Task has no result image');
-    }
-    
-    return fileService.downloadFile(task.result_image.id);
-  },
-
-  /**
-   * Downloads the thumbnail of result image
-   * @param task Completed task response
-   * @returns Promise with thumbnail blob
-   */
-  downloadResultThumbnail: async (task: TaskResponse): Promise<Blob> => {
-    if (!task.result_image) {
-      throw new Error('Task has no result image');
-    }
-    
-    return fileService.downloadFile(task.result_image.thumb_id);
-  },
-
-  /**
-   * Cleans up task and associated files
-   * @param taskId Task ID to clean up
-   * @returns Promise with cleanup status
-   */
-  cleanup: async (taskId: string): Promise<void> => {
-    try {
-      // Get task details first to get file IDs
-      const task = await taskService.getTask(taskId);
-      
-      // Delete task (this will also stop it if running)
-      await taskService.deleteTask(taskId);
-      
-      // Clean up files (optional, as they might be reused)
-      // Note: Be careful about deleting files as they might be referenced elsewhere
-      // await fileService.deleteFile(task.original_image.id);
-      // if (task.result_image) {
-      //   await fileService.deleteFile(task.result_image.id);
-      //   await fileService.deleteFile(task.result_image.thumb_id);
-      // }
-    } catch (error) {
-      console.error('Cleanup failed:', error);
-      throw error;
-    }
-  },
+  }
 };
 
-// Export all services
-export default {
-  file: fileService,
-  task: taskService,
-  imageEdit: imageEditService,
-};
+// 默认导出
+export default imageService;

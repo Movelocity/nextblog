@@ -75,11 +75,43 @@ export async function get_image_base64(image_id: string): Promise<string> {
  */
 const _processing_tasks = new Map<string, TaskInfo>();
 
+/**
+ * Helper function to create serializable task data
+ * Excludes non-serializable properties like controller and timeout
+ */
+function createSerializableTask(task: TaskInfo) {
+  return {
+    id: task.id,
+    status: task.status,
+    original_image: task.original_image,
+    result_image: task.result_image,
+    prompt: task.prompt,
+    message: task.message,
+    created_at: task.created_at,
+    updated_at: task.updated_at,
+    // Exclude controller and timeout as they contain circular references
+  };
+}
+
+/**
+ * Helper function to save all tasks to the index file
+ */
+function saveTasksToFile() {
+  const serializableTasks = Array.from(_processing_tasks.values()).map(createSerializableTask);
+  writeFileSync(INDEX_FILE, JSON.stringify({ tasks: serializableTasks }));
+}
+
 function init_tasks() {
   const indexFile = readFileSync(INDEX_FILE, 'utf-8');
   const tasks = JSON.parse(indexFile).tasks;
-  tasks.forEach((task: TaskInfo) => {
-    _processing_tasks.set(task.id, task);
+  tasks.forEach((task: any) => {
+    // Ensure controller and timeout are properly initialized
+    const taskInfo: TaskInfo = {
+      ...task,
+      controller: null,
+      timeout: null,
+    };
+    _processing_tasks.set(task.id, taskInfo);
   });
   console.log(`🐍 Loaded ${tasks.length} tasks`);
 }
@@ -140,7 +172,7 @@ function update_task(task_info: Partial<TaskInfo>) {
     _processing_tasks.set(task_id, task_info as TaskInfo);
   }
   
-  writeFileSync(INDEX_FILE, JSON.stringify({ tasks: Array.from(_processing_tasks.values()) }));
+  saveTasksToFile();
 }
 
 async function start_task(task_id: string) {
@@ -218,7 +250,8 @@ function stop_task(task_id: string) {
 function delete_task(task_id: string) {
   stop_task(task_id);
   _processing_tasks.delete(task_id);
-  writeFileSync(INDEX_FILE, JSON.stringify({ tasks: Array.from(_processing_tasks.values()) }));
+  
+  saveTasksToFile();
 }
 
 export const task_manager = {
