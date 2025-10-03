@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const task_id = searchParams.get('task_id');
   if(!task_id) {
-    return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
+    const tasks = task_manager.view_tasks();
+    return NextResponse.json(tasks);
   }
   const task_info = task_manager.view_task(task_id);
   if(!task_info) {

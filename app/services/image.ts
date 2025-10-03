@@ -63,6 +63,10 @@ export interface TaskActionResponse {
 // ===== 图片编辑服务 =====
 
 export const imageEditService = {
+  getAllTasks: async (): Promise<ImageEditTask[]> => {
+    return get<ImageEditTask[]>('/api/image-edit');
+  },
+
   /**
    * 获取图片编辑任务状态
    * @param taskId 任务ID

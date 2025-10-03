@@ -63,7 +63,7 @@ export const tools: Tool[] = [
     description: '测试图片上传、编辑和资产管理 API',
     category: ToolCategory.DEVELOPER,
     icon: RiImageEditLine,
-    path: '/tools/image',
+    path: '/tools/image-test',
     isNew: true
   },
   {
