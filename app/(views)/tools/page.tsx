@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   tools, 
@@ -8,8 +8,8 @@ import {
   ToolCategory, 
   searchTools,
   // getToolsByCategory,
-  getPopularTools,
-  getNewTools 
+  // getPopularTools,
+  // getNewTools 
 } from '@/app/common/tools.config';
 import { RiSearchLine, RiFireFill } from 'react-icons/ri';
 import cn from 'classnames';
@@ -43,11 +43,15 @@ export default function ToolsPage() {
   }, [searchQuery, selectedCategory]);
 
   // Get recommended tools (popular and new)
-  const recommendedTools = useMemo(() => {
-    const popular = getPopularTools();
-    const newTools = getNewTools();
-    const combined = [...new Set([...popular, ...newTools])];
-    return combined.slice(0, 4);
+  // const recommendedTools = useMemo(() => {
+  //   const popular = getPopularTools();
+  //   const newTools = getNewTools();
+  //   const combined = [...new Set([...popular, ...newTools])];
+  //   return combined.slice(0, 4);
+  // }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("update-title", { detail: { title: "工具箱" } }));
   }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,11 +66,11 @@ export default function ToolsPage() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             工具箱
           </h1>
-        </div>
+        </div> */}
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">

@@ -192,6 +192,8 @@ async function start_task(task_id: string) {
   console.log(`🐍 Starting task ${task_id} with image base64 length ${image_base64.length}`);
   update_task(task_info);
   const result = await edit_image_with_gemini(image_base64, prompt, controller.signal);
+  // save full result to tmp file
+  writeFileSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response", `${task_id}.json`), JSON.stringify(result));
 
   // save the result image to the storage
   const result_image_base64 = result.candidates[0].content.parts[1].inlineData?.data;
@@ -199,7 +201,6 @@ async function start_task(task_id: string) {
     throw new Error("Result image base64 is not found");
   }
   const result_image_id = generateId("png");
-  let result_thumbnail_id = result_image_id; // Same ID for thumbnail
   try {
     // 移除Base64前缀（如果有）
     const base64Data = result_image_base64.replace(/^data:image\/\w+;base64,/, '');
@@ -209,8 +210,10 @@ async function start_task(task_id: string) {
     
     // Save result image using imageStorage
     await imageStorage.saveImage(result_image_id, buffer);
-    result_thumbnail_id = await createThumbnailFromBuffer(buffer, result_image_id);
-    
+    await createThumbnailFromBuffer(buffer, result_image_id);
+
+    task_info.result_image = result_image_id;
+    task_info.updated_at = Date.now();
     console.log('文件保存成功:', result_image_id);
   } catch (error: any) {
     console.error('保存文件失败:', error);
@@ -290,27 +293,28 @@ type GeminiResponse = {
  * @returns The response from the Gemini API
  */
 async function edit_image_with_gemini(image_base64: string, edit_prompt: string, abort_signal: AbortSignal) : Promise<GeminiResponse> {
-  if (!BASE_URL || !ENDPOINT || !API_KEY) {
-    throw new Error("GEMINI_API_URL, GEMINI_API_ENDPOINT, GEMINI_API_KEY are not set");
-  }
+  // if (!BASE_URL || !ENDPOINT || !API_KEY) {
+  //   throw new Error("GEMINI_API_URL, GEMINI_API_ENDPOINT, GEMINI_API_KEY are not set");
+  // }
+  console.log("🐍 edit_image_with_gemini", image_base64.slice(0, 100));
   if (!image_base64 || !edit_prompt || !abort_signal) {
     throw new Error("image_base64, edit_prompt, abort_signal are required");
   }
-  // const payload = {
-  //   contents: [
-  //     {
-  //       parts: [
-  //         { text: edit_prompt },
-  //         { inlineData: { mimeType: "image/png", data: image_base64 } },
-  //       ],
-  //     },
-  //   ],
-  //   generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
-  // };
-  // const headers = {
-  //   "Content-Type": "application/json",
-  //   Authorization: "Bearer " + API_KEY,
-  // };
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: edit_prompt },
+          { inlineData: { mimeType: "image/png", data: image_base64 } },
+        ],
+      },
+    ],
+    generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+  };
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: "Bearer " + API_KEY,
+  };
   // const response = await fetch(BASE_URL + ENDPOINT, {
   //   method: "POST",
   //   headers: headers,
@@ -327,7 +331,7 @@ async function edit_image_with_gemini(image_base64: string, edit_prompt: string,
             { "text": "The image shows a man wearing a hat" },
             { "inlineData": { 
               "mimeType": "image/png", 
-              "data": "base64_encoded_image" 
+              "data": image_base64
             }}
           ]
         }

@@ -58,13 +58,22 @@ export const tools: Tool[] = [
   },
   // Future tools placeholder
   {
+    id: 'image-edit',
+    name: 'AI 图片编辑',
+    description: '使用 AI 编辑图片，支持智能修改和效果处理',
+    category: ToolCategory.MEDIA,
+    icon: RiImageEditLine,
+    path: '/tools/image-edit',
+    isNew: true,
+    isPopular: true
+  },
+  {
     id: 'image-api-test',
     name: '图片 API 测试',
     description: '测试图片上传、编辑和资产管理 API',
     category: ToolCategory.DEVELOPER,
     icon: RiImageEditLine,
     path: '/tools/image-test',
-    isNew: true
   },
   {
     id: 'text-diff',

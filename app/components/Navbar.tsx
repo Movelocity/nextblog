@@ -19,6 +19,7 @@ export const Navigation = () => {
   const { visible, } = useScrollDirection();
   const isMobile = useIsMobile();
   const [hasMounted, setHasMounted] = useState(false);
+  const [title, setTitle] = useState("");
 
   useEffect(() => {
     setHasMounted(true);
@@ -31,6 +32,20 @@ export const Navigation = () => {
     router.push('/dashboard');
   };
 
+  useEffect(() => {
+    const handleUpdateTitle = (event: Event) => {
+      const title = (event as CustomEvent).detail.title;
+      setTitle(title);
+
+      document.title = title +" - Next Blog";
+    }
+
+    window.addEventListener("update-title", handleUpdateTitle);
+    return () => {
+      window.removeEventListener("update-title", handleUpdateTitle);
+    }
+  })
+
   return (
     <nav className={cn(
       "fixed top-0 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 transition-transform duration-300", 
@@ -40,10 +55,10 @@ export const Navigation = () => {
       }
     )}>
       <div className="px-4 flex justify-between items-center w-full h-12">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-4">
           {hasMounted && !isMobile && <ToggleBtn />}
           <Link href="/" className="text-lg font-bold">
-            Next Blog
+            {title ? title : "Next Blog"}
           </Link>
         </div>
 

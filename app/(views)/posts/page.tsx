@@ -20,6 +20,10 @@ function Page() {
   const page = Number(searchParams.get('page')) || 1;
   const limit = BLOG_CONFIG.MAX_POSTS_PER_PAGE;
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("update-title", { detail: { title: "文章列表" } }));
+  }, []);
+
   const fetchPosts = async (searchParams?: SearchParams) => {
     try {
       setLoading(true);
