@@ -8,6 +8,7 @@ import {
   RiCloseLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
+  RiFileCopyLine,
 } from 'react-icons/ri';
 import cn from 'classnames';
 import imageService, { ImageEditTask } from '@/app/services/image';
@@ -357,6 +358,38 @@ export default function ImageEditPage() {
     return date.toLocaleDateString('zh-CN');
   };
 
+  /**
+   * Copies text to clipboard using temporary textarea method
+   */
+  const handleCopyPrompt = (prompt: string) => {
+    try {
+      // Create temporary textarea element
+      const textarea = document.createElement('textarea');
+      textarea.value = prompt;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      textarea.style.top = '-9999px';
+      textarea.style.opacity = '0';
+      
+      // Add to DOM
+      document.body.appendChild(textarea);
+      
+      // Select and copy
+      textarea.select();
+      textarea.setSelectionRange(0, 99999); // For mobile devices
+      document.execCommand('copy');
+      
+      // Remove temporary element
+      document.body.removeChild(textarea);
+      
+      // Show success feedback (you can replace with toast notification)
+      // alert('提示词已复制到剪贴板');
+    } catch (error) {
+      console.error('Failed to copy text:', error);
+      alert('复制失败，请手动复制');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
       <div className="max-w-6xl mx-auto p-4">
@@ -500,10 +533,18 @@ export default function ImageEditPage() {
                     {/* Task Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900 dark:text-white line-clamp-2">
+                        <div className="flex-1 min-w-0 flex items-start gap-2">
+                          <p className="text-sm text-gray-900 dark:text-white line-clamp-2 flex-1">
                             {task.prompt}
                           </p>
+                          <button
+                            onClick={() => handleCopyPrompt(task.prompt)}
+                            className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 
+                                     hover:bg-gray-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                            title="复制提示词"
+                          >
+                            <RiFileCopyLine className="w-4 h-4" />
+                          </button>
                         </div>
                         <span className={cn(
                           "px-2 py-1 rounded text-xs font-medium whitespace-nowrap",
