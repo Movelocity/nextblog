@@ -462,36 +462,39 @@ export default function ImageEditPage() {
             ) : (
               currentTasks.map((task) => (
                 <div key={task.id} className="p-4 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
-                  <div className="flex gap-4">
-                    {/* Original Image Thumbnail */}
-                    <div className="flex-shrink-0 relative w-24 h-24">
-                      <img
-                        src={imageService.asset.getThumbnailUrl(task.original_image)}
-                        alt="Original"
-                        onClick={() => handlePreviewImage(task.original_image, '原图')}
-                        className="w-full h-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                      />
-                      <div className="text-xs text-gray-400 absolute top-0 left-0 bg-black bg-opacity-50 rounded-br-lg rounded-tl-lg px-1 py-0.5">原图</div>
-                    </div>
-
-                    {/* Result Image Thumbnail */}
-                    <div className="flex-shrink-0 relative w-24 h-24">
-                      {task.result_image ? (
+                  <div className="flex gap-4 flex-col md:flex-row">
+                    {/* Image Thumbnails */}
+                    <div className="flex gap-4">
+                      {/* Original Image Thumbnail */}
+                      <div className="flex-shrink-0 relative w-24 h-24">
                         <img
-                          src={imageService.asset.getThumbnailUrl(task.result_image)}
-                          alt="Result"
-                          onClick={() => handlePreviewImage(task.result_image!, '编辑结果')}
-                          className="w-full h-full object-cover rounded border border-gray-200 dark:border-gray-700 
-                                   cursor-pointer hover:opacity-80 transition-opacity"
+                          src={imageService.asset.getThumbnailUrl(task.original_image)}
+                          alt="Original"
+                          onClick={() => handlePreviewImage(task.original_image, '原图')}
+                          className="w-full h-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
                         />
-                      ) : (
-                        <div className="w-full h-full rounded border border-gray-200 dark:border-gray-700 
-                                     flex items-center justify-center bg-gray-100 dark:bg-zinc-800">
-                          <RiImageLine className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
+                        <div className="text-xs text-gray-400 absolute top-0 left-0 bg-black bg-opacity-50 rounded-br-lg rounded-tl-lg px-1 py-0.5">原图</div>
+                      </div>
 
-                      <div className="text-xs text-gray-200 absolute top-0 left-0 bg-black bg-opacity-50 rounded-br-lg rounded-tl-lg px-1 py-0.5">结果</div>
+                      {/* Result Image Thumbnail */}
+                      <div className="flex-shrink-0 relative w-24 h-24">
+                        {task.result_image ? (
+                          <img
+                            src={imageService.asset.getThumbnailUrl(task.result_image)}
+                            alt="Result"
+                            onClick={() => handlePreviewImage(task.result_image!, '编辑结果')}
+                            className="w-full h-full object-cover rounded border border-gray-200 dark:border-gray-700 
+                                    cursor-pointer hover:opacity-80 transition-opacity"
+                          />
+                        ) : (
+                          <div className="w-full h-full rounded border border-gray-200 dark:border-gray-700 
+                                      flex items-center justify-center bg-gray-100 dark:bg-zinc-800">
+                            <RiImageLine className="w-8 h-8 text-gray-400" />
+                          </div>
+                        )}
+
+                        <div className="text-xs text-gray-200 absolute top-0 left-0 bg-black bg-opacity-50 rounded-br-lg rounded-tl-lg px-1 py-0.5">结果</div>
+                      </div>
                     </div>
 
                     {/* Task Info */}

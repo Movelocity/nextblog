@@ -193,6 +193,7 @@ async function start_task(task_id: string) {
   update_task(task_info);
   const result = await edit_image_with_gemini(image_base64, prompt, controller.signal);
   // save full result to tmp file
+  mkdirSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response"), { recursive: true });
   writeFileSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response", `${task_id}.json`), JSON.stringify(result));
 
   // save the result image to the storage
