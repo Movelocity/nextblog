@@ -8,8 +8,6 @@ import {
   RiCloseLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
-  RiExternalLinkLine,
-  RiUpload2Fill,
 } from 'react-icons/ri';
 import cn from 'classnames';
 import imageService, { ImageEditTask } from '@/app/services/image';
@@ -18,6 +16,10 @@ type UploadImage = {
   id?: string;
   url?: string;
   file?: File
+  size?: {
+    w: number;
+    h: number;
+  }
 }
 
 /**
@@ -26,9 +28,7 @@ type UploadImage = {
  */
 export default function ImageEditPage() {
   // Upload states
-  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  // const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [uplodaImage, setUploadImage] = useState<UploadImage>({});
+  const [uploadImage, setUploadImage] = useState<UploadImage>({});
   const [prompt, setPrompt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -40,7 +40,6 @@ export default function ImageEditPage() {
   
   // Preview modal states
   const [previewImage, setPreviewImage] = useState<UploadImage>({});
-  // const [previewTitle, setPreviewTitle] = useState<string>('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAreaRef = useRef<HTMLDivElement>(null);
@@ -55,19 +54,83 @@ export default function ImageEditPage() {
   }, []);
 
   /**
+   * Resizes image if needed and returns a new File object
+   */
+  const resizeImageIfNeeded = (file: File): Promise<{ file: File; size: { w: number; h: number } }> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const { naturalWidth: width, naturalHeight: height } = img;
+        const maxSize = 1024;
+        
+        // Check if resize is needed
+        if (width <= maxSize && height <= maxSize) {
+          resolve({ file, size: { w: width, h: height } });
+          return;
+        }
+        
+        // Calculate new dimensions
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        const newWidth = Math.round(width * ratio);
+        const newHeight = Math.round(height * ratio);
+        
+        // Create canvas for resizing
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve({ file, size: { w: width, h: height } });
+          return;
+        }
+        
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        
+        // Draw resized image
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        
+        // Convert to blob and create new file
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now()
+            });
+            resolve({ file: resizedFile, size: { w: newWidth, h: newHeight } });
+          } else {
+            resolve({ file, size: { w: width, h: height } });
+          }
+        }, file.type, 0.9);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  /**
    * Handles file selection
    */
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('请选择图片文件');
       return;
     }
     
-    // setSelectedFile(file);
-    
-    // Create preview URL
-    const url = URL.createObjectURL(file);
-    setUploadImage({ url: url, file });
+    try {
+      // Resize image if needed
+      const { file: processedFile, size } = await resizeImageIfNeeded(file);
+      
+      // Create preview URL
+      const url = URL.createObjectURL(processedFile);
+      setUploadImage({ url, file: processedFile, size });
+      
+      // Show resize notification if image was resized
+      if (processedFile !== file) {
+        console.log(`图片已自动缩放: ${size.w}x${size.h}`);
+      }
+    } catch (error) {
+      console.error('处理图片失败:', error);
+      alert('处理图片失败，请重试');
+    }
   };
 
   /**
@@ -168,14 +231,14 @@ export default function ImageEditPage() {
 
     setIsSubmitting(true);
     try {
-      let imageId = uplodaImage.id;
+      let imageId = uploadImage.id;
       // Upload image with thumbnail
       if (!imageId) {
-        if (!uplodaImage.file) {
+        if (!uploadImage.file) {
           alert('请先选择图片');
           return;
         }
-        const uploadResult = await imageService.asset.uploadImage(uplodaImage.file, true);
+        const uploadResult = await imageService.asset.uploadImage(uploadImage.file, true);
         imageId = uploadResult.id;
       }
 
@@ -308,13 +371,15 @@ export default function ImageEditPage() {
             <div
               ref={uploadAreaRef}
               onClick={() => fileInputRef.current?.click()}
-              className="relative h-64 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg
-                       hover:border-blue-500 dark:hover:border-blue-500 transition-colors cursor-pointer
-                       bg-white dark:bg-zinc-900 overflow-hidden"
+              className={cn(
+                "relative h-64 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg",
+                "hover:border-blue-500 dark:hover:border-blue-500 transition-colors cursor-pointer",
+                "bg-white dark:bg-zinc-900 overflow-hidden"
+              )}
             >
-              {uplodaImage.url ? (
+              {uploadImage.url ? (
                 <img 
-                  src={uplodaImage.url} 
+                  src={uploadImage.url}
                   alt="Preview" 
                   className="w-full h-full object-contain"
                 />
@@ -332,6 +397,11 @@ export default function ImageEditPage() {
                 onChange={handleFileInputChange}
                 className="hidden"
               />
+              {uploadImage.size && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 absolute bottom-0 right-2">
+                  {uploadImage.size.w}x{uploadImage.size.h}
+                </div>
+              )}
             </div>
           </div>
 
@@ -344,10 +414,11 @@ export default function ImageEditPage() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="描述你想要的编辑效果，例如：将背景改为蓝天白云，添加一只猫..."
-              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg
-                       bg-white dark:bg-zinc-900 text-gray-900 dark:text-white
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                       resize-none"
+              className={cn(
+                "flex-1 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg",
+                "bg-white dark:bg-zinc-900 text-gray-900 dark:text-white resize-none",
+                "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              )}
               rows={8}
             />
             
@@ -355,7 +426,7 @@ export default function ImageEditPage() {
             <div className="flex mt-2">
               <button
                 onClick={handleSubmit}
-                disabled={!uplodaImage.url || !prompt.trim() || isSubmitting}
+                disabled={!uploadImage.url || !prompt.trim() || isSubmitting}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 
                          text-white rounded-lg transition-colors font-medium"
               >

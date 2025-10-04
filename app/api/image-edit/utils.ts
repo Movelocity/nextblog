@@ -196,7 +196,13 @@ async function start_task(task_id: string) {
   writeFileSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response", `${task_id}.json`), JSON.stringify(result));
 
   // save the result image to the storage
-  const result_image_base64 = result.candidates[0].content.parts[1].inlineData?.data;
+  let result_image_base64 = "";
+  for(const part of result.candidates[0].content.parts) {
+    if(part.inlineData?.data) {
+      result_image_base64 = part.inlineData.data;
+      break;
+    }
+  }
   if(!result_image_base64) {
     throw new Error("Result image base64 is not found");
   }
@@ -271,8 +277,8 @@ export const task_manager = {
 
 // TASK EXECUTION
 // 服务配置
-const BASE_URL = process.env.GEMINI_API_URL;
-const ENDPOINT = process.env.GEMINI_API_ENDPOINT;
+const BASE_URL = process.env.GEMINI_BASE_URL;
+const ENDPOINT = process.env.GEMINI_ENDPOINT;
 const API_KEY = process.env.GEMINI_API_KEY;
 
 type GeminiResponse = {
@@ -293,13 +299,35 @@ type GeminiResponse = {
  * @returns The response from the Gemini API
  */
 async function edit_image_with_gemini(image_base64: string, edit_prompt: string, abort_signal: AbortSignal) : Promise<GeminiResponse> {
-  // if (!BASE_URL || !ENDPOINT || !API_KEY) {
-  //   throw new Error("GEMINI_API_URL, GEMINI_API_ENDPOINT, GEMINI_API_KEY are not set");
-  // }
-  console.log("🐍 edit_image_with_gemini", image_base64.slice(0, 100));
   if (!image_base64 || !edit_prompt || !abort_signal) {
     throw new Error("image_base64, edit_prompt, abort_signal are required");
   }
+
+  if (!BASE_URL || !ENDPOINT || !API_KEY) {
+    console.log("API配置不完整", {BASE_URL, ENDPOINT, API_KEY});
+    // throw new Error("GEMINI_API_URL, GEMINI_API_ENDPOINT, GEMINI_API_KEY are not set");
+    // mock response
+    const result: GeminiResponse = {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              { "text": "The image shows a man wearing a hat" },
+              { "inlineData": { 
+                "mimeType": "image/png", 
+                "data": image_base64
+              }}
+            ]
+          }
+        }
+      ]
+    }
+    // const cached_response = readFileSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response", "mock.json"), "utf-8");
+    // const result = JSON.parse(cached_response);
+    return result;
+  }
+  console.log("🐍 edit_image_with_gemini", image_base64.slice(0, 100));
+  
   const payload = {
     contents: [
       {
@@ -315,30 +343,14 @@ async function edit_image_with_gemini(image_base64: string, edit_prompt: string,
     "Content-Type": "application/json",
     Authorization: "Bearer " + API_KEY,
   };
-  // const response = await fetch(BASE_URL + ENDPOINT, {
-  //   method: "POST",
-  //   headers: headers,
-  //   body: JSON.stringify(payload),
-  //   signal: abort_signal,
-  // });
-
-  // mock response
-  const response: GeminiResponse = {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            { "text": "The image shows a man wearing a hat" },
-            { "inlineData": { 
-              "mimeType": "image/png", 
-              "data": image_base64
-            }}
-          ]
-        }
-      }
-    ]
-  }
-  return response;
+  const resp = await fetch(BASE_URL + ENDPOINT, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(payload),
+    signal: abort_signal,
+  });
+  const result = await resp.json();
+  return result;
 }
 
 
