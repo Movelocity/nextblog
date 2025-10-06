@@ -1,7 +1,7 @@
 import { FiUpload, FiEye, FiUploadCloud, FiX } from 'react-icons/fi';
 import classNames from 'classnames';
 import { useState, useCallback } from 'react';
-import Modal from '@/app/components/Modal';
+import Modal from '@/app/components/ui/Modal';
 import { assetService } from '@/app/services/assets';
 
 type UploadAreaProps = {

@@ -13,6 +13,7 @@ import {
   RiErrorWarningLine,
   RiTimeLine
 } from 'react-icons/ri';
+import Button from '@/app/components/ui/Button';
 import cn from 'classnames';
 import imageService, { ImageEditTask } from '@/app/services/image';
 
@@ -526,27 +527,25 @@ export default function ImageTestPage() {
                           className="w-full max-w-md h-48 object-cover rounded border border-gray-200 dark:border-gray-700"
                         />
                         <div className="mt-2 flex gap-2">
-                          <button
+                          <Button
+                            variant="success"
+                            size="sm"
+                            icon={<RiEyeLine />}
+                            text="查看大图"
                             onClick={() => window.open(imageService.asset.getImageUrl(currentTask.result_image!), '_blank')}
-                            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm 
-                                     transition-colors flex items-center gap-2"
-                          >
-                            <RiEyeLine className="w-4 h-4" />
-                            查看大图
-                          </button>
-                          <button
+                          />
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            icon={<RiDownloadLine />}
+                            text="下载"
                             onClick={() => {
                               const link = document.createElement('a');
                               link.href = imageService.asset.getImageUrl(currentTask.result_image!);
                               link.download = `edited_${currentTask.result_image}`;
                               link.click();
                             }}
-                            className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm 
-                                     transition-colors flex items-center gap-2"
-                          >
-                            <RiDownloadLine className="w-4 h-4" />
-                            下载
-                          </button>
+                          />
                         </div>
                       </div>
                     </div>

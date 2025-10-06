@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { FaSort, FaSortUp, FaSortDown, FaEdit, FaTrash } from 'react-icons/fa';
 import { MdPublish, MdUnpublished } from 'react-icons/md';
 import classNames from 'classnames';
-import Modal from '../Modal';
+import Modal from '../ui/Modal';
 import CategoryTag from '@/app/components/CategoryTag';
 
 // Types

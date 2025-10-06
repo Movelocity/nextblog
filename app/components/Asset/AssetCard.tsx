@@ -2,7 +2,7 @@ import { Asset } from '@/app/common/types';
 import { FiCopy, FiDownload, FiTrash2, FiFileText, FiEye } from 'react-icons/fi';
 import { AssetPreview } from './AssetPreview';
 import { useState } from 'react';
-import Modal from '@/app/components/Modal';
+import Modal from '@/app/components/ui/Modal';
 
 type AssetCardProps = {
   asset: Asset;

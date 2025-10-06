@@ -391,23 +391,22 @@ export default function ImageEditPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto p-4">
 
         {/* Upload and Prompt Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               图片上传
             </label>
             <div
               ref={uploadAreaRef}
               onClick={() => fileInputRef.current?.click()}
               className={cn(
-                "relative h-64 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg",
-                "hover:border-blue-500 dark:hover:border-blue-500 transition-colors cursor-pointer",
-                "bg-white dark:bg-zinc-900 overflow-hidden"
+                "relative h-64 border-2 border-dashed border-border rounded-lg",
+                "hover:border-blue-500 transition-colors cursor-pointer bg-background overflow-hidden",
               )}
             >
               {uploadImage.url ? (
@@ -417,7 +416,7 @@ export default function ImageEditPage() {
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                   <RiUploadLine className="w-12 h-12 mb-2" />
                   <p className="text-sm">点击上传或粘贴图片</p>
                   <p className="text-xs mt-1">支持拖拽上传</p>
@@ -431,7 +430,7 @@ export default function ImageEditPage() {
                 className="hidden"
               />
               {uploadImage.size && (
-                <div className="text-xs text-gray-500 dark:text-gray-400 absolute bottom-0 right-2">
+                <div className="text-xs text-muted-foreground absolute bottom-0 right-2">
                   {uploadImage.size.w}x{uploadImage.size.h}
                 </div>
               )}
@@ -440,7 +439,7 @@ export default function ImageEditPage() {
 
           {/* Prompt Editor */}
           <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               编辑提示词
             </label>
             <textarea
@@ -448,8 +447,8 @@ export default function ImageEditPage() {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="描述你想要的编辑效果，例如：将背景改为蓝天白云，添加一只猫..."
               className={cn(
-                "flex-1 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg",
-                "bg-white dark:bg-zinc-900 text-gray-900 dark:text-white resize-none",
+                "flex-1 px-4 py-3 border border-border rounded-lg",
+                "bg-background text-muted-foreground resize-none",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               )}
               rows={8}
@@ -470,16 +469,15 @@ export default function ImageEditPage() {
         </div>
 
         {/* Task List */}
-        <div className="bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-gray-800">
-          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <div className="bg-background rounded-lg border border-border">
+          <div className="px-4 py-2 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">
               任务列表
             </h2>
             <button
               onClick={handleRefreshTasks}
               disabled={isLoadingTasks}
-              className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded-lg
-                        text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800
+              className="px-2 py-1 text-sm border border-border rounded-lg text-foreground hover:bg-muted
                         transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <RiRefreshLine className={cn("w-4 h-4", isLoadingTasks && "animate-spin")} />
@@ -487,14 +485,14 @@ export default function ImageEditPage() {
             </button>
           </div>
 
-          <div className="divide-y divide-gray-200 dark:divide-gray-800">
+          <div className="divide-y divide-gray-200 border-t border-border dark:divide-gray-800">
             {currentTasks.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <div className="p-8 text-center text-muted-foreground">
                 暂无任务
               </div>
             ) : (
               currentTasks.map((task) => (
-                <div key={task.id} className="p-4 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
+                <div key={task.id} className="p-4 hover:bg-muted transition-colors">
                   <div className="flex gap-4 flex-col md:flex-row">
                     {/* Image Thumbnails */}
                     <div className="flex gap-4">
@@ -504,7 +502,7 @@ export default function ImageEditPage() {
                           src={imageService.asset.getThumbnailUrl(task.original_image)}
                           alt="Original"
                           onClick={() => handlePreviewImage(task.original_image, '原图')}
-                          className="w-full h-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                          className="w-full h-full object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity"
                         />
                         <div className="text-xs text-gray-400 absolute top-0 left-0 bg-black bg-opacity-50 rounded-br-lg rounded-tl-lg px-1 py-0.5">原图</div>
                       </div>
@@ -516,13 +514,11 @@ export default function ImageEditPage() {
                             src={imageService.asset.getThumbnailUrl(task.result_image)}
                             alt="Result"
                             onClick={() => handlePreviewImage(task.result_image!, '编辑结果')}
-                            className="w-full h-full object-cover rounded border border-gray-200 dark:border-gray-700 
-                                    cursor-pointer hover:opacity-80 transition-opacity"
+                            className="w-full h-full object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity"
                           />
                         ) : (
-                          <div className="w-full h-full rounded border border-gray-200 dark:border-gray-700 
-                                      flex items-center justify-center bg-gray-100 dark:bg-zinc-800">
-                            <RiImageLine className="w-8 h-8 text-gray-400" />
+                          <div className="w-full h-full rounded-lg border border-border flex items-center justify-center bg-muted">
+                            <RiImageLine className="w-8 h-8 text-muted-foreground" />
                           </div>
                         )}
 
@@ -534,13 +530,12 @@ export default function ImageEditPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0 flex items-start gap-2">
-                          <p className="text-sm text-gray-900 dark:text-white line-clamp-2 flex-1">
+                          <p className="text-sm text-foreground line-clamp-2 flex-1">
                             {task.prompt}
                           </p>
                           <button
                             onClick={() => handleCopyPrompt(task.prompt)}
-                            className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 
-                                     hover:bg-gray-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                            className="flex-shrink-0 p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                             title="复制提示词"
                           >
                             <RiFileCopyLine className="w-4 h-4" />
@@ -609,8 +604,7 @@ export default function ImageEditPage() {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 
-                         disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <RiArrowRightSLine className="w-5 h-5" />
               </button>

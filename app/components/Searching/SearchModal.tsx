@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { BlogMeta } from '@/app/common/types';
 import { RiSearchLine } from 'react-icons/ri';
 import { FaRegFaceGrinBeamSweat } from "react-icons/fa6";
-import Modal from '@/app/components/Modal';
+import Modal from '@/app/components/ui/Modal';
 import SearchPosts from './SearchPosts';
 import Link from 'next/link';
 

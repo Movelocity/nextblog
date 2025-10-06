@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Modal from '@/app/components/Modal';
+import Modal from '@/app/components/ui/Modal';
 import CategoryTag from './index';
 
 interface CategoryModalProps {

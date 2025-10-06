@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Modal from '../Modal';
+import Modal from '../ui/Modal';
 import { login, setAuthToken } from '@/app/services/auth';
 import { FiMail, FiLock, FiLoader } from 'react-icons/fi';
 import classNames from 'classnames';

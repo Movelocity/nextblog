@@ -5,6 +5,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --border: #d1d5db;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --accent: #007bff;
+  --popover: #ffffff;
+  --card: #ffffff;
   --navbar-height: 3rem;
   --sidebar-width: 14rem;
   --sidebar-space: 0px;
@@ -22,6 +28,12 @@
 :root.dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --border: #374151;
+  --muted: #18181b;
+  --muted-foreground: #9ca3af;
+  --accent: #007bff;
+  --popover: #161b22;
+  --card: #161b22;
   --shadow-color: #111;
 
   /* Category Colors - Dark Mode */
