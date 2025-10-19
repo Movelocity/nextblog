@@ -32,7 +32,7 @@ export default function ThemeBtn() {
     <button
       type="button"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
       onClick={handleToggle}
     >
       {theme === "light" ? (
@@ -40,6 +40,7 @@ export default function ThemeBtn() {
       ) : (
         <RiMoonFill className="w-4 h-4" />
       )}
+      <span className="text-base">{theme === "light" ? "Light" : "Dark"}</span>
     </button>
   );
 }

@@ -37,7 +37,7 @@ const DeleteConfirmationModal = ({
       <div className="flex justify-end gap-3 p-2">
         <button
           onClick={onClose}
-          className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
           Cancel
         </button>
@@ -213,7 +213,7 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
         )}
       </div>
       {posts.map((post) => (
-        <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-4 space-y-3 transition-all hover:shadow-md mb-4 dark:border-gray-700">
+        <div key={post.id} className=" rounded-lg shadow-sm border p-4 space-y-3 transition-all hover:shadow-md mb-4 dark:border-gray-700">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               {/* Checkbox */}
@@ -285,7 +285,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
   }, [posts, sortField, sortDirection]);
 
   return (
-    <div className="overflow-hidden">
+    <div className="">
       <TableHeader
         selectedPosts={selectedPosts}
         setSelectedPosts={setSelectedPosts}
@@ -293,7 +293,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
       />
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200">
-          <thead className="bg-gray-50 dark:bg-gray-800">
+          <thead className="">
             <tr>
               <th scope="col" className="px-6 py-3 text-left">
                 <input
@@ -328,7 +328,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y dark:divide-gray-700 divide-gray-200">
+          <tbody className=" divide-y dark:divide-gray-700 divide-gray-200">
             {sortedPosts.map((post) => (
               <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 {/* Checkbox */}

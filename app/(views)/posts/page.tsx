@@ -8,7 +8,7 @@ import { useToast } from '@/app/components/Toast/context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BLOG_CONFIG } from '@/app/common/globals';
 import Pagination from '@/app/components/Pagination';
-import { PAGE_WIDTH } from '@/app/common/utils';
+// import { PAGE_WIDTH } from '@/app/common/utils';
 
 function Page() {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
@@ -54,7 +54,7 @@ function Page() {
   };
 
   return (
-    <div className={PAGE_WIDTH}>
+    <div className="flex-1 p-8">
       <PostsList posts={posts} isLoading={loading} />
       
       {totalPages > 1 && (

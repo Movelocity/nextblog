@@ -6,8 +6,8 @@ import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/Posts/PostsList';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { PAGE_WIDTH } from '@/app/common/utils';
-import cn from 'classnames';
+// import { PAGE_WIDTH } from '@/app/common/utils';
+// import cn from 'classnames';
 
 export default function CategoryPage() {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
@@ -79,7 +79,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className={PAGE_WIDTH}>
+    <div className="flex-1 py-8 px-6">
       {renderBreadcrumbs()}
 
       {availableSubCategories.length > 0 && (

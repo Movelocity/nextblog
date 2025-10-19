@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Navigation } from "@/app/components/layout/Navbar";
+// import { Navigation } from "@/app/components/layout/Navbar";
 import { SidePanel } from "@/app/components/SidePanel";
 import "./globals.css";
 
@@ -32,16 +32,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body 
         className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white"
         data-icp-info={process.env.ICP_INFO}
       >
         <Providers>
-          <Navigation />
+          {/* <Navigation /> */}
           <main className="flex flex-row">
             <SidePanel />
-            <div className="pb-6 pt-16 flex-1">
+            <div className="flex-1">
               {children}
             </div>
           </main>

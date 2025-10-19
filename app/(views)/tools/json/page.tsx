@@ -115,8 +115,8 @@ export default function JsonFormatterPage() {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8">
+      <div className="max-w-7xl mx-auto px-2">
         {/* Header */}
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -130,14 +130,14 @@ export default function JsonFormatterPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleFormat}
-                className="px-3 py-1.5 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5"
               >
                 <RiCodeSSlashLine className="w-4 h-4" />
                 格式化
               </button>
               <button
                 onClick={handleMinify}
-                className="px-3 py-1.5 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5"
               >
                 <RiFileReduceLine className="w-4 h-4" />
                 压缩
@@ -148,7 +148,7 @@ export default function JsonFormatterPage() {
                   "px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1.5",
                   copySuccess 
                     ? "" 
-                    : "hover:bg-gray-700"
+                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
                 )}
               >
                 {copySuccess ? <RiCheckLine className="w-4 h-4" /> : <RiFileCopyLine className="w-4 h-4" />}
@@ -156,7 +156,7 @@ export default function JsonFormatterPage() {
               </button>
               <button
                 onClick={handleClear}
-                className="px-3 py-1.5 rounded text-sm hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5"
               >
                 <RiDeleteBinLine className="w-4 h-4" />
                 清空

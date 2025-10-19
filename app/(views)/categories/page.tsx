@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getTaxonomy } from '@/app/services/posts';
 // import CategoryTag from '@/app/components/CategoryTag';
-import { PAGE_WIDTH } from '@/app/common/utils';
+// import { PAGE_WIDTH } from '@/app/common/utils';
 // import cn from 'classnames';
 
 /**
@@ -47,7 +47,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className={PAGE_WIDTH}>
+    <div className="flex-1 py-8 px-6">
       <div>
         <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
         {categories.length > 0 ? (

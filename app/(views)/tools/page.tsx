@@ -63,14 +63,8 @@ export default function ToolsPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        {/* <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            工具箱
-          </h1>
-        </div> */}
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">

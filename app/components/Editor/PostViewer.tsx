@@ -29,7 +29,7 @@ export const PostViewer = ({ post }: PostViewerProps) => {
   }, [])
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full py-8">
       <div className="flex flex-col h-full min-h-[calc(100vh-6rem)]">
         {/* Title and Controls */}
         <div className={cn("flex flex-col pb-4 border-b border-gray-200 dark:border-gray-700 w-full", PAGE_WIDTH)}>

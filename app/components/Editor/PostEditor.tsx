@@ -66,7 +66,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-6rem)]">
+    <div className="min-h-[calc(100vh-6rem)] py-8 pr-6">
       <PrettyEditor 
         id={id}
         onSubmit={handleSubmit}

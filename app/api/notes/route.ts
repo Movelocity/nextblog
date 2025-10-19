@@ -46,7 +46,12 @@ const getDateFilePath = (date: string): string => {
 const readIndex = (): NoteIndex => {
   try {
     const content = readFileSync(NOTES_INDEX, 'utf-8')
-    return JSON.parse(content)
+    const parsed = JSON.parse(content)
+    // 确保返回的数据结构完整
+    return {
+      files: parsed.files || {},
+      tagged: parsed.tagged || {}
+    }
   } catch {
     return { files: {}, tagged: {} }
   }
@@ -130,12 +135,14 @@ const saveNote = (note: Partial<NoteData> & { data: string }): NoteData => {
     
     // 更新索引
     const dateKey = `${date}.json`
-    const metaIndex = index.files[dateKey]?.findIndex(m => m.id === note.id)
-    if (metaIndex !== -1) {
-      index.files[dateKey][metaIndex] = {
-        id: updatedNote.id,
-        isPublic: updatedNote.isPublic,
-        tags: updatedNote.tags
+    if (index.files[dateKey]) {
+      const metaIndex = index.files[dateKey].findIndex(m => m.id === note.id)
+      if (metaIndex !== -1) {
+        index.files[dateKey][metaIndex] = {
+          id: updatedNote.id,
+          isPublic: updatedNote.isPublic,
+          tags: updatedNote.tags
+        }
       }
     }
     

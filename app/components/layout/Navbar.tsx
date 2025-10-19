@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { removeAuthToken } from '@/app/services/auth';
 import { useRouter } from 'next/navigation';
 import { RiLogoutBoxLine } from 'react-icons/ri';
-import { ToggleBtn } from "@/app/components/SidePanel";
+// import { ToggleBtn } from "@/app/components/SidePanel";
 import { useScrollDirection } from '@/app/hooks/useScrollDirection';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { useAuth } from '@/app/hooks/useAuth';
@@ -56,7 +56,7 @@ export const Navigation = () => {
     )}>
       <div className="px-4 flex justify-between items-center w-full h-12">
         <div className="flex items-center gap-4">
-          {hasMounted && !isMobile && <ToggleBtn />}
+          {/* {hasMounted && !isMobile && <ToggleBtn />} */}
           <Link href="/" className="text-lg font-bold">
             {title ? title : "Next Blog"}
           </Link>
