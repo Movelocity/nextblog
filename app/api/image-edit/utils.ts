@@ -1,21 +1,10 @@
-import path from 'path';
-import { BLOG_CONFIG } from '@/app/common/globals';
 import { TaskInfo, TaskResponse } from './types';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import sharp from 'sharp';
 import imageStorage from '@/app/lib/ImageStorage';
+import { textFile } from "@/app/api/files"
 
-export const INDEX_FILE = path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", 'index.json');
-
-// 确保索引目录存在
-const indexDir = path.dirname(INDEX_FILE);
-if(!existsSync(indexDir)) {
-  mkdirSync(indexDir, { recursive: true });
-}
-// 确保索引文件存在
-if(!existsSync(INDEX_FILE)) {
-  writeFileSync(INDEX_FILE, JSON.stringify({ tasks: [] }));
-}
+export const INDEX_FILE = textFile("image-edit", 'index.json', JSON.stringify({ tasks: [] }))
 
 // 从Buffer创建缩略图并保存到imageStorage
 async function createThumbnailFromBuffer(buffer: Buffer, fileName: string, edge_size?: number): Promise<string> {
@@ -193,8 +182,9 @@ async function start_task(task_id: string) {
   update_task(task_info);
   const result = await edit_image_with_gemini(image_base64, prompt, controller.signal);
   // save full result to tmp file
-  mkdirSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response"), { recursive: true });
-  writeFileSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response", `${task_id}.json`), JSON.stringify(result));
+  // mkdirSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response"), { recursive: true });
+  // writeFileSync(path.join(BLOG_CONFIG.ROOT_DIR, "image-edit", "response", `${task_id}.json`), JSON.stringify(result));
+  textFile("image-edit/response", `${task_id}.json`, JSON.stringify(result))
 
   // save the result image to the storage
   let result_image_base64 = "";

@@ -44,6 +44,11 @@ export default function ImageEditPage() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAreaRef = useRef<HTMLDivElement>(null);
+  
+  // Polling state
+  const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingTaskIdRef = useRef<string | null>(null);
+  const pollingAttemptsRef = useRef<number>(0);
 
   /**
    * Load tasks on mount
@@ -52,6 +57,13 @@ export default function ImageEditPage() {
     handleRefreshTasks();
 
     window.dispatchEvent(new CustomEvent("update-title", { detail: { title: "AI 图片编辑" } }));
+    
+    // Clean up polling timer on unmount
+    return () => {
+      if (pollingTimerRef.current) {
+        clearInterval(pollingTimerRef.current);
+      }
+    };
   }, []);
 
   /**
@@ -208,12 +220,63 @@ export default function ImageEditPage() {
       // Sort by updated_at descending (newest first)
       allTasks.sort((a, b) => b.updated_at - a.updated_at);
       setTasks(allTasks);
+      return allTasks;
     } catch (error) {
       console.error('Failed to load tasks:', error);
       alert('加载任务列表失败');
+      return [];
     } finally {
       setIsLoadingTasks(false);
     }
+  };
+
+  /**
+   * Stops polling for task updates
+   */
+  const stopPolling = () => {
+    if (pollingTimerRef.current) {
+      clearInterval(pollingTimerRef.current);
+      pollingTimerRef.current = null;
+    }
+    pollingTaskIdRef.current = null;
+    pollingAttemptsRef.current = 0;
+  };
+
+  /**
+   * Starts polling for task updates
+   * Polls every 10 seconds, max 30 attempts
+   */
+  const startPolling = (taskId: string) => {
+    // Stop any existing polling
+    stopPolling();
+    
+    // Reset polling state
+    pollingTaskIdRef.current = taskId;
+    pollingAttemptsRef.current = 0;
+    
+    // Start polling timer
+    pollingTimerRef.current = setInterval(async () => {
+      pollingAttemptsRef.current += 1;
+      
+      console.log(`Polling attempt ${pollingAttemptsRef.current}/30 for task ${taskId}`);
+      
+      // Check if max attempts reached
+      if (pollingAttemptsRef.current >= 30) {
+        console.log('Max polling attempts reached, stopping...');
+        stopPolling();
+        return;
+      }
+      
+      // Refresh tasks
+      const allTasks = await handleRefreshTasks();
+      
+      // Check if task is completed or failed
+      const task = allTasks.find(t => t.id === taskId);
+      if (task && (task.status === 'completed' || task.status === 'failed')) {
+        console.log(`Task ${taskId} finished with status: ${task.status}`);
+        stopPolling();
+      }
+    }, 10000); // 10 seconds interval
   };
 
   /**
@@ -249,14 +312,14 @@ export default function ImageEditPage() {
       }
       
       // Start edit task
-      await imageService.edit.startEditTask({
+      const result = await imageService.edit.startEditTask({
         orig_img: imageId,
         prompt: prompt.trim()
       });
+      const task_id = result.task_id;
+      console.log('task_id:', task_id);
       
       // Clear form
-      // setSelectedFile(null);
-      // setPreviewUrl('');
       setUploadImage({});
       setPrompt('');
       if (fileInputRef.current) {
@@ -265,6 +328,9 @@ export default function ImageEditPage() {
       
       // Refresh task list
       await handleRefreshTasks();
+      
+      // Start polling for task updates
+      startPolling(task_id);
       
     } catch (error) {
       console.error('Failed to submit task:', error);
@@ -425,7 +491,7 @@ export default function ImageEditPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg, image/png, image/webp, image/gif"
                 onChange={handleFileInputChange}
                 className="hidden"
               />
