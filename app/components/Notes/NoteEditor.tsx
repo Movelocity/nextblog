@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 import { FiSend, FiLock, FiUnlock } from 'react-icons/fi';
 
@@ -22,6 +22,25 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
   const [tags, setTags] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [showTagEdit, setShowTagEdit] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  /**
+   * 自动调整textarea高度
+   */
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  };
+
+  /**
+   * 当内容改变时调整高度
+   */
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [data]);
 
   /**
    * 提交笔记
@@ -60,17 +79,16 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       {/* 主输入区 */}
       <textarea
+        ref={textareaRef}
         value={data}
         onChange={(e) => setData(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className={classNames(
-          'w-full p-1 rounded-lg',
-          'outline-none focus:outline-none',
-          'bg-transparent dark:text-white',
-          'resize-none transition-all',
+          'w-full p-1 rounded-lg outline-none focus:outline-none',
+          'bg-transparent dark:text-white resize-none transition-all',
         )}
-        rows={6}
+        style={{ minHeight: '60px', maxHeight: '400px', overflow: 'auto' }}
         disabled={loading}
       />
 
