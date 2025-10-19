@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import cn from 'classnames';
-import { RiAddFill, RiMenuFill, RiMoonFill, RiSunFill } from 'react-icons/ri';
+import { RiAddFill, RiUserFill, RiLogoutBoxLine, RiMenuFill, RiMoonFill, RiSunFill } from 'react-icons/ri';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSidePanel } from './context';
@@ -11,11 +11,16 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { RiBook2Fill, RiHomeFill, RiDashboardFill, RiToolsFill, RiBook3Fill } from 'react-icons/ri';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import SearchModal from "@/app/components/Searching/SearchModal";
+import { removeAuthToken } from '@/app/services/auth';
+import { useAuth } from '@/app/hooks/useAuth';
+import { useLoginModal } from '@/app/hooks/useLoginModal';
 
 type Theme = "light" | "dark";
 
 export function SidePanel() {
-  // const { isAuthenticated, setIsAuthenticated, checkAuthStatus } = useAuth();
+  const { isAuthenticated, setIsAuthenticated, checkAuthStatus } = useAuth(); 
+  const { setIsOpen: setLoginModalOpen } = useLoginModal();
+  const router = useRouter();
   const isMobile = useIsMobile();
   const pathname = usePathname();
   const [topLevelCategories, setTopLevelCategories] = useState<string[]>([]);
@@ -64,7 +69,8 @@ export function SidePanel() {
     console.log('handleToggle', theme);
     updateTheme(theme === "light" ? "dark" : "light");
   };
-  
+
+
   return (
     <>
       <div className={cn(
@@ -111,10 +117,25 @@ export function SidePanel() {
           <StyledLink icon={<RiAddFill className="w-4 h-4" />} name="New Post" tgUrl="/posts/new" currentPath={pathname}/>
           <div className="flex-1"></div>
 
-          <div className="grid grid-cols-2 gap-1">
-            <div className="flex flex-col gap-1 items-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" onClick={handleToggle}>
+          <div className="grid grid-cols-3 gap-1">
+
+            <div 
+              title={isAuthenticated ? "Logout" : "Login"}
+              className="flex gap-1 h-10 items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" 
+              onClick={() => {
+                if(isAuthenticated) {
+                  removeAuthToken();
+                  setIsAuthenticated(false);
+                } else {
+                  setLoginModalOpen(true);
+                }
+              }}
+            >
+              {isAuthenticated ? <RiLogoutBoxLine className="w-4 h-4" /> : <RiUserFill className="w-4 h-4" />}
+            </div>
+
+            <div className="flex gap-1 h-10 items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" onClick={handleToggle}>
               {theme === "light" ? <RiMoonFill className="w-4 h-4" /> : <RiSunFill className="w-4 h-4" />}
-              <span className="text-sm">{theme === "light" ? "Dark" : "Light"}</span>
             </div>
             <SearchModal />
           </div>

@@ -72,9 +72,9 @@ export default function SearchModal() {
       >
         <RiSearchLine className="h-5 w-5" />
       </button> */}
-      <div className="flex flex-col items-center gap-1 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" onClick={() => setIsOpen(true)}>
+      <div className="flex gap-1 h-10 items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" onClick={() => setIsOpen(true)}>
         <RiSearchLine className="h-4 w-4" />
-        <span className="text-sm">Search</span>
+        {/* <span className="text-sm">Search</span> */}
       </div>
 
       <Modal isOpen={isOpen} onClose={handleClose} size="lg">

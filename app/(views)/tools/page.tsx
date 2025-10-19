@@ -3,17 +3,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  tools, 
+  getTools, 
   toolCategories, 
   ToolCategory, 
   searchTools,
-  // getToolsByCategory,
-  // getPopularTools,
-  // getNewTools 
 } from '@/app/common/tools.config';
 import { RiSearchLine, RiFireFill } from 'react-icons/ri';
 import cn from 'classnames';
-
+import { useAuth } from '@/app/hooks/useAuth';
 /**
  * Tools aggregation dashboard page
  * Displays all available tools in a card grid layout with search and category filtering
@@ -21,34 +18,25 @@ import cn from 'classnames';
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ToolCategory | 'all'>('all');
-  // const [showOnlyNew, setShowOnlyNew] = useState(false);
-  // const [showOnlyPopular, setShowOnlyPopular] = useState(false);
+
+  const { isAuthenticated, isLoading } = useAuth();
+
 
   // Filter tools based on search, category and flags
   const filteredTools = useMemo(() => {
-    let result = tools;
+    let result = getTools(!isLoading && isAuthenticated);
 
     // Apply search filter
     if (searchQuery) {
-      result = searchTools(searchQuery);
+      result = searchTools(searchQuery, !isLoading && isAuthenticated);
     }
 
     // Apply category filter
     if (selectedCategory !== 'all') {
       result = result.filter(tool => tool.category === selectedCategory);
     }
-
-
     return result;
-  }, [searchQuery, selectedCategory]);
-
-  // Get recommended tools (popular and new)
-  // const recommendedTools = useMemo(() => {
-  //   const popular = getPopularTools();
-  //   const newTools = getNewTools();
-  //   const combined = [...new Set([...popular, ...newTools])];
-  //   return combined.slice(0, 4);
-  // }, []);
+  }, [searchQuery, selectedCategory, isLoading]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("update-title", { detail: { title: "工具箱" } }));
@@ -111,45 +99,6 @@ export default function ToolsPage() {
             ))}
           </div>
         </div>
-
-        {/* Recommended Tools Section */}
-        {/* {!searchQuery && selectedCategory === 'all' && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <RiStarFill className="text-yellow-500" />
-              推荐工具
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {recommendedTools.map(tool => (
-                <Link
-                  key={tool.id}
-                  href={tool.path}
-                  className="group relative bg-gradient-to-br from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-900 
-                           rounded-lg p-4 hover:shadow-lg transition-all duration-300 border border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-white dark:bg-zinc-800 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-zinc-700 transition-colors">
-                      <tool.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                        {tool.name}
-                        {tool.isNew && (
-                          <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded">
-                            NEW
-                          </span>
-                        )}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                        {tool.description}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )} */}
 
         {/* Tools Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

@@ -25,6 +25,7 @@ export interface Tool {
   path: string;
   isNew?: boolean;
   isPopular?: boolean;
+  adminOnly?: boolean;
 }
 
 export enum ToolCategory {
@@ -45,7 +46,7 @@ export const toolCategories: Record<ToolCategory, { name: string; color: string 
   [ToolCategory.MEDIA]: { name: '媒体处理', color: 'category-teal' }
 };
 
-export const tools: Tool[] = [
+const tools: Tool[] = [
   {
     id: 'json-formatter',
     name: 'JSON 格式化',
@@ -64,8 +65,9 @@ export const tools: Tool[] = [
     category: ToolCategory.MEDIA,
     icon: RiImageEditLine,
     path: '/tools/image-edit',
-    isNew: true,
-    isPopular: true
+    isNew: false,
+    isPopular: false,
+    adminOnly: true
   },
   {
     id: 'image-api-test',
@@ -74,6 +76,7 @@ export const tools: Tool[] = [
     category: ToolCategory.DEVELOPER,
     icon: RiImageEditLine,
     path: '/tools/image-test',
+    adminOnly: true
   },
   {
     id: 'text-diff',
@@ -149,33 +152,18 @@ export const tools: Tool[] = [
   },
 ];
 
-/**
- * Get tools by category
- */
-export const getToolsByCategory = (category: ToolCategory): Tool[] => {
-  return tools.filter(tool => tool.category === category);
-};
-
-/**
- * Get popular tools
- */
-export const getPopularTools = (): Tool[] => {
-  return tools.filter(tool => tool.isPopular);
-};
-
-/**
- * Get new tools
- */
-export const getNewTools = (): Tool[] => {
-  return tools.filter(tool => tool.isNew);
+export const getTools = (isAdmin: boolean = false): Tool[] => {
+  return tools.filter(tool => !tool.adminOnly || (tool.adminOnly && isAdmin));
 };
 
 /**
  * Search tools by name or description
  */
-export const searchTools = (query: string): Tool[] => {
+export const searchTools = (query: string, isAdmin: boolean = false): Tool[] => {
   const lowerQuery = query.toLowerCase();
+  console.log('isAdmin', isAdmin);
   return tools.filter(tool => 
+    !tool.adminOnly || (tool.adminOnly && isAdmin) &&
     tool.name.toLowerCase().includes(lowerQuery) ||
     tool.description.toLowerCase().includes(lowerQuery)
   );
