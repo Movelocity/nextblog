@@ -168,8 +168,8 @@ const NotesPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen p-8">
+      <div className="w-full">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* 主内容区 */}
           <div className="flex-1 min-w-0 space-y-3">
@@ -213,7 +213,7 @@ const NotesPage = () => {
                 <button
                   onClick={handleLoadMore}
                   disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? '加载中...' : '加载更多'}
                 </button>

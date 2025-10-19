@@ -54,7 +54,7 @@ function Page() {
   };
 
   return (
-    <div className="flex-1 p-8">
+    <div className="flex-1 py-8 px-6 w-full">
       <PostsList posts={posts} isLoading={loading} />
       
       {totalPages > 1 && (

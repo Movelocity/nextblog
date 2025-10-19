@@ -3,6 +3,7 @@ import { textFile } from "@/app/api/files"
 import path from 'path'
 import { readFileSync, writeFileSync, existsSync } from "fs"
 import type { NoteData, NoteMeta, NoteIndex } from "@/app/common/types.notes"
+import { requireAuth, authenticateRequest } from '@/app/lib/auth';
 
 const NOTES_INDEX = textFile("notes", "index.json", JSON.stringify({ files: {}, tagged: {} }))
 const NOTES_DIR = path.dirname(NOTES_INDEX)
@@ -292,11 +293,19 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+
+    const user = authenticateRequest(request);
     
     // 获取单个笔记
     if (id) {
       const note = getNote(id)
       if (!note) {
+        return NextResponse.json(
+          { error: 'Note not found' },
+          { status: 404 }
+        )
+      }
+      if(!note.isPublic && user==null) {
         return NextResponse.json(
           { error: 'Note not found' },
           { status: 404 }
@@ -313,6 +322,9 @@ export async function GET(request: NextRequest) {
     const isPublic = isPublicParam ? isPublicParam === 'true' : undefined
     
     const result = getNotes({ page, pageSize, tag, isPublic })
+    if(user==null) {
+      result.notes = result.notes.filter(note => note.isPublic)
+    }
     return NextResponse.json(result)
   } catch (error) {
     return NextResponse.json(
@@ -326,7 +338,7 @@ export async function GET(request: NextRequest) {
  * POST 请求处理 - 创建新笔记
  * Body: { data: string, isPublic?: boolean, tags?: string[] }
  */
-export async function POST(request: NextRequest) {
+export const POST = requireAuth(async (request: NextRequest) => {
   try {
     const body = await request.json()
     
@@ -350,13 +362,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+});
 
 /**
  * PUT 请求处理 - 更新笔记
  * Body: { id: string, data?: string, isPublic?: boolean, tags?: string[] }
  */
-export async function PUT(request: NextRequest) {
+export const PUT = requireAuth(async (request: NextRequest) => {
   try {
     const body = await request.json()
     
@@ -375,13 +387,13 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+});
 
 /**
  * DELETE 请求处理 - 删除笔记
  * 查询参数：id
  */
-export async function DELETE(request: NextRequest) {
+export const DELETE = requireAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
@@ -409,4 +421,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+});

@@ -21,7 +21,6 @@ export default function ToolsPage() {
 
   const { isAuthenticated, isLoading } = useAuth();
 
-
   // Filter tools based on search, category and flags
   const filteredTools = useMemo(() => {
     let result = getTools(!isLoading && isAuthenticated);

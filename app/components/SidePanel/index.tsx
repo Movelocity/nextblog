@@ -76,7 +76,7 @@ export function SidePanel() {
       <div className={cn(
         "h-screen z-10 transition-all duration-300", 
         isSidePanelOpen && "w-48",
-        isMobile && isSidePanelOpen && "fixed"
+        isMobile && isSidePanelOpen && "fixed",
       )}>
         <div 
           className={cn(
@@ -118,7 +118,6 @@ export function SidePanel() {
           <div className="flex-1"></div>
 
           <div className="grid grid-cols-3 gap-1">
-
             <div 
               title={isAuthenticated ? "Logout" : "Login"}
               className="flex gap-1 h-10 items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" 
@@ -146,15 +145,12 @@ export function SidePanel() {
       <div 
         className={cn(
           "h-screen cursor-pointer flex justify-center items-center px-1",
-          "bg-transparent text-transparent text-gray-400/50 hover:text-gray-400 text-sm",
-          {
-            "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80": !(isMobile && isSidePanelOpen),
-            "hidden": isMobile && isSidePanelOpen
-          }
+          "bg-transparent text-sm",
+          !isMobile && isSidePanelOpen && "text-white/50",
+          isMobile && !isSidePanelOpen && "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80 text-gray-400 text-gray-400 fixed",
+          isMobile && isSidePanelOpen && "fixed w-full"
         )}
-        style={{
-          width: isMobile && isSidePanelOpen ? "calc(100vw - 12rem)" : ""
-        }}
+ 
         onClick={toggleSidePanel}
         aria-hidden="true"
       >
