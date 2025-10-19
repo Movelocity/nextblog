@@ -10,90 +10,55 @@ import type {
   UpdateNoteParams, 
   GetNotesParams 
 } from '@/app/common/types.notes'
+import { get, post, put, del } from './utils'
 
 /**
  * 获取笔记列表
+ * @param {GetNotesParams} params - 查询参数，包括分页、标签、公开状态等
+ * @returns {Promise<NotesListResponse>} 返回笔记列表和总数
+ * @throws {Error} 请求失败时抛出错误
  */
 export const fetchNotes = async (params?: GetNotesParams): Promise<NotesListResponse> => {
-  const searchParams = new URLSearchParams()
-  
-  if (params?.page) searchParams.append('page', params.page.toString())
-  if (params?.pageSize) searchParams.append('pageSize', params.pageSize.toString())
-  if (params?.tag) searchParams.append('tag', params.tag)
-  if (params?.isPublic !== undefined) searchParams.append('isPublic', params.isPublic.toString())
-  
-  const response = await fetch(`/api/notes?${searchParams.toString()}`)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch notes')
-  }
-  
-  return response.json()
+  return get<NotesListResponse>('/api/notes', { params })
 }
 
 /**
  * 获取单个笔记
+ * @param {string} id - 笔记ID
+ * @returns {Promise<NoteData>} 返回笔记数据
+ * @throws {Error} 请求失败时抛出错误
  */
 export const fetchNote = async (id: string): Promise<NoteData> => {
-  const response = await fetch(`/api/notes?id=${id}`)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch note')
-  }
-  
-  return response.json()
+  return get<NoteData>('/api/notes', { params: { id } })
 }
 
 /**
  * 创建新笔记
+ * @param {CreateNoteParams} params - 创建笔记的参数
+ * @returns {Promise<NoteData>} 返回创建的笔记数据
+ * @throws {Error} 请求失败时抛出错误
  */
 export const createNote = async (params: CreateNoteParams): Promise<NoteData> => {
-  const response = await fetch('/api/notes', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(params),
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to create note')
-  }
-  
-  return response.json()
+  return post<NoteData>('/api/notes', params)
 }
 
 /**
  * 更新笔记
+ * @param {UpdateNoteParams} params - 更新笔记的参数，包括ID和要更新的字段
+ * @returns {Promise<NoteData>} 返回更新后的笔记数据
+ * @throws {Error} 请求失败时抛出错误
  */
 export const updateNote = async (params: UpdateNoteParams): Promise<NoteData> => {
-  const response = await fetch('/api/notes', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(params),
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to update note')
-  }
-  
-  return response.json()
+  return put<NoteData>('/api/notes', params)
 }
 
 /**
  * 删除笔记
+ * @param {string} id - 要删除的笔记ID
+ * @returns {Promise<{ success: boolean }>} 返回删除操作的结果
+ * @throws {Error} 请求失败时抛出错误
  */
 export const deleteNote = async (id: string): Promise<{ success: boolean }> => {
-  const response = await fetch(`/api/notes?id=${id}`, {
-    method: 'DELETE',
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to delete note')
-  }
-  
-  return response.json()
+  return del<{ success: boolean }>('/api/notes', { params: { id } })
 }
 
