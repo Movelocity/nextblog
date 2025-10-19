@@ -4,18 +4,20 @@ import { useEffect, useState } from 'react';
 import cn from 'classnames';
 import { RiAddFill, RiMenuFill, RiMoonFill, RiSunFill } from 'react-icons/ri';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useSidePanel } from './context';
 import { getTaxonomy } from '@/app/services/posts';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { RiBook2Fill, RiHomeFill, RiDashboardFill, RiToolsFill, RiBook3Fill } from 'react-icons/ri';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
+import SearchModal from "@/app/components/Searching/SearchModal";
 
 type Theme = "light" | "dark";
 
 export function SidePanel() {
   // const { isAuthenticated, setIsAuthenticated, checkAuthStatus } = useAuth();
   const isMobile = useIsMobile();
+  const pathname = usePathname();
   const [topLevelCategories, setTopLevelCategories] = useState<string[]>([]);
   const { isSidePanelOpen, toggleSidePanel, closeSidePanel } = useSidePanel();
   useEffect(() => {
@@ -72,7 +74,7 @@ export function SidePanel() {
       )}>
         <div 
           className={cn(
-            "fixed flex flex-col w-48 text-gray-500 dark:text-gray-300 bg-white dark:bg-zinc-900 px-4 h-screen pb-16",
+            "fixed flex flex-col w-48 text-gray-500 dark:text-gray-300 bg-white dark:bg-zinc-900 px-4 h-screen pb-8 gap-1",
             !isSidePanelOpen && "hidden",
           )}
           style={{ filter: isMobile && isSidePanelOpen ? "drop-shadow(0 0 20px #0009)" : ""}}
@@ -86,32 +88,36 @@ export function SidePanel() {
             </div>
           </div>
           
-          <StyledLink icon={<RiHomeFill className="w-4 h-4" />} name="Home" tgUrl="/posts" />
-          <StyledLink icon={<RiBook3Fill className="w-4 h-4" />} name="Notes" tgUrl="/notes"/>
-          <StyledLink icon={<RiToolsFill className="w-4 h-4" />} name="Tools" tgUrl="/tools"/>
-          <StyledLink icon={<RiBook2Fill className="w-4 h-4" />} name="Categories" tgUrl="/categories">
+          <StyledLink icon={<RiHomeFill className="w-4 h-4" />} name="Home" tgUrl="/posts" currentPath={pathname} />
+          <StyledLink icon={<RiBook3Fill className="w-4 h-4" />} name="Notes" tgUrl="/notes" currentPath={pathname}/>
+          <StyledLink icon={<RiToolsFill className="w-4 h-4" />} name="Tools" tgUrl="/tools" currentPath={pathname}/>
+          <StyledLink icon={<RiBook2Fill className="w-4 h-4" />} name="Categories" tgUrl="/categories" currentPath={pathname}>
             {topLevelCategories.sort().map((category) => (
               <Link
                 key={category}
                 href={`/categories/${category}`}
-                className="py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md"
+                className={cn(
+                  "py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md",
+                  pathname?.startsWith(`/categories/${category}`) && "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium"
+                )}
               >
                 {category}
               </Link>
             ))}
           </StyledLink>
           
-          <StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard"/>
+          <StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard" currentPath={pathname}/>
           
-          <StyledLink icon={<RiAddFill className="w-4 h-4" />} name="New Post" tgUrl="/posts/new"/>
+          <StyledLink icon={<RiAddFill className="w-4 h-4" />} name="New Post" tgUrl="/posts/new" currentPath={pathname}/>
           <div className="flex-1"></div>
 
-          <StyledButton 
-            icon={theme === "light" ? <RiMoonFill className="w-4 h-4" /> : <RiSunFill className="w-4 h-4" />} 
-            name={theme === "light" ? "Dark Mode" : "Light Mode"} 
-            onClick={handleToggle}
-          />
-
+          <div className="grid grid-cols-2 gap-1">
+            <div className="flex flex-col gap-1 items-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" onClick={handleToggle}>
+              {theme === "light" ? <RiMoonFill className="w-4 h-4" /> : <RiSunFill className="w-4 h-4" />}
+              <span className="text-sm">{theme === "light" ? "Dark" : "Light"}</span>
+            </div>
+            <SearchModal />
+          </div>
         </div>
 
       </div>
@@ -141,13 +147,18 @@ interface StyledLinkProps {
   icon: React.ReactNode;
   name: string;
   tgUrl: string;
+  currentPath?: string | null;
   children?: React.ReactNode;
   onClick?: () => void;
 }
 
-const StyledLink = ({icon, name, tgUrl, children}: StyledLinkProps) => {
+const StyledLink = ({icon, name, tgUrl, currentPath, children}: StyledLinkProps) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
+  
+  // Determine if this link is active
+  const isActive = currentPath === tgUrl || currentPath?.startsWith(tgUrl + '/');
+  
   const handleClick = () => {
     setIsOpen(!isOpen);
     if(tgUrl) {
@@ -165,6 +176,7 @@ const StyledLink = ({icon, name, tgUrl, children}: StyledLinkProps) => {
           href={tgUrl} 
           className={cn(
             "flex items-center gap-1 px-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1",
+            isActive && "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium"
           )} 
           onClick={handleClick}
         >
@@ -177,7 +189,10 @@ const StyledLink = ({icon, name, tgUrl, children}: StyledLinkProps) => {
   return (  // just render a link if no children
     <Link 
       href={tgUrl} 
-      className="flex items-center gap-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2 cursor-pointer"
+      className={cn(
+        "flex items-center gap-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2 cursor-pointer",
+        isActive && "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium"
+      )}
     >
       {icon} {name}
     </Link>
