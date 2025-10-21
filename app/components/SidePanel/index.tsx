@@ -103,7 +103,7 @@ export function SidePanel() {
                 key={category}
                 href={`/categories/${category}`}
                 className={cn(
-                  "py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md",
+                  "mt-1 py-1 px-4 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md",
                   pathname?.startsWith(`/categories/${category}`) && "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium"
                 )}
               >

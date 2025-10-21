@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
-import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import type { NoteData } from '@/app/common/types.notes';
 
 interface NoteCardProps {
@@ -23,6 +23,23 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
   const [editedData, setEditedData] = useState(note.data);
   const [editedTags, setEditedTags] = useState(note.tags.join(', '));
   const [editedIsPublic, setEditedIsPublic] = useState(note.isPublic);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [shouldCollapse, setShouldCollapse] = useState(false);
+  
+  const contentRef = useRef<HTMLDivElement>(null);
+  const MAX_HEIGHT = 200; // 最大高度阈值（像素）
+
+  /**
+   * 检测内容高度，判断是否需要折叠
+   */
+  useEffect(() => {
+    if (contentRef.current && !isEditing) {
+      const contentHeight = contentRef.current.scrollHeight;
+      setShouldCollapse(contentHeight > MAX_HEIGHT);
+      // 内容变化时重置展开状态
+      setIsExpanded(false);
+    }
+  }, [note.data, isEditing, MAX_HEIGHT]);
 
   /**
    * 格式化时间
@@ -106,7 +123,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
     <div className={classNames(
       'bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow',
       'border border-gray-200 dark:border-gray-700',
-      'p-4'
+      'p-4 pb-2'
     )}>
       {isEditing ? (
         /* 编辑模式 */
@@ -207,15 +224,49 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
           </div>
 
           {/* 笔记内容 */}
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
-              {note.data}
-            </p>
+          <div className="relative">
+            <div 
+              ref={contentRef}
+              className={classNames(
+                "prose prose-sm dark:prose-invert max-w-none transition-all duration-300 overflow-hidden",
+                shouldCollapse && !isExpanded && "max-h-[200px]"
+              )}
+              style={shouldCollapse && !isExpanded ? {
+                maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)'
+              } : undefined}
+            >
+              <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
+                {note.data}
+              </p>
+            </div>
+            
+            {/* 展开/折叠按钮 */}
+            {shouldCollapse && (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  {isExpanded ? (
+                    <>
+                      <FiChevronUp className="w-4 h-4" />
+                      <span>收起</span>
+                    </>
+                  ) : (
+                    <>
+                      <FiChevronDown className="w-4 h-4" />
+                      <span>展开</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* 标签 */}
           {note.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-3">
               {note.tags.map(tag => (
                 <span
                   key={tag}
