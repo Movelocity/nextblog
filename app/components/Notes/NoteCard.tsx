@@ -113,10 +113,11 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
         <div className="space-y-3">
           {/* 内容编辑 */}
           <textarea
+            name="note-content"
             value={editedData}
             onChange={(e) => setEditedData(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg outline-none dark:bg-gray-700 dark:text-white resize-none"
-            rows={4}
+            className="w-full px-3 py-2 rounded-lg outline-none bg-transparent dark:text-white muted-scrollbar"
+            rows={8}
             placeholder="笔记内容..."
           />
           {/* 操作按钮 */}
@@ -139,7 +140,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
               type="text"
               value={editedTags}
               onChange={(e) => setEditedTags(e.target.value)}
-              className="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white max-w-48"
+              className="w-full px-3 py-1 border border-gray-300 dark:border-gray-700 outline-none rounded-lg bg-transparent dark:text-white max-w-48"
               placeholder="标签（用逗号分隔）"
             />
             <span className="flex-1"></span>

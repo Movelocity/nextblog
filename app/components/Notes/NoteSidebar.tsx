@@ -78,25 +78,22 @@ const NoteSidebar = ({
     const lastDay = new Date(year, month + 1, 0);
     
     const dates = [];
-    const startPadding = firstDay.getDay(); // 0 = Sunday
+    const startPadding = firstDay.getDay();
     
-    // 填充前面的空白
     for (let i = 0; i < startPadding; i++) {
       dates.push(null);
     }
     
-    // 填充实际日期
     for (let day = 1; day <= lastDay.getDate(); day++) {
-      const date = new Date(year, month, day);
-      const dateStr = date.toISOString().split('T')[0];
+      // 直接构造日期字符串，避免时区转换
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       dates.push({
         day,
         date: dateStr,
         count: dateStats[dateStr] || 0,
-        isToday: day === now.getDate(),
+        isToday: day === now.getDate() && month === now.getMonth() && year === now.getFullYear(),
       });
     }
-    
     return dates;
   };
 
@@ -106,7 +103,7 @@ const NoteSidebar = ({
   return (
     <div className="w-64 space-y-6">
       {/* 过滤器 */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
         <div className="flex items-center gap-2 mb-3">
           <FiFilter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           <h3 className="font-semibold text-gray-900 dark:text-white">过滤器</h3>
@@ -115,10 +112,10 @@ const NoteSidebar = ({
         <button
           onClick={onTogglePublicFilter}
           className={classNames(
-            'w-full px-3 py-2 rounded-lg text-sm transition-colors text-left',
+            'w-full px-3 py-2 rounded-lg text-sm transition-colors text-left border border-gray-200 dark:border-gray-800',
             showPublicOnly
-              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-              : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              ? 'text-blue-700 dark:text-blue-300'
+              : 'text-gray-700 dark:text-gray-300'
           )}
         >
           {showPublicOnly ? '✓ ' : ''}仅显示公开笔记
@@ -126,7 +123,7 @@ const NoteSidebar = ({
       </div>
 
       {/* 日历 */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
         <div className="flex items-center gap-2 mb-3">
           <FiCalendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -155,7 +152,7 @@ const NoteSidebar = ({
               <div
                 key={index}
                 className={classNames(
-                  'aspect-square flex items-center justify-center text-xs rounded',
+                  'aspect-square flex items-center justify-center text-xs rounded cursor-default',
                   dateInfo ? 'relative' : '',
                   dateInfo?.isToday && 'bg-blue-100 dark:bg-blue-900/30 font-bold',
                   (dateInfo?.count ?? 0) > 0 && !dateInfo?.isToday && 'bg-green-100 dark:bg-green-900/30',
@@ -170,9 +167,9 @@ const NoteSidebar = ({
                     )}>
                       {dateInfo.day}
                     </span>
-                    {dateInfo.count > 0 && (
+                    {/* {dateInfo.count > 0 && (
                       <span className="absolute bottom-0 right-0 w-1 h-1 bg-green-600 dark:bg-green-400 rounded-full"></span>
-                    )}
+                    )} */}
                   </>
                 ) : (
                   '-'
@@ -184,7 +181,7 @@ const NoteSidebar = ({
       </div>
 
       {/* 标签统计 */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
         <div className="flex items-center gap-2 mb-3">
           <FiTag className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           <h3 className="font-semibold text-gray-900 dark:text-white">标签</h3>

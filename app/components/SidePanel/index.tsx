@@ -144,11 +144,10 @@ export function SidePanel() {
       {/** toggle bar */}
       <div 
         className={cn(
-          "h-screen cursor-pointer flex justify-center items-center px-1",
-          "bg-transparent text-sm",
-          !isMobile && isSidePanelOpen && "text-white/50",
+          "h-screen cursor-pointer flex justify-center items-center px-1 bg-transparent text-sm",
           isMobile && !isSidePanelOpen && "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80 text-gray-400 text-gray-400 fixed",
-          isMobile && isSidePanelOpen && "fixed w-full"
+          isMobile && isSidePanelOpen && "fixed w-full",
+          isSidePanelOpen && "hidden"
         )}
  
         onClick={toggleSidePanel}

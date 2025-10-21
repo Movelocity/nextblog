@@ -79,6 +79,7 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       {/* 主输入区 */}
       <textarea
+        name="new-note-content"
         ref={textareaRef}
         value={data}
         onChange={(e) => setData(e.target.value)}
@@ -86,7 +87,8 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
         placeholder={placeholder}
         className={classNames(
           'w-full p-1 rounded-lg outline-none focus:outline-none',
-          'bg-transparent dark:text-white resize-none transition-all',
+          'bg-transparent dark:text-white resize-none transition-all ',
+          'muted-scrollbar'
         )}
         style={{ minHeight: '60px', maxHeight: '400px', overflow: 'auto' }}
         disabled={loading}
