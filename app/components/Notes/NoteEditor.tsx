@@ -87,7 +87,7 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
         placeholder={placeholder}
         className={classNames(
           'w-full p-1 rounded-lg outline-none focus:outline-none',
-          'bg-transparent dark:text-white resize-none transition-all ',
+          'bg-transparent dark:text-white resize-none transition-all text-sm',
           'muted-scrollbar'
         )}
         style={{ minHeight: '60px', maxHeight: '400px', overflow: 'auto' }}

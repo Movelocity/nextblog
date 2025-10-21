@@ -133,7 +133,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
             name="note-content"
             value={editedData}
             onChange={(e) => setEditedData(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg outline-none bg-transparent dark:text-white muted-scrollbar"
+            className="w-full px-1 py-2 rounded-lg outline-none bg-transparent dark:text-white muted-scrollbar text-sm"
             rows={8}
             placeholder="笔记内容..."
           />
@@ -243,10 +243,10 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
             
             {/* 展开/折叠按钮 */}
             {shouldCollapse && (
-              <div className="flex justify-center">
+              <div className="flex w-full">
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="flex items-center gap-1 px-3 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 rounded-lg transition-colors mx-auto"
                 >
                   {isExpanded ? (
                     <>
