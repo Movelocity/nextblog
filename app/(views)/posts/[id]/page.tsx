@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Blog } from '@/app/common/types';
 import { getPost } from '@/app/services/posts';
 import { PostViewer } from '@/app/components/Editor/PostViewer';
+// import eruda from 'eruda';
 
 export default function PostPage() {
   const params = useParams();
@@ -32,6 +33,14 @@ export default function PostPage() {
     };
     loadPost();
   }, [params.id]);
+
+  // useEffect(() => {
+  //   if(typeof window !== 'undefined') {
+  //     import('eruda').then((eruda) => {
+  //       eruda.default.init();
+  //     });
+  //   }
+  // }, []);
 
   if (loading) {
     return (

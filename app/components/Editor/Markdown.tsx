@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, RefObject, useEffect, useMemo, Suspense } from "react";
+import { useRef, useState, RefObject, useEffect, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import "katex/dist/katex.min.css";
 import "./Markdown.css";
@@ -19,50 +19,42 @@ import { useDebouncedCallback } from "use-debounce";
 
 export function Mermaid(props: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  // const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (props.code && ref.current && !errorMsg) {
+    if (props.code && ref.current) {
       import("mermaid").then((mermaid) => {
         mermaid.default.initialize({startOnLoad: false, suppressErrorRendering: false})
         mermaid.default
           .run({nodes: [ref.current as HTMLElement], suppressErrors: false})
-          .catch((e) => {setErrorMsg("[Mermaid] " + e.message);})
-          .finally(() => alert("Mermaid loaded"));
+          .catch((e) => {
+            console.log("[Mermaid] " + e.message);
+            setHasError(true);
+          })
       })
-      // mermaid
-      //   .run({
-      //     nodes: [ref.current],
-      //     suppressErrors: true,
-      //   })
-      //   .catch((e) => {
-      //     // setHasError(true);
-      //     console.error("[Mermaid] ", e.message);
-      //   });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.code]);
 
-  // if (hasError) {
-  //   return null;
-  // }
-
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      {errorMsg ? (
-        <p>{errorMsg}</p>
-      ): (
+    <>
+    {hasError ? (
+      <div className="px-4 py-1 bg-gray-900 rounded-md highligh">
+        <span className="text-sm text-gray-400 mb-1">mermaid</span>
+        <pre className="language-mermaid">
+          {props.code}
+        </pre>
+      </div>
+      ) : (
         <div
-          className={cn("no-dark mermaid")}
+          className="no-dark mermaid"
           style={{overflow: "auto"}}
           ref={ref}
         >
           {props.code}
         </div>
       )}
-    </Suspense>
-
+    </>
   );
 }
 
