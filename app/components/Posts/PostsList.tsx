@@ -29,16 +29,9 @@ export default function PostsList({ posts, isLoading = false }: PostsListProps) 
     );
   }
 
-  if (!posts || posts.length === 0) {
-    return (
-      <div className="text-gray-600 p-4 text-center rounded-lg">
-        No posts available.
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-48">
       {posts.map((post) => (
         <ArticleItem key={post.id} post={post} />
       ))}

@@ -40,7 +40,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps) 
   const baseButtonClasses = "group p-1 rounded-md transition-all duration-200 focus:outline-none disabled:opacity-40 hover:enabled:bg-blue-50 dark:hover:enabled:bg-gray-700";
 
   return (
-    <nav aria-label="Pagination" className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 text-gray-800 dark:text-gray-400">
+    <nav aria-label="Pagination" className="md:sticky bottom-0 flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 text-gray-800 dark:text-gray-400">
       <div className="flex items-center gap-1.5">
         <button
           onClick={() => {

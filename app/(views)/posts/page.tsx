@@ -54,7 +54,7 @@ function Page() {
   };
 
   return (
-    <div className="py-8 px-6 w-full">
+    <div className="py-8 px-6 w-full sm:pl-0 sm:pr-6">
       <PostsList posts={posts} isLoading={loading} />
       
       {totalPages > 1 && (

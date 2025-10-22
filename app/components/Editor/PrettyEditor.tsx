@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Markdown } from '@/app/components/Editor/Markdown';
 // import { TableOfContents } from '@/app/components/Posts/TableOfContents';
-import { PAGE_WIDTH } from '@/app/common/utils';
 import cn from 'classnames';
 import classNames from 'classnames';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
@@ -130,8 +129,8 @@ export const PrettyEditor = ({
   }
 
   return (
-    <div className="w-full">
-      <div className={cn(PAGE_WIDTH, 'flex flex-col h-full mb-64')}>
+    <div className="w-full px-6 sm:pl-0 sm:pr-6">
+      <div className={cn('flex flex-col h-full mb-64')}>
         {/* Title and Controls */}
         <div className="flex flex-col w-full border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-row items-center justify-between">

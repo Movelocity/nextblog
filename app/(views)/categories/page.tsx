@@ -47,7 +47,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="flex-1 py-8 px-6">
+    <div className="flex-1 py-8 px-6 sm:pl-0 sm:pr-6">
       <div>
         <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
         {categories.length > 0 ? (

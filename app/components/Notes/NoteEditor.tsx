@@ -87,7 +87,7 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
         placeholder={placeholder}
         className={classNames(
           'w-full p-1 rounded-lg outline-none focus:outline-none',
-          'bg-transparent dark:text-white resize-none transition-all text-sm',
+          'bg-transparent dark:text-white transition-all text-base',
           'muted-scrollbar'
         )}
         style={{ minHeight: '60px', maxHeight: '400px', overflow: 'auto' }}
@@ -95,7 +95,7 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
       />
 
       {/* 底部操作栏 */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2">
           {/* 公开状态 */}
           <button

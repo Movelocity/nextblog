@@ -285,13 +285,13 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
   }, [posts, sortField, sortDirection]);
 
   return (
-    <div className="">
+    <div className="w-full">
       <TableHeader
         selectedPosts={selectedPosts}
         setSelectedPosts={setSelectedPosts}
         {...props}
       />
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto w-full">
         <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200">
           <thead className="">
             <tr>
@@ -328,7 +328,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
               </th>
             </tr>
           </thead>
-          <tbody className=" divide-y dark:divide-gray-700 divide-gray-200">
+          <tbody className="divide-y dark:divide-gray-700 divide-gray-200">
             {sortedPosts.map((post) => (
               <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 {/* Checkbox */}
@@ -346,7 +346,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 </td>
                 <td className="px-6 py-4">
                   <Link href={`/posts/${post.id}`}>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-md cursor-pointer hover:text-blue-500">
+                    <div className="max-w-[200px] text-ellipsis text-sm font-medium text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-500">
                       {post.title}
                     </div>
                   </Link>
@@ -395,4 +395,5 @@ export default function PostsTable(props: PostsTableProps) {
   };
 
   return isMobile ? <MobileView {...viewProps} /> : <DesktopView {...viewProps} />;
+  // return <DesktopView {...viewProps} />;
 }

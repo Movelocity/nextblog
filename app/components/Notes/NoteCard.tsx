@@ -228,7 +228,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
             <div 
               ref={contentRef}
               className={classNames(
-                "prose prose-sm dark:prose-invert max-w-none transition-all duration-300 overflow-hidden",
+                "prose prose-base dark:prose-invert max-w-none transition-all duration-300 overflow-hidden",
                 shouldCollapse && !isExpanded && "max-h-[200px]"
               )}
               style={shouldCollapse && !isExpanded ? {
@@ -266,7 +266,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
 
           {/* 标签 */}
           {note.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-2">
               {note.tags.map(tag => (
                 <span
                   key={tag}

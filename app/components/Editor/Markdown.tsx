@@ -15,49 +15,6 @@ import { RiLoader4Line } from "react-icons/ri";
 import cn from "classnames";
 import { useDebouncedCallback } from "use-debounce";
 
-/* This component is a modified version of the code from https://github.com/ChatGPTNextWeb/NextChat/blob/main/app/components/markdown.tsx */
-
-export function Mermaid(props: { code: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    if (props.code && ref.current) {
-      import("mermaid").then((mermaid) => {
-        mermaid.default.initialize({startOnLoad: false, suppressErrorRendering: false})
-        mermaid.default
-          .run({nodes: [ref.current as HTMLElement], suppressErrors: false})
-          .catch((e) => {
-            console.log("[Mermaid] " + e.message);
-            setHasError(true);
-          })
-      })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.code]);
-
-  return (
-    <>
-    {hasError ? (
-      <div className="px-4 py-1 bg-gray-900 rounded-md highligh">
-        <span className="text-sm text-gray-400 mb-1">mermaid</span>
-        <pre className="language-mermaid">
-          {props.code}
-        </pre>
-      </div>
-      ) : (
-        <div
-          className="no-dark mermaid"
-          style={{overflow: "auto"}}
-          ref={ref}
-        >
-          {props.code}
-        </div>
-      )}
-    </>
-  );
-}
-
 /** preview code */
 export function PreCode(props: { children: any }) {
   const ref = useRef<HTMLPreElement>(null);
@@ -102,27 +59,49 @@ export function PreCode(props: { children: any }) {
     }
   }, []);
 
+  const mermaidRef = useRef<HTMLDivElement>(null);
+  const [mermaidError, setMermaidError] = useState(false);
+
+  useEffect(() => {
+    if (mermaidCode && mermaidRef.current) {
+      import("mermaid").then((mermaid) => {
+        mermaid.default.initialize({startOnLoad: false, suppressErrorRendering: false})
+        mermaid.default
+          .run({nodes: [mermaidRef.current as HTMLElement], suppressErrors: false})
+          .catch((e) => {
+            console.log("[Mermaid] " + e.message);
+            setMermaidError(true);
+          })
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mermaidCode]);
+
+  const shouldRenderMermaid = isMermaid && mermaidCode.length > 0 && !mermaidError;
+
   return (
     <>
-      {!isMermaid && (
-        <pre ref={ref} className="group relative">
+      {shouldRenderMermaid ? (
+        <div
+          className="no-dark mermaid"
+          style={{overflow: "auto"}}
+          ref={mermaidRef}
+        >
+          {mermaidCode}
+        </div>
+      ) : (
+        <pre ref={ref} className="relative">
           <span
-            className="group-hover:opacity-100 opacity-0 absolute top-2 right-2 cursor-pointer"
+            className="opacity-0 hover:opacity-100 absolute top-2 right-2 cursor-pointer z-50 transition-opacity duration-200"
             onClick={() => {
               if (ref.current) {
-                copyToClipboard(
-                  ref.current.querySelector("code")?.innerText ?? "",
-                );
+                copyToClipboard(ref.current.querySelector("code")?.innerText ?? "",);
               }
             }}
           >copy</span>
           {props.children}
         </pre>
       )}
-      {isMermaid && mermaidCode.length > 0 && (
-        <Mermaid code={mermaidCode} key={mermaidCode} />
-      )}
-      {!isMermaid && <div ref={hiddenRef} className="hidden">{props.children}</div>}
     </>
   );
 }
@@ -130,7 +109,7 @@ export function PreCode(props: { children: any }) {
 function CustomCode(props: { children: any; className?: string }) {
   const enableCodeFold = true;  // TODO: configure in dashboard
   const ref = useRef<HTMLPreElement>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [showToggle, setShowToggle] = useState(false);
   const isInlineCode = !props.className;  // If no className is provided, it's inline code
 
@@ -151,15 +130,16 @@ function CustomCode(props: { children: any; className?: string }) {
     return (
       <div
         className={cn(
-          "absolute bottom-0 left-0 right-0 flex justify-center w-full py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-          {
-            "bg-gradient-to-t from-gray-100 dark:from-gray-800 to-transparent": collapsed,
-          }
+          "group absolute bottom-0 left-0 flex justify-center w-full pb-2 transition-opacity duration-200",
+          collapsed ? "bg-gradient-to-t from-gray-800 to-transparent" : "pointer-events-none",
         )}
       >
         <button
           onClick={toggleCollapsed}
-          className="px-2 py-0.5 text-sm rounded-full bg-gray-200/90 dark:bg-gray-700/90 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className={cn(
+            "px-2 py-0.5 text-sm rounded-full bg-gray-700/90 pointer-events-auto transition-opacity duration-200 opacity-0",
+            collapsed ? "group-hover:opacity-80" : "hover:opacity-80"
+          )}
         >
           {collapsed ? "Show more" : "Show less"}
         </button>
@@ -170,7 +150,7 @@ function CustomCode(props: { children: any; className?: string }) {
   if (isInlineCode) {
     return (
       <code
-        className={cn("inline-code", props?.className)}
+        className="inline-code"
         style={{
           whiteSpace: "break-spaces",
           fontWeight: "inherit"
@@ -182,9 +162,9 @@ function CustomCode(props: { children: any; className?: string }) {
   }
 
   return (
-    <div className="group relative">
+    <div className="relative w-full">
       <code
-        className={cn(props?.className)}
+        className={cn("block overflow-x-scroll", props?.className)}
         ref={ref}
         style={{
           maxHeight: enableCodeFold && collapsed ? "400px" : "none",
@@ -349,14 +329,14 @@ export function Markdown(
 
   return (
     <div
-      className="mkd-body prose dark:prose-invert w-full max-w-none"
+      className="mkd-body prose dark:prose-invert w-screen md:w-full md:mx-auto max-w-6xl p-4 pl-6"
       style={{
         fontSize: `${props.fontSize ?? 16}px`,
         fontFamily: props.fontFamily || "inherit",
       }}
       ref={mdRef}
-      onContextMenu={props.onContextMenu}
-      onDoubleClickCapture={props.onDoubleClickCapture}
+      // onContextMenu={props.onContextMenu}
+      // onDoubleClickCapture={props.onDoubleClickCapture}
       dir="auto"
     >
       {props.loading ? (

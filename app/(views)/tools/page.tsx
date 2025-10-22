@@ -51,7 +51,7 @@ export default function ToolsPage() {
 
   return (
     <div className="min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-6 sm:pl-0 sm:pr-6">
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">

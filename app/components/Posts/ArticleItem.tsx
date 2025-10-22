@@ -9,7 +9,7 @@ interface ArticleItemProps {
 }
 
 const ArticleItem = ({ post }: ArticleItemProps) => {
-  const contentPreview = post.description;
+  const contentPreview = post.description ? post.description.slice(0, 130) : '';
 
   return (
     <article className="p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-md shadow-sm hover:shadow-md transition-all duration-200">
@@ -23,7 +23,7 @@ const ArticleItem = ({ post }: ArticleItemProps) => {
       </Link>
 
       {/* Content Preview */}
-      <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-4 line-clamp-3">
+      <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-4 break-all">
         {contentPreview}...
       </p>
 

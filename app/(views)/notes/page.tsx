@@ -168,7 +168,7 @@ const NotesPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-6 sm:pl-0 sm:pr-6">
       <div className="w-full">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* 主内容区 */}
@@ -213,7 +213,7 @@ const NotesPage = () => {
                 <button
                   onClick={handleLoadMore}
                   disabled={loading}
-                  className="px-6 py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-3 text-gray-500 dark:text-gray-400 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? '加载中...' : '加载更多'}
                 </button>
@@ -221,7 +221,7 @@ const NotesPage = () => {
             )}
 
             {!hasMore && notes.length > 0 && (
-              <div className="mt-6 text-center text-gray-500 dark:text-gray-400">
+              <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
                 已显示全部笔记
               </div>
             )}

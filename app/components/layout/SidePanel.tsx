@@ -88,7 +88,7 @@ export function SidePanel() {
       )
     }>
       <div className={cn(
-        "fixed top-0 left-0 h-screen transition-all duration-300 flex", 
+        "fixed top-0 left-0 h-screen transition-all duration-300 flex z-[1000]", 
         openAtMobile && "w-full"
       )}>
         {sidePanelOpen && (
@@ -149,7 +149,7 @@ export function SidePanel() {
         <div 
           className={cn(
             "h-full cursor-pointer flex justify-center items-center px-1 bg-transparent text-sm",
-            "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80 text-gray-400 text-gray-400",
+            "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80 text-gray-400",
             openAtMobile && "w-1/2 text-transparent hover:bg-transparent dark:hover:bg-transparent"
           )}
           onClick={toggleSidePanel}

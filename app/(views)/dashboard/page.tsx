@@ -101,7 +101,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden m-4">
+    <div className="relative w-screen md:h-screen md:w-full px-2">
       <PostsTable 
         posts={blogs_info} 
         onDelete={handleDelete}
