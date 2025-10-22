@@ -1,12 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { Markdown } from '@/app/components/Editor/Markdown';
-// import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import { FaTags } from 'react-icons/fa';
 import { RiArrowUpLine, RiEdit2Line } from 'react-icons/ri';
-// import PublishHint from '@/app/components/part/PubilshHint';
 import { Blog } from '@/app/common/types';
 import CategoryTag from '@/app/components/CategoryTag';
 import { useAuth } from '@/app/hooks/useAuth';
@@ -48,21 +46,16 @@ export const PostViewer = ({ post }: PostViewerProps) => {
           </div>
         </div>
 
-        {/* Table of Contents */}
-        {/* <div className="sticky top-24 mx-auto w-full z-50">
-          <TableOfContents 
-            content={post.content} 
-            className="absolute"
-          />
-        </div> */}
-
+        <Suspense fallback={<div>Loading...</div>}>
+          <div className={cn(
+            "flex-1 w-full mt-4 mb-64 prose",
+            PAGE_WIDTH
+          )}>
+            <Markdown content={post.content} />
+          </div>
+        </Suspense>
         {/* Content Area */}
-        <div className={cn(
-          "flex-1 w-full mt-4 mb-64 prose",
-          PAGE_WIDTH
-        )}>
-          <Markdown content={post.content} />
-        </div>
+        
 
         {/* Post Footer */}
         <footer className={cn(

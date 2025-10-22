@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 // import { Navigation } from "@/app/components/layout/Navbar";
-import { SidePanel } from "@/app/components/SidePanel";
+import { SidePanel } from "@/app/components/layout/SidePanel";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 };
 
 import { ToastProvider } from '@/app/components/Toast/context';
-import { SidePanelProvider } from '@/app/components/SidePanel/context';
 import { GlobalLoginModal } from '@/app/components/Auth/GlobalLoginModal';
 
 interface ProvidersProps {
@@ -19,9 +18,7 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ToastProvider>
-      <SidePanelProvider>
-        {children}
-      </SidePanelProvider>
+      {children}
     </ToastProvider>
   );
 } 

@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useState, RefObject, useEffect, useMemo, Suspense } from "react";
 import ReactMarkdown from "react-markdown";
 import "katex/dist/katex.min.css";
 import "./Markdown.css";
@@ -6,50 +9,60 @@ import RemarkBreaks from "remark-breaks";
 import RehypeKatex from "rehype-katex";
 import RemarkGfm from "remark-gfm";
 import RehypeHighlight from "rehype-highlight";
-import { useRef, useState, RefObject, useEffect, useMemo } from "react";
-import { copyToClipboard } from "../../services/utils";
-import mermaid from "mermaid";
+import { copyToClipboard } from "@/app/services/utils";
+// import mermaid from "mermaid";
 import { RiLoader4Line } from "react-icons/ri";
-import React from "react";
-
-import classnames from "classnames";
+import cn from "classnames";
 import { useDebouncedCallback } from "use-debounce";
 
 /* This component is a modified version of the code from https://github.com/ChatGPTNextWeb/NextChat/blob/main/app/components/markdown.tsx */
 
 export function Mermaid(props: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [hasError, setHasError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  // const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (props.code && ref.current) {
-      mermaid
-        .run({
-          nodes: [ref.current],
-          suppressErrors: true,
-        })
-        .catch((e) => {
-          setHasError(true);
-          console.error("[Mermaid] ", e.message);
-        });
+    if (props.code && ref.current && !errorMsg) {
+      import("mermaid").then((mermaid) => {
+        mermaid.default.initialize({startOnLoad: false, suppressErrorRendering: false})
+        mermaid.default
+          .run({nodes: [ref.current as HTMLElement], suppressErrors: false})
+          .catch((e) => {setErrorMsg("[Mermaid] " + e.message);})
+          .finally(() => alert("Mermaid loaded"));
+      })
+      // mermaid
+      //   .run({
+      //     nodes: [ref.current],
+      //     suppressErrors: true,
+      //   })
+      //   .catch((e) => {
+      //     // setHasError(true);
+      //     console.error("[Mermaid] ", e.message);
+      //   });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.code]);
 
-  if (hasError) {
-    return null;
-  }
+  // if (hasError) {
+  //   return null;
+  // }
 
   return (
-    <div
-      className={classnames("no-dark", "mermaid")}
-      style={{
-        overflow: "auto",
-      }}
-      ref={ref}
-    >
-      {props.code}
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      {errorMsg ? (
+        <p>{errorMsg}</p>
+      ): (
+        <div
+          className={cn("no-dark mermaid")}
+          style={{overflow: "auto"}}
+          ref={ref}
+        >
+          {props.code}
+        </div>
+      )}
+    </Suspense>
+
   );
 }
 
@@ -145,7 +158,7 @@ function CustomCode(props: { children: any; className?: string }) {
 
     return (
       <div
-        className={classnames(
+        className={cn(
           "absolute bottom-0 left-0 right-0 flex justify-center w-full py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
           {
             "bg-gradient-to-t from-gray-100 dark:from-gray-800 to-transparent": collapsed,
@@ -165,7 +178,7 @@ function CustomCode(props: { children: any; className?: string }) {
   if (isInlineCode) {
     return (
       <code
-        className={classnames("inline-code", props?.className)}
+        className={cn("inline-code", props?.className)}
         style={{
           whiteSpace: "break-spaces",
           fontWeight: "inherit"
@@ -179,7 +192,7 @@ function CustomCode(props: { children: any; className?: string }) {
   return (
     <div className="group relative">
       <code
-        className={classnames(props?.className)}
+        className={cn(props?.className)}
         ref={ref}
         style={{
           maxHeight: enableCodeFold && collapsed ? "400px" : "none",
@@ -234,14 +247,18 @@ function tryWrapHtmlCode(text: string) {
     );
 }
 
-function MarkDownContent(props: { content: string }) {
+function MarkdownContent(props: { content: string }) {
   const escapedContent = useMemo(() => {
     return tryWrapHtmlCode(escapeBrackets(props.content));
   }, [props.content]);
 
   return (
     <ReactMarkdown
-      remarkPlugins={[RemarkMath, RemarkGfm, RemarkBreaks]}
+      remarkPlugins={[
+        RemarkMath, 
+        RemarkGfm, 
+        RemarkBreaks
+      ]}
       rehypePlugins={[
         RehypeKatex,
         [
@@ -325,7 +342,6 @@ function MarkDownContent(props: { content: string }) {
   );
 }
 
-export const MarkdownContentMemo = React.memo(MarkDownContent);
 
 export function Markdown(
   props: {
@@ -354,7 +370,7 @@ export function Markdown(
       {props.loading ? (
         <RiLoader4Line className="animate-spin" />
       ) : (
-        <MarkdownContentMemo content={props.content} />
+        <MarkdownContent content={props.content} />
       )}
     </div>
   );
