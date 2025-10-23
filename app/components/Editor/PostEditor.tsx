@@ -3,8 +3,6 @@ import { getTaxonomy, updatePost } from '@/app/services/posts';
 import { PrettyEditor } from '@/app/components/Editor/PrettyEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useToast } from '@/app/components/Toast/context';
-import { PAGE_WIDTH } from '@/app/common/utils';
-import cn from 'classnames';
 
 export interface PostEditorData {
   title: string;
