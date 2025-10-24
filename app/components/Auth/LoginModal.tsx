@@ -81,7 +81,7 @@ export const LoginModal = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:bg-gray-700 dark:text-white"
+                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 text-sm  dark:bg-gray-700 dark:text-white outline-none"
                 placeholder="Enter your email"
                 aria-label="Email Address"
               />
@@ -102,7 +102,7 @@ export const LoginModal = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm dark:bg-gray-700 dark:text-white"
+                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 text-sm dark:bg-gray-700 dark:text-white outline-none"
                 placeholder="Enter your password"
                 aria-label="Password"
               />

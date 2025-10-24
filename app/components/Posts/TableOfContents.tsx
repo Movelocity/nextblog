@@ -56,17 +56,16 @@ export const TableOfContents = ({ content }: TableOfContentsProps) => {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
+
   return (
-    <div className={cn("z-50 p-4 h-screen", showToc ? "w-[300px]": "w-0")}>
-      <div className="w-full fixed rounded-l-lg shadow-sm border border-gray-200 dark:border-gray-800 p-2 mt-16">
-        <div 
-          className="flex items-center justify-between mb-2 cursor-pointer select-none"
+    <div className={cn("z-50 h-screen -mr-6 ml-4", showToc ? "w-[280px]": "w-8")}>
+      <div className={cn("fixed rounded-l-lg shadow-sm border border-gray-200 dark:border-gray-800 p-2 mt-16", showToc ? "w-full": "w-8")}>
+        {headings.length > 0 && <button
+          className="flex items-center justify-between mb-2 select-none break-all text-sm text-gray-500 dark:text-gray-400"
           onClick={() => setShowToc(!showToc)}
         >
-          <h3 className="text-lg font-semibold">
-            目录
-          </h3>
-        </div>
+          目录
+        </button>}
         
         {showToc && !tocCollapsed && (
           <div className="space-y-1 text-sm w-full max-h-96 overflow-y-auto muted-scrollbar text-gray-700 dark:text-gray-400">

@@ -156,7 +156,7 @@ body {
 }
 
 .auto-container {
-  width: 96vw;
+  width: 100vw;
   padding: 1.25rem;
   min-height: 100vh;
 }
@@ -168,7 +168,7 @@ body {
 
 @media (max-width: 640px) {
   .sidebar-open .auto-container {
-    width: 96vw;
+    width: 100vw;
     padding-left: 1.25rem;
   }
 }
