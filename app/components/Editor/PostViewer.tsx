@@ -28,7 +28,7 @@ export const PostViewer = ({ post }: PostViewerProps) => {
   return (
     <div className="h-full py-8 flex flex-col">
       {/* Title and Controls */}
-      <div className="w-screen sm:w-full flex flex-col pb-4 border-b border-gray-200 dark:border-gray-700 px-6 sm:pl-0 sm:pr-6">
+      <div className="flex flex-col pb-4 border-b border-gray-200 dark:border-gray-700 px-6">
         <h1 className="block w-full px-0 break-words text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white">
           {post.title}
         </h1>

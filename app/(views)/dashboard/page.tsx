@@ -8,7 +8,6 @@ import { useToast } from '@/app/components/layout/ToastHook';
 import { BLOG_CONFIG } from '@/app/common/globals';
 import { BlogMeta } from '@/app/common/types';
 import Pagination from '@/app/components/Pagination';
-import { useLoginModal } from '@/app/hooks/useLoginModal';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
@@ -16,8 +15,8 @@ import { useRouter } from 'next/navigation';
 function DashboardContent() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
-  const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
+  const { isAuthenticated, isLoading, openLoginModal } = useAuth();
+  // const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
   const [postsCnt, setPostsCnt] = useState(0);
@@ -33,8 +32,7 @@ function DashboardContent() {
       const handleLoginSuccess = () => {
         fetchPosts();
       };
-      setLoginSuccess(handleLoginSuccess);
-      setLoginModalOpen(true);
+      openLoginModal({onSuccess: handleLoginSuccess});
     }
   }, [isLoading, isAuthenticated]);
 
@@ -68,7 +66,9 @@ function DashboardContent() {
   }
 
   if (!isAuthenticated) {
-    return null; // 登录弹窗由全局 GlobalLoginModal 处理
+    return <div className="w-full h-full flex justify-center items-center">
+      <button className="text-gray-300" onClick={()=>{openLoginModal()}}>LOGIN</button>
+    </div>; // 登录弹窗由全局 GlobalLoginModal 处理
   }
 
   const handlePageChange = (newPage: number) => {

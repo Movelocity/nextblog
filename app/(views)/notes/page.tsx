@@ -6,9 +6,8 @@ import type { NoteData } from '@/app/common/types.notes';
 import NoteCard from '@/app/components/Notes/NoteCard';
 import {NoteEditor, NoteSidebar} from '@/app/components/Notes';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
-// import ToastContainer from '@/app/components/layout/Toast';
-// import type { ToastType } from '@/app/components/layout/Toast';
 import { useToast } from '@/app/components/layout/ToastHook';
+import { useAuth } from '@/app/hooks/useAuth';
 
 /**
  * 笔记管理页面
@@ -26,6 +25,7 @@ const NotesPage = () => {
   const isMobile = useIsMobile();
   const pageSize = 10;
   const hasMore = notes.length < total;
+  const { isAuthenticated } = useAuth(); 
 
   /**
    * 加载笔记列表
@@ -153,75 +153,72 @@ const NotesPage = () => {
   }, []);
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* 主内容区 */}
-        <div className="flex-1 min-w-0 space-y-3">
-          {/* 不需要页面标题 */}
+    <div className="w-full flex flex-col lg:flex-row gap-4">
+      {/* 主内容区 */}
+      <div className="flex-1 min-w-0 space-y-3 pt-6">
+        {/* 不需要页面标题 */}
 
-          {/* 创建笔记区域 */}
-          <NoteEditor
-            onSubmit={handleCreateNote}
-            loading={creating}
-            placeholder="写点什么..."
-          />
+        {/* 创建笔记区域 */}
+        {isAuthenticated && <NoteEditor
+          onSubmit={handleCreateNote}
+          loading={creating}
+          placeholder="写点什么..."
+        />}
 
-          {/* 笔记列表 */}
-          <div className="space-y-3">
-            {loading && notes.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">加载中...</p>
-              </div>
-            ) : notes.length === 0 ? (
-              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {selectedTag ? '没有找到相关笔记' : '还没有笔记，开始创建第一条吧！'}
-                </p>
-              </div>
-            ) : (
-              notes.map(note => (
-                <NoteCard
-                  key={note.id}
-                  note={note}
-                  onUpdate={handleUpdateNote}
-                  onDelete={handleDeleteNote}
-                />
-              ))
-            )}
-          </div>
-
-          {/* Load More 按钮 */}
-          {hasMore && (
-            <div className="mt-6 text-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={loading}
-                className="px-6 py-3 text-gray-500 dark:text-gray-400 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? '加载中...' : '加载更多'}
-              </button>
+        {/* 笔记列表 */}
+        <div className="space-y-3">
+          {loading && notes.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">加载中...</p>
             </div>
-          )}
-
-          {!hasMore && notes.length > 0 && (
-            <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-              已显示全部笔记
+          ) : notes.length === 0 ? (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+              <p className="text-gray-500 dark:text-gray-400">
+                {selectedTag ? '没有找到相关笔记' : isAuthenticated ? '还没有笔记，开始创建第一条吧！' : '还没有公开笔记可查看'}
+              </p>
             </div>
+          ) : (
+            notes.map(note => (
+              <NoteCard
+                key={note.id}
+                note={note}
+                onUpdate={handleUpdateNote}
+                onDelete={handleDeleteNote}
+              />
+            ))
           )}
         </div>
 
-        {/* 侧边栏 */}
-        {!isMobile && (
-          <NoteSidebar
-            selectedTag={selectedTag}
-            showPublicOnly={showPublicOnly}
-            onSelectTag={handleSelectTag}
-            onTogglePublicFilter={handleTogglePublicFilter}
-          />
+        {/* Load More 按钮 */}
+        {hasMore && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleLoadMore}
+              disabled={loading}
+              className="px-6 py-3 text-gray-500 dark:text-gray-400 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? '加载中...' : '加载更多'}
+            </button>
+          </div>
+        )}
+
+        {!hasMore && notes.length > 0 && (
+          <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            已显示全部笔记
+          </div>
         )}
       </div>
-      
+
+      {/* 侧边栏 */}
+      {!isMobile && (
+        <NoteSidebar
+          selectedTag={selectedTag}
+          showPublicOnly={showPublicOnly}
+          onSelectTag={handleSelectTag}
+          onTogglePublicFilter={handleTogglePublicFilter}
+        />
+      )}
     </div>
   );
 };

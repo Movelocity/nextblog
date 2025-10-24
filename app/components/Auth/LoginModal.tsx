@@ -9,20 +9,15 @@ import { readAccount, rememberAccount } from '@/app/components/Auth/utils';
 import { useToast } from '@/app/components/layout/ToastHook';
 import { useAuth } from '@/app/hooks/useAuth';
 
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-}
 
-export const LoginModal = ({ isOpen, onClose, onSuccess }: LoginModalProps) => {
+export const LoginModal = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const { showToast } = useToast();
-  const { setIsAuthenticated } = useAuth();
+  const { setIsAuthenticated, loginCallback, isLoginModalOpened, closeLoginModal } = useAuth();
 
   useEffect(() => {
     const authInfo = readAccount();
@@ -42,7 +37,8 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }: LoginModalProps) => {
         setIsAuthenticated(true);
         rememberAccount({ email, password }, rememberMe);
         showToast('Login successful!', 'success');
-        onSuccess();
+        loginCallback?.();
+        closeLoginModal();
       } else {
         setError('Invalid email or password');
       }
@@ -59,7 +55,7 @@ export const LoginModal = ({ isOpen, onClose, onSuccess }: LoginModalProps) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Welcome Back">
+    <Modal isOpen={isLoginModalOpened} onClose={closeLoginModal} title="Welcome Back">
       <div className="p-6">
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">

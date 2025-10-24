@@ -59,7 +59,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md', c
       ref={overlayRef}
       onMouseDown={handleOverlayClick}
       className={cn(
-        "fixed inset-0 bg-black/50 flex z-50 justify-center",
+        "fixed inset-0 bg-black/50 flex z-[1001] justify-center",
         isMobile ? "items-start pt-4" : "items-center", // 全屏半透明背景
       )}
       role="dialog"

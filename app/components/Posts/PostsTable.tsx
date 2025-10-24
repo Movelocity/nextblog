@@ -293,7 +293,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
       />
       <div className="overflow-x-auto w-full">
         <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200">
-          <thead className="">
+          <thead className="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
             <tr>
               <th scope="col" className="px-6 py-3 text-left">
                 <input
@@ -311,7 +311,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 <th
                   key={field}
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer group"
+                  className="px-6 py-3 text-left tracking-wider cursor-pointer group"
                   onClick={() => handleSort(field)}
                 >
                   <div className="flex items-center gap-2">
@@ -320,10 +320,10 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                   </div>
                 </th>
               ))}
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left tracking-wider">
                 Categories
               </th>
-              <th scope="col" className="sticky right-0 px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider bg-white dark:bg-zinc-900 border-l dark:border-gray-700">
+              <th scope="col" className="sticky right-0 px-6 py-3 text-right tracking-wider bg-gray-50 dark:bg-zinc-900">
                 Actions
               </th>
             </tr>
@@ -363,7 +363,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 <td className="px-6 py-4">
                   <CategoryTags categories={post.categories} />
                 </td>
-                <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right text-sm font-medium bg-white dark:bg-zinc-900 border-l dark:border-gray-700">
+                <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right text-sm font-medium bg-gray-50 dark:bg-zinc-900">
                   <ActionButtons post={post} {...props} />
                 </td>
               </tr>

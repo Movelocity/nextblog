@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import classNames from 'classnames';
 import { FiTag, FiCalendar, FiFilter } from 'react-icons/fi';
+import { useAuth } from '@/app/hooks/useAuth';
+import cn from 'classnames';
 
 interface NoteSidebarProps {
   /** 当前选中的标签 */
@@ -31,6 +33,8 @@ const NoteSidebar = ({
   const [tagStats, setTagStats] = useState<TagStats>({});
   const [dateStats, setDateStats] = useState<DateStats>({});
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth(); 
+  
 
   /**
    * 加载统计数据
@@ -101,9 +105,9 @@ const NoteSidebar = ({
   const sortedTags = Object.entries(tagStats).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="w-[200px] space-y-6">
+    <div className="w-[200px] lg:w-[300px] space-y-6">
       {/* 过滤器 */}
-      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
+      <div className={cn("rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4", !isAuthenticated && "hidden")}>
         <div className="flex items-center gap-2 mb-3">
           <FiFilter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           <h3 className="font-semibold text-gray-900 dark:text-white">过滤器</h3>

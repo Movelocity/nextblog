@@ -329,7 +329,7 @@ export function Markdown(
 
   return (
     <div
-      className="mkd-body prose dark:prose-invert w-screen md:w-full md:mx-auto max-w-6xl p-4 pl-6"
+      className="mkd-body prose dark:prose-invert md:mx-auto max-w-6xl p-4 pl-6"
       style={{
         fontSize: `${props.fontSize ?? 16}px`,
         fontFamily: props.fontFamily || "inherit",

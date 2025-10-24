@@ -12,13 +12,11 @@ import { useIsMobile } from '@/app/hooks/useIsMobile';
 import SearchModal from "@/app/components/Searching/SearchModal";
 import { removeAuthToken } from '@/app/services/auth';
 import { useAuth } from '@/app/hooks/useAuth';
-import { useLoginModal } from '@/app/hooks/useLoginModal';
 
 type Theme = "light" | "dark";
 
 export function SidePanel() {
-  const { isAuthenticated, setIsAuthenticated, checkAuthStatus } = useAuth(); 
-  const { setIsOpen: setLoginModalOpen } = useLoginModal();
+  const { isAuthenticated, setIsAuthenticated, checkAuthStatus, openLoginModal } = useAuth(); 
 
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
 
@@ -143,7 +141,7 @@ export function SidePanel() {
                     removeAuthToken();
                     setIsAuthenticated(false);
                   } else {
-                    setLoginModalOpen(true);
+                    openLoginModal();
                   }
                 }}
               >

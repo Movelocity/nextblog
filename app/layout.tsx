@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 import { ToastProvider } from '@/app/components/layout/ToastHook';
-import { GlobalLoginModal } from '@/app/components/Auth/GlobalLoginModal';
+import { LoginModal } from '@/app/components/Auth/LoginModal';
 
 export default function RootLayout({
   children,
@@ -25,13 +25,11 @@ export default function RootLayout({
           {/* <Navigation /> */}
           <div className="flex flex-row">
             <SidePanel />
-            <main className="flex-1">
-              <div className="auto-container">
-                {children}
-              </div>
+            <main className="auto-container">
+              {children}
             </main>
           </div>
-          <GlobalLoginModal />
+          <LoginModal />
         </ToastProvider>
       </body>
     </html>

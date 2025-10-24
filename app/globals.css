@@ -168,10 +168,10 @@ body {
 .auto-container {
   width: 100vw;
   padding: 1.25rem;
-  padding-left: .5rem;
   min-height: 100vh;
 }
 
 .sidebar-open .auto-container {
   width: calc(100vw - var(--sidebar-width));
+   padding-left: .5rem;
 }
