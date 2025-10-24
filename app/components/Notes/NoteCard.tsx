@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import type { NoteData } from '@/app/common/types.notes';
-// import { useIsMobile } from '@/app/hooks/useIsMobile';
+import cn from 'classnames';
 
 interface NoteCardProps {
   /** 笔记数据 */
@@ -244,7 +244,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
             
             {/* 展开/折叠按钮 */}
             {shouldCollapse && (
-              <div className="flex w-full">
+              <div className={cn("w-full", isExpanded ? "" : "absolute bottom-0 left-0")}>
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="flex items-center gap-1 px-3 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-800 rounded-lg transition-colors mx-auto"

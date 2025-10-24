@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import cn from 'classnames';
 
 interface Heading {
@@ -55,14 +55,32 @@ export const TableOfContents = ({ content }: TableOfContentsProps) => {
     }
   };
 
+  const elemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if(elemRef.current) {
+      const handleClickOutside = (event: MouseEvent) => {
+        if(elemRef.current && !elemRef.current.contains(event.target as Node)) {
+          setShowToc(false);
+        }
+      };
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showToc]);
+
+
   return (
     <div className={cn("z-50 h-screen fixed right-0 top-0 ", showToc ? "w-[180px] lg:w-[220px]": "w-8")}>
-      <div className={cn(
-        "fixed rounded-l-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 mt-32",
-         showToc ? "w-[180px] md:w-full": "w-8"
-      )}>
+      <div 
+        ref={elemRef} 
+        className={cn(
+          "fixed rounded-l-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-zinc-900 mt-32",
+          showToc ? "w-[180px] md:w-full": "w-8 opacity-60 hover:opacity-100"
+        )}
+      >
         {headings.length > 0 && <button
-          className="flex items-center justify-between select-none break-all text-sm text-gray-500 dark:text-gray-400 w-full hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-tl-lg border-b border-gray-200 dark:border-gray-700 cursor-pointer"
+          className="flex items-center justify-between select-none break-all text-sm text-gray-500 dark:text-gray-400 w-full p-2 rounded-tl-lg border-b border-gray-200 dark:border-gray-700 cursor-pointer"
           onClick={() => setShowToc(!showToc)}
         >
           目录
@@ -75,7 +93,7 @@ export const TableOfContents = ({ content }: TableOfContentsProps) => {
                 key={index}
                 onClick={() => handleHeadingClick(heading.id)}
                 className={cn(
-                  " w-full text-left px-2 py-1 border-l-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer",
+                  " w-full text-left px-2 py-1 border-l-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer",
                   {
                     "pl-2": heading.level === 1,
                     "pl-4": heading.level === 2,

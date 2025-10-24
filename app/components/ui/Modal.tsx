@@ -59,7 +59,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md', c
       ref={overlayRef}
       onMouseDown={handleOverlayClick}
       className={cn(
-        "fixed inset-0 bg-black/50 flex z-[1001] justify-center",
+        "fixed inset-0 bg-black/50 flex z-[1001] justify-center touch-none",
         isMobile ? "items-start pt-4" : "items-center", // 全屏半透明背景
       )}
       role="dialog"
@@ -70,9 +70,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md', c
       <div 
         className={cn(
           'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full overflow-hidden flex flex-col',
-          sizeClasses[size],
-          isMobile && 'mb-32',
-          className
+          sizeClasses[size], isMobile && 'mb-32', className
         )}
       >
         {/** 标题区域（可选），右侧自带关闭按钮 */}

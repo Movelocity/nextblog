@@ -310,6 +310,13 @@ function MarkdownContent(props: { content: string }) {
           const target = isInternal ? "_self" : aProps.target ?? "_blank";
           return <a {...aProps} target={target} />;
         },
+        table: (tableProps) => {
+          return (
+            <div className="w-full overflow-x-auto">
+              <table {...tableProps} />
+            </div>
+          )
+        },
       }}
     >
       {escapedContent}

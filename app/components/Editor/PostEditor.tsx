@@ -71,6 +71,20 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
     }
   };
 
+  useEffect(()=> {
+    if(typeof window == 'undefined') return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if(event.key === 's' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        handleSubmit();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSubmit]);
+
   useEffect(() => {
     const loadTaxonomy = async () => {
       try {
@@ -152,7 +166,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] w-full py-6 pl-4 sm:pl-6 flex relative">
+    <div className="py-6 pl-4 sm:pl-6">
       <div className='flex flex-col h-full mb-64 flex-1'>
         {/* Title and Controls */}
         <div className="flex flex-col w-full border-b border-gray-200 dark:border-gray-700">
@@ -215,7 +229,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
           </div>
         </div>
         {/* Content Area */}
-        <div className="flex-1 w-full mt-4">
+        <div className="flex-1 mt-4">
           {isPreview ? (
             <Markdown content={post.content} />
           ) : (

@@ -145,7 +145,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
       >
         <div className="p-4 md:p-6">
           <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               <UploadArea
                 onDrag={handleDrag}
                 onDrop={handleDrop}
