@@ -159,8 +159,7 @@ export function SidePanel() {
 
         <div 
           className={cn(
-            "h-full cursor-pointer flex justify-center items-center px-1 bg-transparent text-sm",
-            "hover:bg-gray-100/80 dark:hover:bg-zinc-800/80 text-gray-400",
+            "h-full cursor-pointer flex justify-center items-center px-1 bg-transparent text-sm text-gray-400",
             openAtMobile && "w-1/2 text-transparent hover:bg-transparent dark:hover:bg-transparent"
           )}
           onClick={toggleSidePanel}

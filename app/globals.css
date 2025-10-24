@@ -140,16 +140,6 @@ body {
   pointer-events: none;
 }
 
-.toc {
-  display: none;
-  inset-inline-start: calc(100% + .5rem);
-}
-
-@media (min-width: 1000px) {
-  .toc {
-    display: block;
-  }
-}
 
 .muted-scrollbar::-webkit-scrollbar {
   width: 8px;
@@ -166,12 +156,19 @@ body {
 }
 
 .auto-container {
-  width: 100vw;
+  width: 96vw;
   padding: 1.25rem;
   min-height: 100vh;
 }
 
 .sidebar-open .auto-container {
   width: calc(100vw - var(--sidebar-width));
-   padding-left: .5rem;
+  padding-left: .5rem;
+}
+
+@media (max-width: 640px) {
+  .sidebar-open .auto-container {
+    width: 96vw;
+    padding-left: 1.25rem;
+  }
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getTaxonomy, updatePost } from '@/app/services/posts';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useToast } from '@/app/components/layout/ToastHook';
+import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import { CategoryModal } from '@/app/components/CategoryTag/CategoryModal';
 import PublishHint from '@/app/components/part/PubilshHint';
 import CategoryTag from '@/app/components/CategoryTag';
@@ -151,8 +152,8 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] w-full py-6 pl-4 sm:px-6">
-      <div className={cn('flex flex-col h-full mb-64')}>
+    <div className="min-h-[calc(100vh-6rem)] w-full py-6 pl-4 sm:pl-6 flex relative">
+      <div className='flex flex-col h-full mb-64 flex-1'>
         {/* Title and Controls */}
         <div className="flex flex-col w-full border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-row items-center justify-between">
@@ -232,15 +233,11 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
             />
           ) }
         </div>
-
-        {/* TOC. Table of Contents */}
-        {/* <div className="sticky top-24 mx-auto w-full z-50">
-          <TableOfContents 
-            content={post.content} 
-            className='absolute'
-          />
-        </div> */}
       </div>
+
+      {isPreview && <TableOfContents content={post.content} />}
+      
+
       {/* Floating Buttons */}
       <div className="fixed bottom-8 right-4 sm:right-8 flex flex-col gap-4 z-50">
         {/* Asset Button */}

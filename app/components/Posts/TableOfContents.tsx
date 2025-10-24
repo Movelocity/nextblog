@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import classNames from 'classnames';
+import cn from 'classnames';
 
 interface Heading {
   id: string;
@@ -13,9 +13,10 @@ interface TableOfContentsProps {
   style?: React.CSSProperties;
 }
 
-export const TableOfContents = ({ content, className, style }: TableOfContentsProps) => {
+export const TableOfContents = ({ content }: TableOfContentsProps) => {
   const [headings, setHeadings] = useState<Heading[]>([]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [tocCollapsed, setTocCollapsed] = useState(false);
+  const [showToc, setShowToc] = useState(false);
 
   useEffect(() => {
     // Extract headings from markdown content, ignoring code blocks
@@ -36,8 +37,8 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
           // Create an id from the heading text
           const id = text
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+            // .replace(/[^a-z0-9]+/g, '-')
+            // .replace(/(^-|-$)/g, '');
           
           extractedHeadings.push({ id, text, level });
         });
@@ -55,43 +56,42 @@ export const TableOfContents = ({ content, className, style }: TableOfContentsPr
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
-
-  if (headings.length === 0) return null;
-
   return (
-    <div className={classNames("toc p-4 text-gray-700 dark:text-gray-400 min-w-[10rem]", className)} style={style}>
-      <div 
-        className="flex items-center justify-between mb-2 cursor-pointer select-none"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        <h3 className="text-lg font-semibold">
-          TOC
-        </h3>
+    <div className={cn("z-50 p-4 h-screen", showToc ? "w-[300px]": "w-0")}>
+      <div className="w-full fixed rounded-l-lg shadow-sm border border-gray-200 dark:border-gray-800 p-2 mt-16">
+        <div 
+          className="flex items-center justify-between mb-2 cursor-pointer select-none"
+          onClick={() => setShowToc(!showToc)}
+        >
+          <h3 className="text-lg font-semibold">
+            目录
+          </h3>
+        </div>
+        
+        {showToc && !tocCollapsed && (
+          <div className="space-y-1 text-sm w-full max-h-96 overflow-y-auto muted-scrollbar text-gray-700 dark:text-gray-400">
+            {headings.map((heading, index) => (
+              <div
+                key={index}
+                onClick={() => handleHeadingClick(heading.id)}
+                className={cn(
+                  " w-full text-left px-2 py-1 border-l-2 border-transparent hover:border-gray-300 cursor-pointer",
+                  {
+                    "pl-2": heading.level === 1,
+                    "pl-4": heading.level === 2,
+                    "pl-6": heading.level === 3,
+                    "pl-8": heading.level === 4,
+                    "pl-10": heading.level === 5,
+                    "pl-12": heading.level === 6,
+                  }
+                )}
+              >
+                {heading.text.replace(/\*/g, '')}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      
-      {!isCollapsed && (
-        <nav className="space-y-1 text-sm  w-36 lg:w-48">
-          {headings.map((heading, index) => (
-            <div
-              key={index}
-              onClick={() => handleHeadingClick(heading.id)}
-              className={classNames(
-                " w-full text-left px-2 py-1 border-l-2 border-transparent hover:border-gray-300 cursor-pointer",
-                {
-                  "pl-2": heading.level === 1,
-                  "pl-4": heading.level === 2,
-                  "pl-6": heading.level === 3,
-                  "pl-8": heading.level === 4,
-                  "pl-10": heading.level === 5,
-                  "pl-12": heading.level === 6,
-                }
-              )}
-            >
-              {heading.text.replace(/\*/g, '')}
-            </div>
-          ))}
-        </nav>
-      )}
     </div>
   );
 }; 

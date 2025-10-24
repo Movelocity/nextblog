@@ -248,43 +248,43 @@ function MarkdownContent(props: { content: string }) {
         h1: (props) => {
           const id = props.children?.toString()
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+            // .replace(/[^a-z0-9]+/g, '-')
+            // .replace(/(^-|-$)/g, '');
           return <h1 id={id} {...props} />;
         },
         h2: (props) => {
           const id = props.children?.toString()
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+            // .replace(/[^a-z0-9]+/g, '-')
+            // .replace(/(^-|-$)/g, '');
           return <h2 id={id} {...props} />;
         },
         h3: (props) => {
           const id = props.children?.toString()
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+            // .replace(/[^a-z0-9]+/g, '-')
+            // .replace(/(^-|-$)/g, '');
           return <h3 id={id} {...props} />;
         },
         h4: (props) => {
           const id = props.children?.toString()
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+            // .replace(/[^a-z0-9]+/g, '-')
+            // .replace(/(^-|-$)/g, '');
           return <h4 id={id} {...props} />;
         },
         h5: (props) => {
           const id = props.children?.toString()
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+            // .replace(/[^a-z0-9]+/g, '-')
+            // .replace(/(^-|-$)/g, '');
           return <h5 id={id} {...props} />;
         },
         h6: (props) => {
           const id = props.children?.toString()
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+            // .replace(/[^a-z0-9]+/g, '-')
+            // .replace(/(^-|-$)/g, '');
           return <h6 id={id} {...props} />;
         },
         a: (aProps) => {
@@ -325,19 +325,15 @@ export function Markdown(
     defaultShow?: boolean;
   } & React.DOMAttributes<HTMLDivElement>,
 ) {
-  const mdRef = useRef<HTMLDivElement>(null);
+  // const mdRef = useRef<HTMLDivElement>(null);
 
   return (
     <div
-      className="mkd-body prose dark:prose-invert md:mx-auto max-w-6xl p-4 pl-6"
+      className="mkd-body prose dark:prose-invert md:mx-auto max-w-none sm:p-4 sm:pl-6"
       style={{
         fontSize: `${props.fontSize ?? 16}px`,
         fontFamily: props.fontFamily || "inherit",
       }}
-      ref={mdRef}
-      // onContextMenu={props.onContextMenu}
-      // onDoubleClickCapture={props.onDoubleClickCapture}
-      dir="auto"
     >
       {props.loading ? (
         <RiLoader4Line className="animate-spin" />
