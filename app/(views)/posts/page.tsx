@@ -10,7 +10,7 @@ import { BLOG_CONFIG } from '@/app/common/globals';
 import Pagination from '@/app/components/Pagination';
 
 
-export default function PostsPage() {
+function PostsView() {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
@@ -63,6 +63,15 @@ export default function PostsPage() {
           onPageChange={handlePageChange}
         />
       )}
+    </Suspense>
+  )
+}
+
+export default function PostsPage() {
+  // useSearchParams() should be wrapped in a suspense boundary
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PostsView />
     </Suspense>
   )
 }
