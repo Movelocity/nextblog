@@ -51,12 +51,12 @@ export const TableOfContents = ({ content }: TableOfContentsProps) => {
   const handleHeadingClick = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
-    <div className={cn("z-50 h-screen fixed right-0 ", showToc ? "w-[180px] lg:w-[220px]": "w-8")}>
+    <div className={cn("z-50 h-screen fixed right-0 top-0 ", showToc ? "w-[180px] lg:w-[220px]": "w-8")}>
       <div className={cn(
         "fixed rounded-l-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 mt-32",
          showToc ? "w-[180px] md:w-full": "w-8"

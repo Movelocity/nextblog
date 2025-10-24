@@ -14,6 +14,7 @@ import { copyToClipboard } from "@/app/services/utils";
 import { RiLoader4Line } from "react-icons/ri";
 import cn from "classnames";
 import { useDebouncedCallback } from "use-debounce";
+import { useToast } from '@/app/components/layout/ToastHook';
 
 /** preview code */
 export function PreCode(props: { children: any }) {
@@ -21,6 +22,7 @@ export function PreCode(props: { children: any }) {
   const hiddenRef = useRef<HTMLDivElement>(null);
   const [mermaidCode, setMermaidCode] = useState("");
   const [isMermaid, setIsMermaid] = useState(false);
+  const { showToast } = useToast();
 
   const renderArtifacts = useDebouncedCallback(() => {
     if (!ref.current && !hiddenRef.current) return;
@@ -90,12 +92,13 @@ export function PreCode(props: { children: any }) {
           {mermaidCode}
         </div>
       ) : (
-        <pre ref={ref} className="relative">
+        <pre ref={ref} className="relative group/code-body">
           <span
-            className="opacity-0 hover:opacity-100 absolute top-2 right-2 cursor-pointer z-50 transition-opacity duration-200"
+            className="opacity-0 group-hover/code-body:opacity-80 absolute top-2 right-2 cursor-pointer z-50 translate-x-2 group-hover/code-body:translate-x-0 transition-all duration-200"
             onClick={() => {
               if (ref.current) {
                 copyToClipboard(ref.current.querySelector("code")?.innerText ?? "",);
+                showToast('Copied to clipboard', 'success');
               }
             }}
           >copy</span>
@@ -116,7 +119,7 @@ function CustomCode(props: { children: any; className?: string }) {
   useEffect(() => {
     if (ref.current && !isInlineCode) {
       const codeHeight = ref.current.scrollHeight;
-      setShowToggle(codeHeight > 400);
+      setShowToggle(codeHeight > 600);
     }
   }, [props.children, isInlineCode]);
 
@@ -130,15 +133,15 @@ function CustomCode(props: { children: any; className?: string }) {
     return (
       <div
         className={cn(
-          "group absolute bottom-0 left-0 flex justify-center w-full pb-2 transition-opacity duration-200",
+          "group/code-toggle absolute bottom-0 left-0 flex justify-center w-full pb-2 transition-opacity duration-200",
           collapsed ? "bg-gradient-to-t from-gray-800 to-transparent" : "pointer-events-none",
         )}
       >
         <button
           onClick={toggleCollapsed}
           className={cn(
-            "px-2 py-0.5 text-sm rounded-full bg-gray-700/90 pointer-events-auto transition-opacity duration-200 opacity-0",
-            collapsed ? "group-hover:opacity-80" : "hover:opacity-80"
+            "px-2 py-0.5 text-sm rounded-full bg-gray-700/90 pointer-events-auto transition-all duration-200 opacity-0",
+            collapsed ? "group-hover/code-toggle:opacity-80 group-hover/code-toggle:translate-y-0 translate-y-2" : "hover:opacity-80 hover:translate-y-0 translate-y-2"
           )}
         >
           {collapsed ? "Show more" : "Show less"}

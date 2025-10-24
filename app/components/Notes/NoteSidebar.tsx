@@ -105,8 +105,8 @@ const NoteSidebar = ({
   const sortedTags = Object.entries(tagStats).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="w-[200px] lg:w-[260px] h-screen">
-      <div className="w-[200px] lg:w-[260px] fixed space-y-6 top-10">
+    <div className="w-1/2 lg:w-[260px] h-screen">
+      <div className="w-full lg:w-[260px] lg:fixed space-y-6 top-10">
         {/* 过滤器 */}
         <div className={cn("rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4", !isAuthenticated && "hidden")}>
           <div className="flex items-center gap-2 mb-3">

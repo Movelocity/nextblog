@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import type { NoteData } from '@/app/common/types.notes';
+// import { useIsMobile } from '@/app/hooks/useIsMobile';
 
 interface NoteCardProps {
   /** 笔记数据 */
@@ -25,9 +26,9 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
   const [editedIsPublic, setEditedIsPublic] = useState(note.isPublic);
   const [isExpanded, setIsExpanded] = useState(false);
   const [shouldCollapse, setShouldCollapse] = useState(false);
-  
+  // const isMobile = useIsMobile();
   const contentRef = useRef<HTMLDivElement>(null);
-  const MAX_HEIGHT = 200; // 最大高度阈值（像素）
+  const MAX_HEIGHT = 280; // 最大高度阈值（像素）
 
   /**
    * 检测内容高度，判断是否需要折叠
@@ -134,7 +135,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
             value={editedData}
             onChange={(e) => setEditedData(e.target.value)}
             className="w-full px-1 py-2 rounded-lg outline-none bg-transparent dark:text-white muted-scrollbar text-sm"
-            rows={8}
+            rows={16}
             placeholder="笔记内容..."
           />
           {/* 操作按钮 */}
@@ -157,7 +158,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
               type="text"
               value={editedTags}
               onChange={(e) => setEditedTags(e.target.value)}
-              className="w-full px-3 py-1 border border-gray-300 dark:border-gray-700 outline-none rounded-lg bg-transparent dark:text-white max-w-48"
+              className="w-full px-3 py-1 border border-gray-300 dark:border-gray-700 outline-none rounded-lg bg-transparent dark:text-white max-w-48 hidden md:block"
               placeholder="标签（用逗号分隔）"
             />
             <span className="flex-1"></span>
@@ -229,7 +230,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
               ref={contentRef}
               className={classNames(
                 "prose prose-base dark:prose-invert max-w-none transition-all duration-300 overflow-hidden",
-                shouldCollapse && !isExpanded && "max-h-[200px]"
+                shouldCollapse && !isExpanded && "max-h-[280px]"
               )}
               style={shouldCollapse && !isExpanded ? {
                 maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
