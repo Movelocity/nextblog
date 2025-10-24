@@ -17,7 +17,7 @@ import { useLoginModal } from '@/app/hooks/useLoginModal';
 type Theme = "light" | "dark";
 
 export function SidePanel() {
-  const { isAuthenticated, setIsAuthenticated } = useAuth(); 
+  const { isAuthenticated, setIsAuthenticated, checkAuthStatus } = useAuth(); 
   const { setIsOpen: setLoginModalOpen } = useLoginModal();
 
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
@@ -32,12 +32,25 @@ export function SidePanel() {
   const [topLevelCategories, setTopLevelCategories] = useState<string[]>([]);
 
   useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  useEffect(() => {
+    if(sidePanelOpen) {
+      document.body.classList.add('sidebar-open');
+    } else {
+      document.body.classList.remove('sidebar-open');
+    }
+  }, [sidePanelOpen])
+
+  useEffect(() => {
     if(isMobile) {
       setSidePanelOpen(false);
     } else {
       setSidePanelOpen(true);
     }
   }, [isMobile])
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -94,7 +107,7 @@ export function SidePanel() {
         {sidePanelOpen && (
           <div 
             className={cn(
-              "flex flex-col flex-1 py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-zinc-900 px-4 h-screen pb-8 gap-1",
+              "flex flex-col flex-1 py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-zinc-900 px-4 h-screen pb-16 gap-1",
               openAtMobile && "drop-shadow-lg"
             )}
           >

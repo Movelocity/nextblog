@@ -5,7 +5,7 @@ import { getPost } from '@/app/services/posts';
 import { isAuthenticated } from '@/app/services/auth';
 import { PostEditor } from '@/app/components/Editor/PostEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
-import { useToast } from '@/app/components/Toast/context';
+import { useToast } from '@/app/components/layout/ToastHook';
 
 export default function EditPostPage() {
   const params = useParams();

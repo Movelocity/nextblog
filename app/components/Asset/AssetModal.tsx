@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { assetService } from '@/app/services/assets';
 import { Asset } from '@/app/common/types';
 import { FiImage } from 'react-icons/fi';
-import { useToast } from '@/app/components/Toast/context';
+import { useToast } from '@/app/components/layout/ToastHook';
 import Modal from '@/app/components/ui/Modal';
 import { AssetCard } from './AssetCard';
 import { UploadArea } from './UploadArea';

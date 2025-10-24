@@ -6,7 +6,7 @@ import { login, setAuthToken } from '@/app/services/auth';
 import { FiMail, FiLock, FiLoader } from 'react-icons/fi';
 import classNames from 'classnames';
 import { readAccount, rememberAccount } from '@/app/components/Auth/utils';
-import { useToast } from '@/app/components/Toast/context';
+import { useToast } from '@/app/components/layout/ToastHook';
 import { useAuth } from '@/app/hooks/useAuth';
 
 interface LoginModalProps {

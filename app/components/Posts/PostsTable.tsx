@@ -323,7 +323,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Categories
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th scope="col" className="sticky right-0 px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider bg-white dark:bg-zinc-900 border-l dark:border-gray-700">
                 Actions
               </th>
             </tr>
@@ -363,7 +363,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 <td className="px-6 py-4">
                   <CategoryTags categories={post.categories} />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right text-sm font-medium bg-white dark:bg-zinc-900 border-l dark:border-gray-700">
                   <ActionButtons post={post} {...props} />
                 </td>
               </tr>
@@ -395,5 +395,4 @@ export default function PostsTable(props: PostsTableProps) {
   };
 
   return isMobile ? <MobileView {...viewProps} /> : <DesktopView {...viewProps} />;
-  // return <DesktopView {...viewProps} />;
 }

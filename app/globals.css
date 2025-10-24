@@ -12,7 +12,7 @@
   --popover: #ffffff;
   --card: #ffffff;
   --navbar-height: 3rem;
-  --sidebar-width: 14rem;
+  --sidebar-width: 12rem;
   --sidebar-space: 0px;
   --content-width: 780px;
   --content-inline-start: max(calc(var(--sidebar-space) + 2rem), 2rem);
@@ -163,4 +163,15 @@ body {
 .muted-scrollbar::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 4px;
+}
+
+.auto-container {
+  width: 100vw;
+  padding: 1.25rem;
+  padding-left: .5rem;
+  min-height: 100vh;
+}
+
+.sidebar-open .auto-container {
+  width: calc(100vw - var(--sidebar-width));
 }

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-// import { Navigation } from "@/app/components/layout/Navbar";
 import { SidePanel } from "@/app/components/layout/SidePanel";
 import "./globals.css";
 
@@ -8,20 +7,8 @@ export const metadata: Metadata = {
   description: "A modern blog management system built with Next.js",
 };
 
-import { ToastProvider } from '@/app/components/Toast/context';
+import { ToastProvider } from '@/app/components/layout/ToastHook';
 import { GlobalLoginModal } from '@/app/components/Auth/GlobalLoginModal';
-
-interface ProvidersProps {
-  children: React.ReactNode;
-}
-
-export function Providers({ children }: ProvidersProps) {
-  return (
-    <ToastProvider>
-      {children}
-    </ToastProvider>
-  );
-} 
 
 export default function RootLayout({
   children,
@@ -34,16 +21,18 @@ export default function RootLayout({
         className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white"
         data-icp-info={process.env.ICP_INFO}
       >
-        <Providers>
+        <ToastProvider>
           {/* <Navigation /> */}
-          <main className="flex flex-row">
+          <div className="flex flex-row">
             <SidePanel />
-            <div className="flex-1">
-              {children}
-            </div>
-          </main>
+            <main className="flex-1">
+              <div className="auto-container">
+                {children}
+              </div>
+            </main>
+          </div>
           <GlobalLoginModal />
-        </Providers>
+        </ToastProvider>
       </body>
     </html>
   );

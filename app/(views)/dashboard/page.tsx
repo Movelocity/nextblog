@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { getPosts, deletePost } from '@/app/services/posts';
 import PostsTable from '@/app/components/Posts/PostsTable';
 import { updatePost } from '@/app/services/posts';
-import { useToast } from '@/app/components/Toast/context';
+import { useToast } from '@/app/components/layout/ToastHook';
 import { BLOG_CONFIG } from '@/app/common/globals';
 import { BlogMeta } from '@/app/common/types';
 import Pagination from '@/app/components/Pagination';
@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 function DashboardContent() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
-  const { isAuthenticated, isLoading, checkAuthStatus } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
@@ -25,7 +25,6 @@ function DashboardContent() {
   const router = useRouter();
 
   useEffect(() => {
-    checkAuthStatus();
     document.title = 'Dashboard';
   }, []);
 
@@ -101,7 +100,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="relative w-screen md:h-screen md:w-full px-2">
+    <div className="relative">
       <PostsTable 
         posts={blogs_info} 
         onDelete={handleDelete}

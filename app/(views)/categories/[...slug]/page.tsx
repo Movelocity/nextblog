@@ -79,7 +79,7 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="flex-1 py-8 px-6 sm:pl-0 sm:pr-6">
+    <div>
       {renderBreadcrumbs()}
 
       {availableSubCategories.length > 0 && (

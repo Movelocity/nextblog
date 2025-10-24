@@ -47,25 +47,23 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="flex-1 py-8 px-6 sm:pl-0 sm:pr-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
-        {categories.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {categories.map((category) => (
-              <Link
-                key={category}
-                href={`/categories/${category}`}
-                className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md hover:translate-y-[-2px] transition-all duration-200"
-              >
-                {category}
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-600 dark:text-gray-400">No categories found.</p>
-        )}
-      </div>
+    <div className="">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Categories</h1>
+      {categories.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {categories.map((category) => (
+            <Link
+              key={category}
+              href={`/categories/${category}`}
+              className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md hover:translate-y-[-2px] transition-all duration-200"
+            >
+              {category}
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-600 dark:text-gray-400">No categories found.</p>
+      )}
     </div>
   );
 } 

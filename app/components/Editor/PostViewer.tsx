@@ -44,7 +44,7 @@ export const PostViewer = ({ post }: PostViewerProps) => {
         </div>
       </div>
 
-      <div className="flex-1 mt-4 mb-64">
+      <div className="flex-1 mt-4 mb-64 min-h-[40vh]">
         <Markdown content={post.content} />
       </div>      
 
@@ -60,7 +60,7 @@ export const PostViewer = ({ post }: PostViewerProps) => {
               {post.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-1 text-xs bg-gray-100 dark:text-white rounded-full"
+                  className="px-2 py-1 text-xs bg-gray-100 dark:text-white rounded-full dark:bg-gray-800" 
                 >
                   #{tag}
                 </span>
@@ -83,11 +83,11 @@ export const PostViewer = ({ post }: PostViewerProps) => {
       {/* Floating Buttons */}
       <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
         {/** To Top Button */}
-        <div className="flex items-center justify-center">
+        {/* <div className="flex items-center justify-center">
           <button className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105">
             <RiArrowUpLine size={20} />
           </button>
-        </div>
+        </div> */}
 
         {/* Asset Button */}
         {isAuthenticated && (

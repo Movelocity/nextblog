@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { BlogMeta, SearchParams } from '@/app/common/types';
 import { getPosts } from '@/app/services/posts';
 import PostsList from '@/app/components/Posts/PostsList';
-import { useToast } from '@/app/components/Toast/context';
+import { useToast } from '@/app/components/layout/ToastHook';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BLOG_CONFIG } from '@/app/common/globals';
 import Pagination from '@/app/components/Pagination';
@@ -54,7 +54,7 @@ function Page() {
   };
 
   return (
-    <div className="py-8 px-6 w-full sm:pl-0 sm:pr-6">
+    <div>
       <PostsList posts={posts} isLoading={loading} />
       
       {totalPages > 1 && (
