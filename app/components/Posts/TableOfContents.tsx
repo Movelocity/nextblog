@@ -9,13 +9,11 @@ interface Heading {
 
 interface TableOfContentsProps {
   content: string;
-  className?: string;
-  style?: React.CSSProperties;
 }
 
 export const TableOfContents = ({ content }: TableOfContentsProps) => {
   const [headings, setHeadings] = useState<Heading[]>([]);
-  const [tocCollapsed, setTocCollapsed] = useState(false);
+  // const [tocCollapsed, setTocCollapsed] = useState(false);
   const [showToc, setShowToc] = useState(false);
 
   useEffect(() => {
@@ -58,23 +56,26 @@ export const TableOfContents = ({ content }: TableOfContentsProps) => {
   };
 
   return (
-    <div className={cn("z-50 h-screen -mr-6 ml-4", showToc ? "w-[280px]": "w-8")}>
-      <div className={cn("fixed rounded-l-lg shadow-sm border border-gray-200 dark:border-gray-800 p-2 mt-16", showToc ? "w-full": "w-8")}>
+    <div className={cn("z-50 h-screen fixed right-0 ", showToc ? "w-[180px] lg:w-[220px]": "w-8")}>
+      <div className={cn(
+        "fixed rounded-l-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 mt-32",
+         showToc ? "w-[180px] md:w-full": "w-8"
+      )}>
         {headings.length > 0 && <button
-          className="flex items-center justify-between mb-2 select-none break-all text-sm text-gray-500 dark:text-gray-400"
+          className="flex items-center justify-between select-none break-all text-sm text-gray-500 dark:text-gray-400 w-full hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-tl-lg border-b border-gray-200 dark:border-gray-700 cursor-pointer"
           onClick={() => setShowToc(!showToc)}
         >
           目录
         </button>}
         
-        {showToc && !tocCollapsed && (
+        {showToc && (
           <div className="space-y-1 text-sm w-full max-h-96 overflow-y-auto muted-scrollbar text-gray-700 dark:text-gray-400">
             {headings.map((heading, index) => (
               <div
                 key={index}
                 onClick={() => handleHeadingClick(heading.id)}
                 className={cn(
-                  " w-full text-left px-2 py-1 border-l-2 border-transparent hover:border-gray-300 cursor-pointer",
+                  " w-full text-left px-2 py-1 border-l-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer",
                   {
                     "pl-2": heading.level === 1,
                     "pl-4": heading.level === 2,

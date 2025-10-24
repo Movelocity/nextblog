@@ -8,9 +8,9 @@ import { useToast } from '@/app/components/layout/ToastHook';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BLOG_CONFIG } from '@/app/common/globals';
 import Pagination from '@/app/components/Pagination';
-// import { PAGE_WIDTH } from '@/app/common/utils';
 
-function Page() {
+
+export default function PostsPage() {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
@@ -52,9 +52,8 @@ function Page() {
     params.set('page', newPage.toString());
     router.push(`/posts?${params.toString()}`);
   };
-
   return (
-    <div>
+    <Suspense fallback={<div>Loading...</div>}>
       <PostsList posts={posts} isLoading={loading} />
       
       {totalPages > 1 && (
@@ -64,14 +63,6 @@ function Page() {
           onPageChange={handlePageChange}
         />
       )}
-    </div>
-  );
-} 
-
-export default function PostsPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Page />
     </Suspense>
   )
 }

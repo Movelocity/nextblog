@@ -115,7 +115,7 @@ export default function JsonFormatterPage() {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen py-6">
       <div className="max-w-7xl mx-auto px-2">
         {/* Header */}
         <div className="mb-4">
