@@ -6,6 +6,7 @@ import { useToast } from '@/app/components/layout/ToastHook';
 import Modal from '@/app/components/ui/Modal';
 import { AssetCard } from './AssetCard';
 import { UploadArea } from './UploadArea';
+import { copyToClipboard } from '@/app/services/utils';
 
 type AssetModalProps = {
   blogId: string;
@@ -92,38 +93,13 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
   const handleCopyUrl = useCallback((fileName: string) => {
     const assetUrl = assetService.getAssetUrl(blogId, fileName);
     const markdownUrl = `![${fileName}](${assetUrl})`;
-    const copyToClipboard = (text: string) => {
-      // Try using the modern clipboard API first
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text)
-          .then(() => showToast('URL copied to clipboard', 'success'))
-          .catch(() => showToast('Failed to copy URL', 'error'));
-        return;
-      }
-
-      // Fallback for non-HTTPS environments
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        
-        // Style to make it invisible but still functional
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        
-        textArea.focus();
-        textArea.select();
-        
-        document.execCommand('copy');
-        textArea.remove();
+    copyToClipboard(markdownUrl).then(success => {
+      if (success) {
         showToast('URL copied to clipboard', 'success');
-      } catch (err) {
+      } else {
         showToast('Failed to copy URL', 'error');
       }
-    };
-
-    copyToClipboard(markdownUrl);
+    });
   }, [blogId, showToast]);
 
   return (

@@ -1,15 +1,34 @@
 
-export async function copyToClipboard(text: string) {
-  const textArea = document.createElement("textarea");
-  textArea.style.position = "fixed";
-  textArea.style.opacity = "0";
-  textArea.value = text;
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-  document.execCommand("copy");
-  document.body.removeChild(textArea);
-}
+export const copyToClipboard = async (text: string): Promise<boolean> => {
+  // Try using the modern clipboard API first
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text)
+      // .then(() => showToast('URL copied to clipboard', 'success'))
+      // .catch(() => showToast('Failed to copy URL', 'error'));
+    return true;
+  }
+
+  // Fallback for non-HTTPS environments
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    
+    // Style to make it invisible but still functional
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    
+    textArea.focus();
+    textArea.select();
+    
+    document.execCommand('copy');
+    textArea.remove();
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
 
 /**
  * Calculates the estimated reading time in minutes for a given text

@@ -35,7 +35,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   return (
 
     <div
-      className="relative group bg-white w-full rounded-lg overflow-hidden hover:border-blue-400 transition-colors h-full"
+      className="relative group bg-white w-full rounded-lg overflow-hidden hover:border-blue-400 transition-colors h-full min-h-20"
       role="article"
       aria-label={`Asset: ${asset.name}`}
     >

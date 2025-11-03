@@ -76,7 +76,7 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-card rounded-lg shadow-sm border border-card p-4">
       {/* 主输入区 */}
       <textarea
         name="new-note-content"

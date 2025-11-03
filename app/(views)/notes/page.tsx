@@ -39,7 +39,7 @@ const NotesPage = () => {
         page: pageNum,
         pageSize,
         tag: selectedTag,
-        isPublic: showPublicOnly ? true : undefined,
+        isPublic: showPublicOnly,
       });
       
       setNotes(prev => append ? [...prev, ...result.notes] : result.notes);

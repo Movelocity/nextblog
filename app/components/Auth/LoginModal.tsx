@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react';
 import Modal from '../ui/Modal';
 import { login, setAuthToken } from '@/app/services/auth';
-import { FiMail, FiLock, FiLoader } from 'react-icons/fi';
+import { FiMail, FiLock, FiLoader, FiEye, FiEyeOff } from 'react-icons/fi';
 import classNames from 'classnames';
 import { readAccount, rememberAccount } from '@/app/components/Auth/utils';
 import { useToast } from '@/app/components/layout/ToastHook';
 import { useAuth } from '@/app/hooks/useAuth';
-
 
 export const LoginModal = () => {
   const [email, setEmail] = useState('');
@@ -54,6 +53,8 @@ export const LoginModal = () => {
     showToast('Forgot password', 'info');
   };
 
+  const [hidePassword, setHidePassword] = useState(true)
+
   return (
     <Modal isOpen={isLoginModalOpened} onClose={closeLoginModal} title="Welcome Back">
       <div className="p-6">
@@ -68,9 +69,6 @@ export const LoginModal = () => {
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
-              Email Address
-            </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FiMail className="h-5 w-5 text-gray-400" />
@@ -89,16 +87,13 @@ export const LoginModal = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-white">
-              Password
-            </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FiLock className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 id="password"
-                type="password"
+                type={hidePassword ? "password" : "text"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -106,6 +101,9 @@ export const LoginModal = () => {
                 placeholder="Enter your password"
                 aria-label="Password"
               />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onClick={() => setHidePassword(!hidePassword)}>
+                {hidePassword ? <FiEyeOff /> : <FiEye />}
+              </div>
             </div>
           </div>
 
@@ -117,7 +115,7 @@ export const LoginModal = () => {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-white">
                 Remember me

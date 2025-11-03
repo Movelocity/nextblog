@@ -11,6 +11,8 @@ import {
 import { RiSearchLine, RiFireFill } from 'react-icons/ri';
 import cn from 'classnames';
 import { useAuth } from '@/app/hooks/useAuth';
+import './styles.css';
+
 /**
  * Tools aggregation dashboard page
  * Displays all available tools in a card grid layout with search and category filtering
@@ -108,7 +110,9 @@ export default function ToolsPage() {
                       hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300"
           >
             <div className="flex items-start gap-3">
-              <div className={cn(
+              <div 
+                title={toolCategories[tool.category].name}
+                className={cn(
                 'p-2 rounded-lg transition-colors',
                 toolCategories[tool.category].color
               )}>
@@ -129,12 +133,6 @@ export default function ToolsPage() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                   {tool.description}
                 </p>
-                <span className={cn(
-                  'inline-block text-xs px-2 py-1 rounded mt-2',
-                  toolCategories[tool.category].color
-                )}>
-                  {toolCategories[tool.category].name}
-                </span>
               </div>
             </div>
           </Link>

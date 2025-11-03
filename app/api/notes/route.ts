@@ -237,9 +237,9 @@ const getNotes = (options: {
   page?: number,
   pageSize?: number,
   tag?: string,
-  isPublic?: boolean
+  publicOnly?: boolean
 }): { notes: NoteData[], total: number, page: number, pageSize: number } => {
-  const { page = 1, pageSize = 20, tag, isPublic } = options
+  const { page = 1, pageSize = 20, tag, publicOnly = true } = options
   const index = readIndex()
   
   let allNotes: NoteData[] = []
@@ -263,9 +263,7 @@ const getNotes = (options: {
     filteredNotes = filteredNotes.filter(note => note.tags.includes(tag))
   }
   
-  if (isPublic !== undefined) {
-    filteredNotes = filteredNotes.filter(note => note.isPublic === isPublic)
-  }
+  filteredNotes = filteredNotes.filter(note => note.isPublic === publicOnly)
   
   const total = filteredNotes.length
   const start = (page - 1) * pageSize
@@ -319,9 +317,10 @@ export async function GET(request: NextRequest) {
     const pageSize = parseInt(searchParams.get('pageSize') || '20')
     const tag = searchParams.get('tag') || undefined
     const isPublicParam = searchParams.get('isPublic')
-    const isPublic = isPublicParam ? isPublicParam === 'true' : undefined
+    // const isPublic = isPublicParam ? isPublicParam === 'true' : undefined
+    const publicOnly = isPublicParam ? isPublicParam === 'true' : true
     
-    const result = getNotes({ page, pageSize, tag, isPublic })
+    const result = getNotes({ page, pageSize, tag, publicOnly })
     if(user==null) {
       result.notes = result.notes.filter(note => note.isPublic)
     }

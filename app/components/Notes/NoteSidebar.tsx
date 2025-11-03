@@ -107,26 +107,6 @@ const NoteSidebar = ({
   return (
     <div className="w-1/2 lg:w-[260px] h-screen">
       <div className="w-full lg:w-[260px] lg:fixed space-y-6 top-10">
-        {/* 过滤器 */}
-        <div className={cn("rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4", !isAuthenticated && "hidden")}>
-          <div className="flex items-center gap-2 mb-3">
-            <FiFilter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">过滤器</h3>
-          </div>
-          
-          <button
-            onClick={onTogglePublicFilter}
-            className={classNames(
-              'w-full px-3 py-2 rounded-lg text-sm transition-colors text-left border border-gray-200 dark:border-gray-800',
-              showPublicOnly
-                ? 'text-blue-700 dark:text-blue-300'
-                : 'text-gray-700 dark:text-gray-300'
-            )}
-          >
-            {showPublicOnly ? '✓ ' : ''}仅显示公开笔记
-          </button>
-        </div>
-
         {/* 日历 */}
         <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -185,12 +165,26 @@ const NoteSidebar = ({
           )}
         </div>
 
-        {/* 标签统计 */}
-        <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <FiTag className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">标签</h3>
+        {/* 过滤器 */}
+        <div className={cn("rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4 space-y-2", !isAuthenticated && "hidden")}>
+          <div className="flex items-center gap-2">
+            <FiFilter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">过滤</h3>
           </div>
+          
+          <button
+            onClick={onTogglePublicFilter}
+            className={classNames(
+              'w-full px-3 py-2 rounded-lg text-sm transition-colors text-left border border-gray-200 dark:border-gray-800',
+              showPublicOnly
+                ? 'text-blue-700 dark:text-blue-300'
+                : 'text-gray-700 dark:text-gray-300'
+            )}
+          >
+            {showPublicOnly ? '✓ ' : ''}仅显示公开笔记
+          </button>
+
+          <h3 className="font-semibold text-gray-900 dark:text-white">标签</h3>
 
           {loading ? (
             <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
@@ -237,6 +231,7 @@ const NoteSidebar = ({
             </div>
           )}
         </div>
+
       </div>
     </div>
   );

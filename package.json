@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.15",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/lodash": "^4.17.14",
     "classnames": "^2.5.1",

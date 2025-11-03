@@ -12,6 +12,8 @@ import {
 } from 'react-icons/ri';
 import cn from 'classnames';
 import imageService, { ImageEditTask } from '@/app/services/image';
+import { copyToClipboard } from '@/app/services/utils';
+import { useToast } from '@/app/components/layout/ToastHook';
 
 type UploadImage = {
   id?: string;
@@ -29,6 +31,7 @@ type UploadImage = {
  */
 export default function ImageEditPage() {
   // Upload states
+  const { showToast } = useToast();
   const [uploadImage, setUploadImage] = useState<UploadImage>({});
   const [prompt, setPrompt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -428,36 +431,17 @@ export default function ImageEditPage() {
    * Copies text to clipboard using temporary textarea method
    */
   const handleCopyPrompt = (prompt: string) => {
-    try {
-      // Create temporary textarea element
-      const textarea = document.createElement('textarea');
-      textarea.value = prompt;
-      textarea.style.position = 'fixed';
-      textarea.style.left = '-9999px';
-      textarea.style.top = '-9999px';
-      textarea.style.opacity = '0';
-      
-      // Add to DOM
-      document.body.appendChild(textarea);
-      
-      // Select and copy
-      textarea.select();
-      textarea.setSelectionRange(0, 99999); // For mobile devices
-      document.execCommand('copy');
-      
-      // Remove temporary element
-      document.body.removeChild(textarea);
-      
-      // Show success feedback (you can replace with toast notification)
-      // alert('提示词已复制到剪贴板');
-    } catch (error) {
-      console.error('Failed to copy text:', error);
-      alert('复制失败，请手动复制');
-    }
+    copyToClipboard(prompt).then(success => {
+      if (success) {
+        showToast('提示词已复制', 'success');
+      } else {
+        showToast('复制失败，请手动复制', 'error');
+      }
+    });
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto">
 
         {/* Upload and Prompt Section */}

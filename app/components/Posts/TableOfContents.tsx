@@ -76,7 +76,7 @@ export const TableOfContents = ({ content }: TableOfContentsProps) => {
         ref={elemRef} 
         className={cn(
           "fixed rounded-l-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-zinc-900 mt-32",
-          showToc ? "w-[180px] md:w-full": "w-8 opacity-60 hover:opacity-100"
+          showToc ? "w-[180px] md:w-full shadow-lg": "w-8 opacity-60 hover:opacity-100"
         )}
       >
         {headings.length > 0 && <button
