@@ -43,7 +43,7 @@ export const POST = requireAuth(async (request: NextRequest) => {
     // Generate a unique ID for the image file
     const fileName = generateId(ext.substring(1)); // Remove the dot from extension
 
-    await imageStorage.saveImage(fileName, buffer);
+    await imageStorage?.saveImage(fileName, buffer);
 
     // Build RESTful URLs for the created resources
     // NEVER USE FIXED URLS, INSTEAD YOU KNOW THE ID AND GET IT FROM YOUR FAMILIAR API
@@ -62,7 +62,7 @@ export const POST = requireAuth(async (request: NextRequest) => {
           .toBuffer();
         
         // Use the same fileName for thumbnail (same ID and extension)
-        await imageStorage.saveThumbnail(fileName, thumbnailBuffer);
+        await imageStorage?.saveThumbnail(fileName, thumbnailBuffer);
       } catch (error) {
         console.error('Failed to generate thumbnail:', error);
         // Continue without thumbnail if generation fails

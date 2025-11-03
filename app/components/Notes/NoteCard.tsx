@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock, FiChevronDown, FiChevronUp, FiCopy } from 'react-icons/fi';
 import { HiDotsVertical } from "react-icons/hi";
 import { Popover, PopoverTrigger, PopoverContent } from '@/app/components/ui/popover';
 import type { NoteData } from '@/app/common/types.notes';
 import cn from 'classnames';
 import { useAuth } from '@/app/hooks/useAuth';
+import { copyToClipboard } from '@/app/services/utils';
 
 interface NoteCardProps {
   /** 笔记数据 */
@@ -193,7 +194,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
               {isAuthenticated && note.isPublic && <FiUnlock className="w-3 h-3 text-green-600" />} 
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center gap-2", !isAuthenticated && "hidden")}>
               <Popover>
                 <PopoverTrigger>
                   <HiDotsVertical className="w-4 h-4" />
@@ -202,7 +203,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
                   {/* 编辑按钮 */}
                   <button
                     onClick={handleStartEdit}
-                    className="w-20 p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1"
+                    className="w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1"
                     title="编辑"
                   >
                     <FiEdit2 className="w-4 h-4" /> 编辑
@@ -213,14 +214,23 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
                     onClick={handleTogglePublic}
                     className={cn(
                       'w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1 ',
-                      note.isPublic ? 'text-green-600' : 'text-gray-600 dark:text-gray-400'
+                      note.isPublic ? 'text-green-600' : ''
                     )}
                     title={note.isPublic ? '公开' : '私有'}
                   >
                     {note.isPublic ? <FiUnlock className="w-4 h-4" /> : <FiLock className="w-4 h-4" />} 
                     {note.isPublic ? '公开' : '私有'}
                   </button>
-                  
+
+                  {/** 复制内容 */}
+                  <button
+                    onClick={() => copyToClipboard(note.data)}
+                    className="w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1"
+                    title="复制"
+                  >
+                    <FiCopy className="w-4 h-4" /> 复制
+                  </button>
+
                   {/* 删除按钮 */}
                   <button
                     onClick={() => onDelete(note.id)}

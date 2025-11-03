@@ -28,7 +28,7 @@ export async function GET(
       );
     }
 
-    const assetData = await imageStorage.getImage(id);
+    const assetData = await imageStorage?.getImage(id);
     if (!assetData) {
       return NextResponse.json(
         { error: 'Image not found' },
@@ -91,7 +91,7 @@ export const DELETE = requireAuth(async (
     }
 
     // Delete both the image and its thumbnail
-    await imageStorage.deleteImageAndThumbnail(id);
+    await imageStorage?.deleteImageAndThumbnail(id);
     return NextResponse.json({ 
       success: true,
       message: 'Image asset and thumbnail deleted successfully' 

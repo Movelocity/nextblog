@@ -19,7 +19,7 @@ async function createThumbnailFromBuffer(buffer: Buffer, fileName: string, edge_
     .toBuffer();
   
   // Save thumbnail using imageStorage with the same fileName
-  await imageStorage.saveThumbnail(fileName, thumbnailBuffer);
+  await imageStorage?.saveThumbnail(fileName, thumbnailBuffer);
   return fileName; // Return the same fileName as the ID
 }
 
@@ -52,7 +52,7 @@ export function generateId(ext?: string) : string {
 }
 
 export async function get_image_base64(image_id: string): Promise<string> {
-  const assetData = await imageStorage.getImage(image_id);
+  const assetData = await imageStorage?.getImage(image_id);
   if (!assetData) {
     throw new Error(`Image ${image_id} not found`);
   }
@@ -206,7 +206,7 @@ async function start_task(task_id: string) {
     const buffer = Buffer.from(base64Data, 'base64');
     
     // Save result image using imageStorage
-    await imageStorage.saveImage(result_image_id, buffer);
+    await imageStorage?.saveImage(result_image_id, buffer);
     await createThumbnailFromBuffer(buffer, result_image_id);
 
     task_info.result_image = result_image_id;

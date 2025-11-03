@@ -3,6 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { BLOG_CONFIG } from '@/app/common/globals';
 
+
 /**
  * 独立图片存储服务
  * 
@@ -16,21 +17,10 @@ export class ImageStorage {
   private imageDir: string;
   private thumbnailDir: string;
 
-  private constructor() {
+  public constructor() {
     this.rootDir = BLOG_CONFIG.ROOT_DIR;
     this.imageDir = path.join(this.rootDir, 'images');
     this.thumbnailDir = path.join(this.rootDir, 'thumbnails');
-  }
-
-  private static instance: ImageStorage | null = null;
-
-  public static getInstance(): ImageStorage {
-    if (!ImageStorage.instance) {
-      ImageStorage.instance = new ImageStorage();
-      ImageStorage.instance.init();
-      console.log('ImageStorage initialized');
-    }
-    return ImageStorage.instance;
   }
 
   /**
@@ -193,4 +183,16 @@ export class ImageStorage {
   }
 }
 
-export default ImageStorage.getInstance();
+// export default ImageStorage.getInstance();
+const createImageStorage = () => {
+  try {
+    const imageStorage = new ImageStorage();
+    imageStorage.init();
+    return imageStorage;
+  } catch (error) {
+    console.error('Error creating image storage:', error);
+    return null;
+  }
+}
+const imageStorage = createImageStorage();
+export default imageStorage;  // cache the instance via module.exports

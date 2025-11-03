@@ -27,7 +27,7 @@ export async function GET(
       );
     }
 
-    const thumbnailData = await imageStorage.getThumbnail(id);
+    const thumbnailData = await imageStorage?.getThumbnail(id);
     if (!thumbnailData) {
       return NextResponse.json(
         { error: 'Thumbnail not found' },
