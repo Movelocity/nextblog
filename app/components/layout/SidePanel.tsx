@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getTaxonomy } from '@/app/services/posts';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { RiBook2Fill, RiHomeFill, RiDashboardFill, RiToolsFill, RiBook3Fill } from 'react-icons/ri';
+import { RiBook2Fill, RiHomeFill, RiDashboardFill, RiToolsFill, RiBook3Fill, RiServerFill } from 'react-icons/ri';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import SearchModal from "@/app/components/Searching/SearchModal";
 import { removeAuthToken } from '@/app/services/auth';
@@ -128,6 +128,7 @@ export function SidePanel() {
             </StyledLink>
             
             <StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard" currentPath={pathname}/>
+            {isAuthenticated && (<StyledLink icon={<RiServerFill className="w-4 h-4" />} name="System" tgUrl="/system" currentPath={pathname}/>)}
             
             <StyledLink icon={<RiAddFill className="w-4 h-4" />} name="New Post" tgUrl="/posts/new" currentPath={pathname}/>
             <div className="flex-1"></div>

@@ -109,6 +109,9 @@ body {
 @media (max-width: 640px) {
   .sidebar-open .auto-container {
     width: 100vw;
-    padding-left: 1.25rem;
+    padding-left: 1.4rem;
+  }
+  .auto-container {
+    padding: 0 1.4rem;
   }
 }

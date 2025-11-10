@@ -124,6 +124,13 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
     onUpdate(note.id, { isPublic: !note.isPublic });
   };
 
+  const [estimatedEditorRows, setEstimatedEditorRows] = useState<number>(16);
+  useEffect(() => {
+    if (!contentRef.current) return;;
+    const lines = editedData.split('\n').length;
+    setEstimatedEditorRows(Math.min(Math.max(4, lines), 16));
+  }, [editedData]);
+
   return (
     <div className={cn('bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow border border-card p-4 pb-2')}>
       {isEditing ? (
@@ -135,7 +142,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
             value={editedData}
             onChange={(e) => setEditedData(e.target.value)}
             className="w-full px-1 py-2 rounded-lg outline-none bg-transparent dark:text-white muted-scrollbar"
-            rows={16}
+            rows={estimatedEditorRows}
             placeholder="笔记内容..."
           />
           {/* 操作按钮 */}
@@ -182,7 +189,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
         /* 查看模式 */
         <div>
           {/* 头部信息 */}
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between mb-1">
             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
               <FiClock className="w-3.5 h-3.5" />
               <span>{formatDate(note.createdAt)}</span>

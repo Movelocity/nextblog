@@ -93,11 +93,13 @@ export const DELETE = requireAuth(async (request: NextRequest) => {
 
 
 /**
- * Stop a running task
- * PUT /api/image-edit?task_id={task_id}
+ * Stop a running task or retry a failed task
+ * PUT /api/image-edit?task_id={task_id}&action=stop
+ * PATCH /api/image-edit?task_id={task_id}&action=retry
  * 
- * Stops task execution but keeps it in storage with "failed" status.
- * Response: { message: "Task stopped" }
+ * PUT: Stops task execution but keeps it in storage with "failed" status.
+ * PATCH: Retries a failed task by resetting its state and restarting it.
+ * Response: { message: "Task stopped" } or { message: "Task retried" }
  */
 export const PUT = requireAuth(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
@@ -107,4 +109,24 @@ export const PUT = requireAuth(async (request: NextRequest) => {
   }
   task_manager.stop_task(task_id);
   return NextResponse.json({ message: "Task stopped" }, { status: 200 });
+});
+
+export const PATCH = requireAuth(async (request: NextRequest) => {
+  const { searchParams } = new URL(request.url);
+  const task_id = searchParams.get('task_id');
+  if(!task_id) {
+    return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
+  }
+  try {
+    const body = await request.json().catch(() => ({}));
+    const newPrompt = body.prompt;
+    await task_manager.retry_task(task_id, newPrompt);
+    return NextResponse.json({ message: "Task retried" }, { status: 200 });
+  } catch (error) {
+    console.error("Error retrying task:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to retry task" },
+      { status: 500 }
+    );
+  }
 });

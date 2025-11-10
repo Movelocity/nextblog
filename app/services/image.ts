@@ -1,4 +1,4 @@
-import { get, post, put, del } from './utils';
+import { get, post, put, del, baseFetch } from './utils';
 
 // ===== 类型定义 =====
 
@@ -106,6 +106,20 @@ export const imageEditService = {
   deleteTask: async (taskId: string): Promise<TaskActionResponse> => {
     return del<TaskActionResponse>('/api/image-edit', {
       params: { task_id: taskId }
+    });
+  },
+
+  /**
+   * 重试失败的任务（重置状态并重新开始）
+   * @param taskId 任务ID
+   * @param newPrompt 可选的新提示词，如果提供则更新任务的提示词
+   * @returns 操作结果
+   */
+  retryTask: async (taskId: string, newPrompt?: string): Promise<TaskActionResponse> => {
+    return baseFetch<TaskActionResponse>('/api/image-edit', {
+      method: 'PATCH',
+      params: { task_id: taskId },
+      body: newPrompt ? { prompt: newPrompt } : undefined
     });
   },
 

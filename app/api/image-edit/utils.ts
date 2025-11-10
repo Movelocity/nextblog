@@ -254,6 +254,44 @@ function delete_task(task_id: string) {
   saveTasksToFile();
 }
 
+/**
+ * Retry a failed task by resetting its state and restarting it
+ * @param task_id Task ID to retry
+ * @param newPrompt Optional new prompt to use instead of the original
+ */
+async function retry_task(task_id: string, newPrompt?: string) {
+  const task_info = get_task(task_id);
+  if(!task_info) {
+    throw new Error("Task not found");
+  }
+  
+  // Stop task if it's currently running
+  if(task_info.controller) {
+    task_info.controller.abort();
+    task_info.controller = null;
+  }
+  if(task_info.timeout) {
+    clearTimeout(task_info.timeout);
+    task_info.timeout = null;
+  }
+  
+  // Reset task state for retry
+  task_info.status = "processing";
+  task_info.result_image = undefined;
+  task_info.message = undefined;
+  task_info.updated_at = Date.now();
+  
+  // Update prompt if provided
+  if (newPrompt) {
+    task_info.prompt = newPrompt;
+  }
+  
+  update_task(task_info);
+  
+  // Restart the task
+  await start_task(task_id);
+}
+
 export const task_manager = {
   get_task,
   get_tasks,
@@ -263,6 +301,7 @@ export const task_manager = {
   start_task,
   stop_task,
   delete_task,
+  retry_task,
 }
 
 

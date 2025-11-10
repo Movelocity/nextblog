@@ -8,9 +8,14 @@ import {
   RiCloseLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
-  RiFileCopyLine,
+  RiEyeLine,
+  RiEditLine,
+  RiDeleteBinLine,
+  RiAddLine,
+  RiRepeatLine,
 } from 'react-icons/ri';
 import cn from 'classnames';
+import { Button, Modal } from '@/app/components/ui';
 import imageService, { ImageEditTask } from '@/app/services/image';
 import { copyToClipboard } from '@/app/services/utils';
 import { useToast } from '@/app/components/layout/ToastHook';
@@ -27,11 +32,12 @@ type UploadImage = {
 
 /**
  * Image Edit Page
- * User-friendly interface for uploading and editing images with AI
+ * Gallery-style interface for uploading and editing images with AI
  */
 export default function ImageEditPage() {
-  // Upload states
   const { showToast } = useToast();
+  
+  // Upload states
   const [uploadImage, setUploadImage] = useState<UploadImage>({});
   const [prompt, setPrompt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,28 +46,28 @@ export default function ImageEditPage() {
   const [tasks, setTasks] = useState<ImageEditTask[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const tasksPerPage = 5;
+  const tasksPerPage = 12; // Gallery grid: 3 columns x 4 rows
   
-  // Preview modal states
+  // Modal states
   const [previewImage, setPreviewImage] = useState<UploadImage>({});
+  const [promptModal, setPromptModal] = useState<{ task: ImageEditTask | null }>({ task: null });
+  const [editModal, setEditModal] = useState<{ task: ImageEditTask | null }>({ task: null });
+  const [editPrompt, setEditPrompt] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadAreaRef = useRef<HTMLDivElement>(null);
   
   // Polling state
   const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const pollingTaskIdRef = useRef<string | null>(null);
-  const pollingAttemptsRef = useRef<number>(0);
+  const pollingTaskIdsRef = useRef<Set<string>>(new Set());
 
   /**
    * Load tasks on mount
    */
   useEffect(() => {
     handleRefreshTasks();
-
     window.dispatchEvent(new CustomEvent("update-title", { detail: { title: "AI 图片编辑" } }));
     
-    // Clean up polling timer on unmount
     return () => {
       if (pollingTimerRef.current) {
         clearInterval(pollingTimerRef.current);
@@ -79,18 +85,15 @@ export default function ImageEditPage() {
         const { naturalWidth: width, naturalHeight: height } = img;
         const maxSize = 1024;
         
-        // Check if resize is needed
         if (width <= maxSize && height <= maxSize) {
           resolve({ file, size: { w: width, h: height } });
           return;
         }
         
-        // Calculate new dimensions
         const ratio = Math.min(maxSize / width, maxSize / height);
         const newWidth = Math.round(width * ratio);
         const newHeight = Math.round(height * ratio);
         
-        // Create canvas for resizing
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -100,11 +103,8 @@ export default function ImageEditPage() {
         
         canvas.width = newWidth;
         canvas.height = newHeight;
-        
-        // Draw resized image
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
         
-        // Convert to blob and create new file
         canvas.toBlob((blob) => {
           if (blob) {
             const resizedFile = new File([blob], file.name, {
@@ -132,17 +132,9 @@ export default function ImageEditPage() {
     }
     
     try {
-      // Resize image if needed
       const { file: processedFile, size } = await resizeImageIfNeeded(file);
-      
-      // Create preview URL
       const url = URL.createObjectURL(processedFile);
       setUploadImage({ url, file: processedFile, size });
-      
-      // Show resize notification if image was resized
-      if (processedFile !== file) {
-        console.log(`图片已自动缩放: ${size.w}x${size.h}`);
-      }
     } catch (error) {
       console.error('处理图片失败:', error);
       alert('处理图片失败，请重试');
@@ -220,13 +212,12 @@ export default function ImageEditPage() {
     setIsLoadingTasks(true);
     try {
       const allTasks = await imageService.edit.getAllTasks();
-      // Sort by updated_at descending (newest first)
       allTasks.sort((a, b) => b.updated_at - a.updated_at);
       setTasks(allTasks);
       return allTasks;
     } catch (error) {
       console.error('Failed to load tasks:', error);
-      alert('加载任务列表失败');
+      showToast('加载任务列表失败', 'error');
       return [];
     } finally {
       setIsLoadingTasks(false);
@@ -241,42 +232,30 @@ export default function ImageEditPage() {
       clearInterval(pollingTimerRef.current);
       pollingTimerRef.current = null;
     }
-    pollingTaskIdRef.current = null;
-    pollingAttemptsRef.current = 0;
+    pollingTaskIdsRef.current.clear();
   };
 
   /**
    * Starts polling for task updates
-   * Polls every 10 seconds, max 30 attempts
    */
-  const startPolling = (taskId: string) => {
-    // Stop any existing polling
+  const startPolling = (taskIds: string[]) => {
     stopPolling();
     
-    // Reset polling state
-    pollingTaskIdRef.current = taskId;
-    pollingAttemptsRef.current = 0;
+    pollingTaskIdsRef.current = new Set(taskIds);
     
-    // Start polling timer
     pollingTimerRef.current = setInterval(async () => {
-      pollingAttemptsRef.current += 1;
-      
-      console.log(`Polling attempt ${pollingAttemptsRef.current}/30 for task ${taskId}`);
-      
-      // Check if max attempts reached
-      if (pollingAttemptsRef.current >= 30) {
-        console.log('Max polling attempts reached, stopping...');
-        stopPolling();
-        return;
-      }
-      
-      // Refresh tasks
       const allTasks = await handleRefreshTasks();
       
-      // Check if task is completed or failed
-      const task = allTasks.find(t => t.id === taskId);
-      if (task && (task.status === 'completed' || task.status === 'failed')) {
-        console.log(`Task ${taskId} finished with status: ${task.status}`);
+      // Remove completed/failed tasks from polling
+      allTasks.forEach(task => {
+        if (pollingTaskIdsRef.current.has(task.id) && 
+            (task.status === 'completed' || task.status === 'failed')) {
+          pollingTaskIdsRef.current.delete(task.id);
+        }
+      });
+      
+      // Stop polling if no tasks left
+      if (pollingTaskIdsRef.current.size === 0) {
         stopPolling();
       }
     }, 10000); // 10 seconds interval
@@ -286,23 +265,18 @@ export default function ImageEditPage() {
    * Handles submit (upload and start edit)
    */
   const handleSubmit = async () => {
-    // if (!selectedFile) {
-    //   alert('请先选择图片');
-    //   return;
-    // }
-    
     if (!prompt.trim()) {
-      alert('请输入编辑提示词');
+      showToast('请输入编辑提示词', 'error');
       return;
     }
 
     setIsSubmitting(true);
     try {
       let imageId = uploadImage.id;
-      // Upload image with thumbnail
+      
       if (!imageId) {
         if (!uploadImage.file) {
-          alert('请先选择图片');
+          showToast('请先选择图片', 'error');
           return;
         }
         const uploadResult = await imageService.asset.uploadImage(uploadImage.file, true);
@@ -310,46 +284,145 @@ export default function ImageEditPage() {
       }
 
       if (!imageId) {
-        alert('图片上传失败');
+        showToast('图片上传失败', 'error');
         return;
       }
       
-      // Start edit task
       const result = await imageService.edit.startEditTask({
         orig_img: imageId,
         prompt: prompt.trim()
       });
-      const task_id = result.task_id;
-      console.log('task_id:', task_id);
       
-      // Clear form
       setUploadImage({});
       setPrompt('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
       
-      // Refresh task list
       await handleRefreshTasks();
-      
-      // Start polling for task updates
-      startPolling(task_id);
+      startPolling([result.task_id]);
+      showToast('任务已提交', 'success');
       
     } catch (error) {
       console.error('Failed to submit task:', error);
-      alert('提交任务失败: ' + (error instanceof Error ? error.message : '未知错误'));
+      showToast('提交任务失败: ' + (error instanceof Error ? error.message : '未知错误'), 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   /**
+   * Creates a new task from an existing image
+   */
+  const handleCreateFromImage = async (imageId: string, currentPrompt?: string) => {
+    const newPrompt = prompt.trim() || currentPrompt || '';
+    if (!newPrompt) {
+      showToast('请输入编辑提示词', 'error');
+      return;
+    }
+
+    try {
+      const result = await imageService.edit.startEditTask({
+        orig_img: imageId,
+        prompt: newPrompt
+      });
+      
+      await handleRefreshTasks();
+      startPolling([result.task_id]);
+      showToast('任务已提交', 'success');
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      showToast('创建任务失败', 'error');
+    }
+  };
+
+  /**
+   * Retries a failed task
+   */
+  const handleRetryTask = async (task: ImageEditTask) => {
+    try {
+      await imageService.edit.retryTask(task.id);
+      await handleRefreshTasks();
+      startPolling([task.id]);
+      showToast('任务已重试', 'success');
+    } catch (error) {
+      console.error('Failed to retry task:', error);
+      showToast('重试任务失败', 'error');
+    }
+  };
+
+  /**
+   * Creates a new task from a completed task (success retry)
+   */
+  const handleRetrySuccess = async (task: ImageEditTask) => {
+    if (!task.result_image) {
+      showToast('任务尚未完成', 'error');
+      return;
+    }
+    
+    setEditModal({ task });
+    setEditPrompt(task.prompt);
+  };
+
+  /**
+   * Updates task prompt
+   */
+  const handleUpdatePrompt = async () => {
+    const task = editModal.task;
+    if (!task || !editPrompt.trim()) {
+      return;
+    }
+
+    try {
+      // For failed tasks, retry with new prompt (task override)
+      if (task.status === 'failed') {
+        await imageService.edit.retryTask(task.id, editPrompt.trim());
+        await handleRefreshTasks();
+        startPolling([task.id]);
+        showToast('任务已重试', 'success');
+      } else {
+        // For completed tasks, create new task from result image
+        const imageId = task.result_image || task.original_image;
+        const result = await imageService.edit.startEditTask({
+          orig_img: imageId,
+          prompt: editPrompt.trim()
+        });
+        await handleRefreshTasks();
+        startPolling([result.task_id]);
+        showToast('新任务已创建', 'success');
+      }
+      
+      setEditModal({ task: null });
+      setEditPrompt('');
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      showToast('操作失败', 'error');
+    }
+  };
+
+  /**
+   * Deletes a task
+   */
+  const handleDeleteTask = async (task: ImageEditTask) => {
+    if (!confirm('确定要删除这个任务吗？')) {
+      return;
+    }
+
+    try {
+      await imageService.edit.deleteTask(task.id);
+      await handleRefreshTasks();
+      showToast('任务已删除', 'success');
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      showToast('删除任务失败', 'error');
+    }
+  };
+
+  /**
    * Opens preview modal
    */
-  const handlePreviewImage = (imageId: string, title: string) => {
-    // setPreviewImage(imageService.asset.getImageUrl(imageId));
+  const handlePreviewImage = (imageId: string) => {
     setPreviewImage({ id: imageId, url: imageService.asset.getImageUrl(imageId) });
-    // setPreviewTitle(title);
   };
 
   /**
@@ -357,7 +430,6 @@ export default function ImageEditPage() {
    */
   const handleClosePreview = () => {
     setPreviewImage({});
-    // setPreviewTitle('');
   };
 
   /**
@@ -371,19 +443,16 @@ export default function ImageEditPage() {
     const items: (number | 'ellipsis')[] = [];
     
     if (totalPages <= 7) {
-      // Show all pages if total is 7 or less
       for (let i = 1; i <= totalPages; i++) {
         items.push(i);
       }
     } else {
-      // Always show first page
       items.push(1);
       
       if (currentPage > 3) {
         items.push('ellipsis');
       }
       
-      // Show current page and adjacent pages
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
       
@@ -397,7 +466,6 @@ export default function ImageEditPage() {
         items.push('ellipsis');
       }
       
-      // Always show last page
       if (!items.includes(totalPages)) {
         items.push(totalPages);
       }
@@ -428,258 +496,260 @@ export default function ImageEditPage() {
   };
 
   /**
-   * Copies text to clipboard using temporary textarea method
+   * Gets display image for a task (result if available, otherwise original)
    */
-  const handleCopyPrompt = (prompt: string) => {
-    copyToClipboard(prompt).then(success => {
-      if (success) {
-        showToast('提示词已复制', 'success');
-      } else {
-        showToast('复制失败，请手动复制', 'error');
-      }
-    });
+  const getTaskDisplayImage = (task: ImageEditTask): string => {
+    return task.result_image || task.original_image;
+  };
+
+  /**
+   * Gets thumbnail URL for a task
+   */
+  const getTaskThumbnailUrl = (task: ImageEditTask): string => {
+    const imageId = getTaskDisplayImage(task);
+    return imageService.asset.getThumbnailUrl(imageId);
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-6xl mx-auto">
-
-        {/* Upload and Prompt Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          {/* Image Upload */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              图片上传
-            </label>
-            <div
-              ref={uploadAreaRef}
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                "relative h-64 border-2 border-dashed border-border rounded-lg",
-                "hover:border-blue-500 transition-colors cursor-pointer bg-background overflow-hidden",
-              )}
-            >
-              {uploadImage.url ? (
-                <img 
-                  src={uploadImage.url}
-                  alt="Preview" 
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <RiUploadLine className="w-12 h-12 mb-2" />
-                  <p className="text-sm">点击上传或粘贴图片</p>
-                  <p className="text-xs mt-1">支持拖拽上传</p>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg, image/png, image/webp, image/gif"
-                onChange={handleFileInputChange}
-                className="hidden"
+    <div className="min-h-screen p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Upload Section */}
+        <div className="mb-6 rounded-lg border border-border p-4">
+          <label className="block text-sm font-medium text-foreground mb-2">
+            上传图片
+          </label>
+          <div
+            ref={uploadAreaRef}
+            onClick={() => fileInputRef.current?.click()}
+            className={cn(
+              "relative h-32 border-2 border-dashed border-border rounded-lg",
+              "hover:border-blue-500 transition-colors cursor-pointer overflow-hidden",
+            )}
+          >
+            {uploadImage.url ? (
+              <img 
+                src={uploadImage.url}
+                alt="Preview" 
+                className="w-full h-full object-contain"
               />
-              {uploadImage.size && (
-                <div className="text-xs text-muted-foreground absolute bottom-0 right-2">
-                  {uploadImage.size.w}x{uploadImage.size.h}
-                </div>
-              )}
-            </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <RiUploadLine className="w-8 h-8 mb-2" />
+                <p className="text-sm">点击上传或粘贴图片</p>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg, image/png, image/webp, image/gif"
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
           </div>
-
-          {/* Prompt Editor */}
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              编辑提示词
-            </label>
-            <textarea
+          
+          <div className="mt-4 flex gap-2">
+            <input
+              type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="描述你想要的编辑效果，例如：将背景改为蓝天白云，添加一只猫..."
+              placeholder="输入编辑提示词..."
               className={cn(
-                "flex-1 px-4 py-3 border border-border rounded-lg",
-                "bg-background text-muted-foreground resize-none",
+                "flex-1 px-4 py-2 border border-border rounded-lg",
+                "bg-transparent text-foreground",
                 "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               )}
-              rows={8}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
             />
-            
-            {/* Action Buttons */}
-            <div className="flex mt-2">
-              <button
-                onClick={handleSubmit}
-                disabled={!uploadImage.url || !prompt.trim() || isSubmitting}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 
-                         text-white rounded-lg transition-colors font-medium"
-              >
-                {isSubmitting ? '提交中...' : '提交'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Task List */}
-        <div className="bg-background rounded-lg border border-border">
-          <div className="px-4 py-2 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">
-              任务列表
-            </h2>
+            <button
+              onClick={handleSubmit}
+              disabled={!uploadImage.url || !prompt.trim() || isSubmitting}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 
+                       text-white rounded-lg transition-colors font-medium whitespace-nowrap"
+            >
+              {isSubmitting ? '提交中...' : '提交'}
+            </button>
             <button
               onClick={handleRefreshTasks}
               disabled={isLoadingTasks}
-              className="px-2 py-1 text-sm border border-border rounded-lg text-foreground hover:bg-muted
+              className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-muted
                         transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <RiRefreshLine className={cn("w-4 h-4", isLoadingTasks && "animate-spin")} />
-              刷新
             </button>
           </div>
+        </div>
 
-          <div className="divide-y divide-gray-200 border-t border-border dark:divide-gray-800">
-            {currentTasks.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                暂无任务
-              </div>
-            ) : (
-              currentTasks.map((task) => (
-                <div key={task.id} className="p-4 hover:bg-muted transition-colors">
-                  <div className="flex gap-4 flex-col md:flex-row">
-                    {/* Image Thumbnails */}
-                    <div className="flex gap-4">
-                      {/* Original Image Thumbnail */}
-                      <div className="flex-shrink-0 relative w-24 h-24">
-                        <img
-                          src={imageService.asset.getThumbnailUrl(task.original_image)}
-                          alt="Original"
-                          onClick={() => handlePreviewImage(task.original_image, '原图')}
-                          className="w-full h-full object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity"
-                        />
-                        <div className="text-xs text-gray-400 absolute top-0 left-0 bg-black bg-opacity-50 rounded-br-lg rounded-tl-lg px-1 py-0.5">原图</div>
+        {/* Gallery Grid */}
+        <div className="mb-6">
+          {currentTasks.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground bg-background rounded-lg border border-border">
+              暂无任务
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {currentTasks.map((task) => {
+                const displayImageId = getTaskDisplayImage(task);
+                const thumbnailUrl = getTaskThumbnailUrl(task);
+                const isCompleted = task.status === 'completed';
+                const isFailed = task.status === 'failed';
+                const isProcessing = task.status === 'processing';
+                
+                return (
+                  <div
+                    key={task.id}
+                    className="bg-background rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow"
+                  >
+                    {/* Image Container */}
+                    <div className="relative aspect-square bg-muted group">
+                      <img
+                        src={thumbnailUrl}
+                        alt={task.prompt}
+                        className="w-full h-full object-cover"
+                      />
+                      
+                      {/* Action Buttons Overlay */}
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handlePreviewImage(displayImageId)}
+                          className="p-2 bg-black bg-opacity-50 hover:bg-opacity-70 rounded text-white transition-colors"
+                          title="预览"
+                        >
+                          <RiEyeLine className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditModal({ task });
+                            setEditPrompt(task.prompt);
+                          }}
+                          className="p-2 bg-black bg-opacity-50 hover:bg-opacity-70 rounded text-white transition-colors"
+                          title="修改"
+                        >
+                          <RiEditLine className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTask(task)}
+                          className="p-2 bg-black bg-opacity-50 hover:bg-opacity-70 rounded text-white transition-colors"
+                          title="删除"
+                        >
+                          <RiDeleteBinLine className="w-4 h-4" />
+                        </button>
                       </div>
 
-                      {/* Result Image Thumbnail */}
-                      <div className="flex-shrink-0 relative w-24 h-24">
-                        {task.result_image ? (
-                          <img
-                            src={imageService.asset.getThumbnailUrl(task.result_image)}
-                            alt="Result"
-                            onClick={() => handlePreviewImage(task.result_image!, '编辑结果')}
-                            className="w-full h-full object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity"
-                          />
-                        ) : (
-                          <div className="w-full h-full rounded-lg border border-border flex items-center justify-center bg-muted">
-                            <RiImageLine className="w-8 h-8 text-muted-foreground" />
-                          </div>
-                        )}
-
-                        <div className="text-xs text-gray-200 absolute top-0 left-0 bg-black bg-opacity-50 rounded-br-lg rounded-tl-lg px-1 py-0.5">结果</div>
-                      </div>
-                    </div>
-
-                    {/* Task Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1 min-w-0 flex items-start gap-2">
-                          <p className="text-sm text-foreground line-clamp-2 flex-1">
-                            {task.prompt}
-                          </p>
-                          <button
-                            onClick={() => handleCopyPrompt(task.prompt)}
-                            className="flex-shrink-0 p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-                            title="复制提示词"
-                          >
-                            <RiFileCopyLine className="w-4 h-4" />
-                          </button>
-                        </div>
+                      {/* Status Badge */}
+                      <div className="absolute top-2 left-2">
                         <span className={cn(
-                          "px-2 py-1 rounded text-xs font-medium whitespace-nowrap",
-                          task.status === 'completed' && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-                          task.status === 'processing' && "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-                          task.status === 'failed' && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                          "px-2 py-1 rounded text-xs font-medium",
+                          isCompleted && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+                          isProcessing && "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+                          isFailed && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                         )}>
-                          {task.status === 'completed' && '已完成'}
-                          {task.status === 'processing' && '处理中'}
-                          {task.status === 'failed' && '失败'}
+                          {isCompleted && '已完成'}
+                          {isProcessing && '处理中'}
+                          {isFailed && '失败'}
                         </span>
                       </div>
-                      
-                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                        <span>任务ID: {task.id}</span>
-                        <span>更新: {formatTime(task.updated_at)}</span>
-                      </div>
 
-                      {task.message && (
-                        <p className="mt-2 text-xs text-red-600 dark:text-red-400">
-                          {task.message}
-                        </p>
+                      {/* Action Buttons for Completed/Failed Tasks */}
+                      {isFailed && (
+                        <div className="absolute bottom-2 left-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRetryTask(task);
+                            }}
+                            className="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                          >
+                            <RiRepeatLine className="w-3 h-3" />
+                            重试
+                          </button>
+                        </div>
                       )}
                     </div>
+
+                    {/* Prompt Text */}
+                    <div
+                      className="p-3 cursor-pointer hover:bg-muted transition-colors"
+                      onClick={() => setPromptModal({ task })}
+                    >
+                      <p className="text-sm text-foreground line-clamp-1">
+                        {task.prompt}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatTime(task.updated_at)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-center gap-1">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 
-                         disabled:cursor-not-allowed transition-colors"
-              >
-                <RiArrowLeftSLine className="w-5 h-5" />
-              </button>
-
-              {getPaginationItems().map((item, index) => (
-                item === 'ellipsis' ? (
-                  <span key={`ellipsis-${index}`} className="px-2 text-gray-500">...</span>
-                ) : (
-                  <button
-                    key={item}
-                    onClick={() => setCurrentPage(item)}
-                    className={cn(
-                      "px-3 py-1 rounded transition-colors",
-                      currentPage === item
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300"
-                    )}
-                  >
-                    {item}
-                  </button>
-                )
-              ))}
-
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <RiArrowRightSLine className="w-5 h-5" />
-              </button>
+                );
+              })}
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-1 mb-6">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded hover:bg-muted disabled:opacity-30 
+                       disabled:cursor-not-allowed transition-colors"
+            >
+              <RiArrowLeftSLine className="w-5 h-5" />
+            </button>
+
+            {getPaginationItems().map((item, index) => (
+              item === 'ellipsis' ? (
+                <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">...</span>
+              ) : (
+                <button
+                  key={item}
+                  onClick={() => setCurrentPage(item)}
+                  className={cn(
+                    "px-3 py-1 rounded transition-colors",
+                    currentPage === item
+                      ? "bg-blue-600 text-white"
+                      : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  {item}
+                </button>
+              )
+            ))}
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <RiArrowRightSLine className="w-5 h-5" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Fullscreen Preview Modal */}
+      {/* Preview Modal */}
       {previewImage.url && (
         <div 
           className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
           onClick={handleClosePreview}
         >
-          <div className="absolute top-4 right-4">
-            {/** reuse uploaded image */}
-            <button
+          <div className="absolute top-4 right-4 flex gap-2">
+            {/* <button
               className="p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
               title="使用图片"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setUploadImage({ id: previewImage.id, url: previewImage.url });
+                handleClosePreview();
               }}
             >
               <RiUploadLine className="w-8 h-8" />
-            </button>
+            </button> */}
             <button
               title="关闭"
               className="p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
@@ -699,8 +769,89 @@ export default function ImageEditPage() {
           </div>
         </div>
       )}
+
+      {/* Prompt Modal */}
+      {promptModal.task && (
+        <Modal
+          isOpen={promptModal.task !== null}
+          onClose={() => setPromptModal({ task: null })}
+          title="提示词"
+          size="md"
+        >
+          <p className="text-foreground my-3 mx-6 whitespace-pre-wrap">{promptModal.task.prompt}</p>
+          <div className="flex gap-3 justify-end m-4">
+            <Button
+              onClick={() => {
+                copyToClipboard(promptModal.task!.prompt).then(success => {
+                  if (success) {
+                    showToast('提示词已复制', 'success');
+                  } else {
+                    showToast('复制失败', 'error');
+                  }
+                });
+              }}
+              size="sm"
+              variant="outline"
+            >
+              复制
+              </Button>
+            <Button
+              onClick={() => {
+                setPrompt(promptModal.task!.prompt);
+                setPromptModal({ task: null });
+              }}
+              size="sm"
+              variant="primary"
+            >
+              使用此提示词
+            </Button>
+          </div>
+        </Modal>
+
+      )}
+
+      {editModal.task && (
+        <Modal
+          isOpen={editModal.task !== null}
+          onClose={() => setEditModal({ task: null })}
+          title="修改提示词"
+          size="md"
+        >
+          <div className="mx-4 my-2">
+            <textarea
+              value={editPrompt}
+              onChange={(e) => setEditPrompt(e.target.value)}
+              placeholder="输入编辑提示词..."
+              className={cn(
+                "w-full px-4 py-3 border border-border rounded-lg",
+                "bg-transparent text-foreground resize-none",
+                "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              )}
+              rows={6}
+            />
+          </div>
+          <div className="flex gap-2 justify-end pb-3 px-3">
+            <Button
+              onClick={() => {
+                setEditModal({ task: null });
+                setEditPrompt('');
+              }}
+              size="sm"
+              variant="outline"
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleUpdatePrompt}
+              disabled={!editPrompt.trim()}
+              size="sm"
+              variant="primary"
+            >
+              {editModal?.task?.status === 'failed' ? '重试' : '创建'}
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
-  );
+  )
 }
-
-

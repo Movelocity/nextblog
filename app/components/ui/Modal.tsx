@@ -75,7 +75,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md', c
       >
         {/** 标题区域（可选），右侧自带关闭按钮 */}
         {title && (
-          <div className="flex justify-between items-center p-2 px-4 border-b dark:border-gray-700">
+          <div className="flex justify-between items-center p-2 px-4 ">
             <h2 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">
               {title}
             </h2>

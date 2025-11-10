@@ -6,19 +6,21 @@ import { FiSend, FiLock, FiUnlock } from 'react-icons/fi';
 
 interface NoteEditorProps {
   /** 提交回调 */
-  onSubmit: (data: string, tags: string[], isPublic: boolean) => void;
+  onSubmit: (data: string, tags: string[], isPublic: boolean) => Promise<boolean>;
   /** 加载状态 */
   loading?: boolean;
   /** 占位符 */
   placeholder?: string;
 }
 
+const NOTE_EDITOR_DATA_KEY = 'note-editor-data';
+
 /**
  * 笔记编辑器组件
  * 用于创建新笔记
  */
 const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...' }: NoteEditorProps) => {
-  const [data, setData] = useState('');
+  const [data, setData] = useState<string>(localStorage.getItem(NOTE_EDITOR_DATA_KEY) || '');
   const [tags, setTags] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [showTagEdit, setShowTagEdit] = useState(false);
@@ -40,7 +42,18 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
    */
   useEffect(() => {
     adjustTextareaHeight();
+    localStorage.setItem(NOTE_EDITOR_DATA_KEY, data);  // 缓存内容，防止断网后丢失数据
   }, [data]);
+
+  /**
+   * 加载缓存内容
+   */
+  useEffect(() => {
+    const savedData = localStorage.getItem(NOTE_EDITOR_DATA_KEY);
+    if (savedData) {
+      setData(savedData);
+    }
+  }, []);
 
   /**
    * 提交笔记
@@ -55,13 +68,14 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
 
-    onSubmit(data, tagArray, isPublic);
-
-    // 重置表单
-    setData('');
-    setTags('');
-    setIsPublic(false);
-    setShowTagEdit(false);
+    onSubmit(data, tagArray, isPublic).then(success => {
+      if (success) {
+        setData('');
+        setTags('');
+        setIsPublic(false);
+        setShowTagEdit(false);
+      }
+    });
   };
 
   /**

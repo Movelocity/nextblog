@@ -72,10 +72,10 @@ const NotesPage = () => {
   /**
    * 创建新笔记
    */
-  const handleCreateNote = useCallback(async (data: string, tags: string[], isPublic: boolean) => {
+  const handleCreateNote = useCallback(async (data: string, tags: string[], isPublic: boolean): Promise<boolean> => {
     if (!data.trim()) {
       showToast('笔记内容不能为空', 'warning');
-      return;
+      return true;
     }
 
     setCreating(true);
@@ -84,9 +84,11 @@ const NotesPage = () => {
       showToast('笔记创建成功', 'success');
       // 重新加载列表
       await loadNotes(1, false);
+      return true;
     } catch (error) {
       showToast('创建笔记失败', 'error');
       console.error('Failed to create note:', error);
+      return false;
     } finally {
       setCreating(false);
     }
@@ -159,11 +161,13 @@ const NotesPage = () => {
         {/* 不需要页面标题 */}
 
         {/* 创建笔记区域 */}
-        {isAuthenticated && <NoteEditor
-          onSubmit={handleCreateNote}
-          loading={creating}
-          placeholder="写点什么..."
-        />}
+        {isAuthenticated && (
+          <NoteEditor
+            onSubmit={handleCreateNote}
+            loading={creating}
+            placeholder="写点什么..."
+          />
+        )}
 
         {/* 笔记列表 */}
         <div className="space-y-3">
