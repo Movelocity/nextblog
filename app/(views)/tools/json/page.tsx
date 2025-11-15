@@ -484,20 +484,17 @@ export default function JsonEditorPage() {
   }, [showToast]);
 
   return (
-    <div className="min-h-screen py-6">
-      <div className="max-w-[1600px] mx-auto px-2">
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="max-w-[1600px] mx-auto w-full px-2 py-4 flex-shrink-0">
         {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            JSON 编辑器 & 文本处理器
+        <div className="mb-3">
+          <h1 className="text-2xl font-bold text-foreground">
+            JSON 编辑 & 文本处理
           </h1>
-          <p className="text-sm text-muted-foreground">
-            多编辑框编辑器，支持语法高亮、文本操作和自定义脚本
-          </p>
         </div>
 
         {/* Global Toolbar */}
-        <div className="bg-muted rounded-lg shadow-sm border border-border px-4 py-3 mb-4">
+        <div className="bg-muted">
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex flex-wrap gap-2">
               <button
@@ -561,10 +558,12 @@ export default function JsonEditorPage() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Editor Boxes Grid - Responsive Layout */}
+      {/* Editor Boxes Grid - Fixed Layout without scroll */}
+      <div className="flex-1 max-w-[1600px] mx-auto w-full px-2 pb-4 overflow-hidden">
         <div 
-          className={`grid gap-4 transition-all duration-300 ${
+          className={`grid gap-1 h-full transition-all duration-300 ${
             boxes.length === 1
               ? 'grid-cols-1' // 1 box: full width on all screens
               : boxes.length === 2
@@ -590,9 +589,10 @@ export default function JsonEditorPage() {
             />
           ))}
         </div>
+      </div>
 
-        {/* Custom Script Modal */}
-        {showScriptModal && (
+      {/* Custom Script Modal */}
+      {showScriptModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-background border border-border rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
               <div className="border-b border-border px-6 py-4">
@@ -752,7 +752,6 @@ export default function JsonEditorPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }
