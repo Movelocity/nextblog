@@ -21,7 +21,7 @@ import {
   RiTerminalBoxLine,
   RiPlayLine
 } from 'react-icons/ri';
-import cn from 'classnames';
+import { useToast } from '@/app/components/layout/ToastHook';
 
 const STORAGE_KEY = 'json-editor-state';
 const STORAGE_VERSION = 1;
@@ -36,7 +36,8 @@ export default function JsonEditorPage() {
   const [currentScript, setCurrentScript] = useState('');
   const [scriptName, setScriptName] = useState('');
   const [scriptDescription, setScriptDescription] = useState('');
-  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [scriptOutputMode, setScriptOutputMode] = useState<'inplace' | 'newBlock'>('inplace');
+  const { showToast } = useToast();
 
   /**
    * Initializes editor with default box or loads from localStorage
@@ -79,13 +80,6 @@ export default function JsonEditorPage() {
     return `box-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   };
 
-  /**
-   * Shows a notification message
-   */
-  const showNotification = useCallback((type: 'success' | 'error', message: string) => {
-    setNotification({ type, message });
-    setTimeout(() => setNotification(null), 3000);
-  }, []);
 
   /**
    * Adds a new editor box
@@ -96,11 +90,11 @@ export default function JsonEditorPage() {
       type: 'textarea',
       language: 'json',
       content: '',
-      label: `Box ${boxes.length + 1}`,
+      label: `编辑框 ${boxes.length + 1}`,
     };
     setBoxes([...boxes, newBox]);
-    showNotification('success', 'Box added');
-  }, [boxes, showNotification]);
+    showToast('编辑框已添加', 'success');
+  }, [boxes, showToast]);
 
   /**
    * Handles box content change
@@ -142,12 +136,12 @@ export default function JsonEditorPage() {
    */
   const handleDeleteBox = useCallback((id: string) => {
     if (boxes.length === 1) {
-      showNotification('error', 'Cannot delete the last box');
+      showToast('无法删除最后一个编辑框', 'error');
       return;
     }
     setBoxes(prev => prev.filter(box => box.id !== id));
-    showNotification('success', 'Box deleted');
-  }, [boxes.length, showNotification]);
+    showToast('编辑框已删除', 'success');
+  }, [boxes.length, showToast]);
 
   /**
    * Applies a text operation to a box
@@ -199,35 +193,50 @@ export default function JsonEditorPage() {
       }
 
       handleContentChange(id, result);
-      showNotification('success', 'Operation applied');
+      showToast('操作已应用', 'success');
     } catch (error) {
-      showNotification('error', (error as Error).message);
+      showToast((error as Error).message, 'error');
     }
-  }, [boxes, handleContentChange, showNotification]);
+  }, [boxes, handleContentChange, showToast]);
 
   /**
    * Executes a custom script on a box
    */
-  const handleExecuteScript = useCallback(async (boxId: string, script: string) => {
+  const handleExecuteScript = useCallback(async (boxId: string, scriptId: string) => {
     const box = boxes.find(b => b.id === boxId);
-    if (!box) return;
+    const script = customScripts.find(s => s.id === scriptId);
+    if (!box || !script) return;
 
-    const result = await executeUserScript(script, box.content);
+    const result = await executeUserScript(script.code, box.content);
     
     if (result.success && result.output) {
-      handleContentChange(boxId, result.output);
-      showNotification('success', `Script executed in ${result.executionTime?.toFixed(0)}ms`);
+      if (script.outputMode === 'newBlock') {
+        // Create a new box with the result
+        const newBox: EditorBoxType = {
+          id: generateId(),
+          type: box.type,
+          language: box.language,
+          content: result.output,
+          label: `${box.label || '编辑框'} - 脚本结果`,
+        };
+        setBoxes(prev => [...prev, newBox]);
+        showToast(`脚本已执行，结果已创建新编辑框 (${result.executionTime?.toFixed(0)}ms)`, 'success');
+      } else {
+        // Replace content in the current box (inplace)
+        handleContentChange(boxId, result.output);
+        showToast(`脚本已执行 (${result.executionTime?.toFixed(0)}ms)`, 'success');
+      }
     } else {
-      showNotification('error', result.error || 'Script execution failed');
+      showToast(result.error || '脚本执行失败', 'error');
     }
-  }, [boxes, handleContentChange, showNotification]);
+  }, [boxes, customScripts, handleContentChange, showToast]);
 
   /**
    * Saves a custom script
    */
   const handleSaveScript = useCallback(() => {
     if (!scriptName.trim() || !currentScript.trim()) {
-      showNotification('error', 'Script name and code are required');
+      showToast('脚本名称和代码为必填项', 'error');
       return;
     }
 
@@ -236,6 +245,7 @@ export default function JsonEditorPage() {
       name: scriptName,
       code: currentScript,
       description: scriptDescription,
+      outputMode: scriptOutputMode,
     };
 
     setCustomScripts(prev => [...prev, newScript]);
@@ -243,8 +253,9 @@ export default function JsonEditorPage() {
     setScriptName('');
     setScriptDescription('');
     setCurrentScript('');
-    showNotification('success', 'Script saved');
-  }, [scriptName, currentScript, scriptDescription, showNotification]);
+    setScriptOutputMode('inplace');
+    showToast('脚本已保存', 'success');
+  }, [scriptName, currentScript, scriptDescription, scriptOutputMode, showToast]);
 
   /**
    * Loads a script template
@@ -271,8 +282,8 @@ export default function JsonEditorPage() {
     link.download = `json-editor-export-${Date.now()}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    showNotification('success', 'State exported');
-  }, [boxes, customScripts, showNotification]);
+    showToast('状态已导出', 'success');
+  }, [boxes, customScripts, showToast]);
 
   /**
    * Imports state from JSON file
@@ -292,37 +303,37 @@ export default function JsonEditorPage() {
           if (imported.boxes && Array.isArray(imported.boxes)) {
             setBoxes(imported.boxes);
             setCustomScripts(imported.customScripts || []);
-            showNotification('success', 'State imported');
+            showToast('状态已导入', 'success');
           } else {
-            throw new Error('Invalid file format');
+            throw new Error('无效的文件格式');
           }
         } catch (error) {
-          showNotification('error', 'Failed to import: ' + (error as Error).message);
+          showToast('导入失败: ' + (error as Error).message, 'error');
         }
       };
       reader.readAsText(file);
     };
     input.click();
-  }, [showNotification]);
+  }, [showToast]);
 
   /**
    * Resets to default state
    */
   const handleReset = useCallback(() => {
-    if (confirm('Are you sure you want to reset? All boxes and scripts will be cleared.')) {
+    if (confirm('确定要重置吗？所有编辑框和脚本将被清空。')) {
       const defaultBox: EditorBoxType = {
         id: generateId(),
         type: 'textarea',
         language: 'json',
         content: '',
-        label: 'Box 1',
+        label: '编辑框 1',
       };
       setBoxes([defaultBox]);
       setCustomScripts([]);
       localStorage.removeItem(STORAGE_KEY);
-      showNotification('success', 'Reset to default');
+      showToast('已重置为默认状态', 'success');
     }
-  }, [showNotification]);
+  }, [showToast]);
 
   return (
     <div className="min-h-screen py-6">
@@ -330,10 +341,10 @@ export default function JsonEditorPage() {
         {/* Header */}
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            JSON Editor & Text Processor
+            JSON 编辑器 & 文本处理器
           </h1>
           <p className="text-sm text-muted-foreground">
-            Multi-box editor with syntax highlighting, text operations, and custom scripts
+            多编辑框编辑器，支持语法高亮、文本操作和自定义脚本
           </p>
         </div>
 
@@ -346,57 +357,43 @@ export default function JsonEditorPage() {
                 className="px-3 py-1.5 rounded text-sm bg-background hover:bg-accent hover:text-white transition-colors flex items-center gap-1.5 border border-border"
               >
                 <RiAddLine className="w-4 h-4" />
-                Add Box
+                添加编辑框
               </button>
               <button
                 onClick={() => setShowScriptModal(true)}
                 className="px-3 py-1.5 rounded text-sm bg-background hover:bg-accent hover:text-white transition-colors flex items-center gap-1.5 border border-border"
               >
                 <RiTerminalBoxLine className="w-4 h-4" />
-                Custom Script
+                自定义脚本
               </button>
               <button
                 onClick={handleImport}
                 className="px-3 py-1.5 rounded text-sm bg-background hover:bg-muted transition-colors flex items-center gap-1.5 border border-border"
               >
                 <RiUploadLine className="w-4 h-4" />
-                Import
+                导入
               </button>
               <button
                 onClick={handleExport}
                 className="px-3 py-1.5 rounded text-sm bg-background hover:bg-muted transition-colors flex items-center gap-1.5 border border-border"
               >
                 <RiSaveLine className="w-4 h-4" />
-                Export
+                导出
               </button>
               <button
                 onClick={handleReset}
                 className="px-3 py-1.5 rounded text-sm bg-background hover:bg-red-50 dark:hover:bg-red-900 transition-colors flex items-center gap-1.5 border border-border"
               >
                 <RiRefreshLine className="w-4 h-4" />
-                Reset
+                重置
               </button>
             </div>
             
             <div className="text-xs text-muted-foreground">
-              {boxes.length} box{boxes.length !== 1 ? 'es' : ''} • {customScripts.length} script{customScripts.length !== 1 ? 's' : ''}
+              {boxes.length} 个编辑框 • {customScripts.length} 个脚本
             </div>
           </div>
         </div>
-
-        {/* Notification */}
-        {notification && (
-          <div
-            className={cn(
-              "mb-4 px-4 py-3 rounded-lg text-sm border",
-              notification.type === 'success'
-                ? "bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800"
-                : "bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800"
-            )}
-          >
-            {notification.message}
-          </div>
-        )}
 
         {/* Editor Boxes Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -411,6 +408,8 @@ export default function JsonEditorPage() {
               onDelete={handleDeleteBox}
               onApplyOperation={handleApplyOperation}
               onSizeChange={handleSizeChange}
+              customScripts={customScripts}
+              onExecuteScript={handleExecuteScript}
             />
           ))}
         </div>
@@ -420,37 +419,37 @@ export default function JsonEditorPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-background border border-border rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
               <div className="border-b border-border px-6 py-4">
-                <h2 className="text-xl font-bold text-foreground">Custom Script</h2>
+                <h2 className="text-xl font-bold text-foreground">自定义脚本</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Write JavaScript to transform text. Use 'input' for the content and 'return' the result.
+                  编写 JavaScript 代码来转换文本。使用 'input' 获取内容，用 'return' 返回结果。
                 </p>
               </div>
 
               <div className="flex-1 overflow-auto p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Script Name</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">脚本名称</label>
                   <input
                     type="text"
                     value={scriptName}
                     onChange={(e) => setScriptName(e.target.value)}
-                    placeholder="My Custom Script"
+                    placeholder="我的自定义脚本"
                     className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Description (optional)</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">描述（可选）</label>
                   <input
                     type="text"
                     value={scriptDescription}
                     onChange={(e) => setScriptDescription(e.target.value)}
-                    placeholder="What does this script do?"
+                    placeholder="这个脚本做什么？"
                     className="w-full px-3 py-2 border border-border rounded bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Script Code</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">脚本代码</label>
                   <textarea
                     value={currentScript}
                     onChange={(e) => setCurrentScript(e.target.value)}
@@ -461,7 +460,38 @@ export default function JsonEditorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Templates</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">输出模式</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="outputMode"
+                        value="inplace"
+                        checked={scriptOutputMode === 'inplace'}
+                        onChange={(e) => setScriptOutputMode(e.target.value as 'inplace' | 'newBlock')}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-foreground">原地替换</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="outputMode"
+                        value="newBlock"
+                        checked={scriptOutputMode === 'newBlock'}
+                        onChange={(e) => setScriptOutputMode(e.target.value as 'inplace' | 'newBlock')}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-foreground">新建编辑框</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    原地替换：结果会替换当前编辑框内容；新建编辑框：结果会创建一个新的编辑框
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">模板</label>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(scriptTemplates).map(([key, template]) => (
                       <button
@@ -479,16 +509,19 @@ export default function JsonEditorPage() {
 
               <div className="border-t border-border px-6 py-4 flex justify-end gap-2">
                 <button
-                  onClick={() => setShowScriptModal(false)}
+                  onClick={() => {
+                    setShowScriptModal(false);
+                    setScriptOutputMode('inplace');
+                  }}
                   className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Cancel
+                  取消
                 </button>
                 <button
                   onClick={handleSaveScript}
                   className="px-4 py-2 text-sm bg-accent text-white rounded hover:bg-opacity-90 transition-colors"
                 >
-                  Save Script
+                  保存脚本
                 </button>
               </div>
             </div>
@@ -523,3 +556,5 @@ function loadState(): PersistedState | null {
     return null;
   }
 }
+
+

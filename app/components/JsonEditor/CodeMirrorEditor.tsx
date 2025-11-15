@@ -26,6 +26,8 @@ const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) 
       const { javascript } = await import('@codemirror/lang-javascript');
       const { json } = await import('@codemirror/lang-json');
       const { markdown } = await import('@codemirror/lang-markdown');
+      const { StreamLanguage } = await import('@codemirror/language');
+      const { shell } = await import('@codemirror/legacy-modes/mode/shell');
       const { oneDark } = await import('@codemirror/theme-one-dark');
 
       if (!editorRef.current || viewRef.current) return;
@@ -42,6 +44,8 @@ const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) 
             return javascript();
           case 'markdown':
             return markdown();
+          case 'bash':
+            return StreamLanguage.define(shell);
           default:
             return [];
         }

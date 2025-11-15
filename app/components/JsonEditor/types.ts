@@ -3,7 +3,8 @@
  */
 
 export type EditorType = 'textarea' | 'codemirror' | 'markdown';
-export type EditorLanguage = 'json' | 'javascript' | 'markdown' | 'plaintext';
+export type EditorLanguage = 'json' | 'javascript' | 'markdown' | 'plaintext' | 'bash';
+export type ScriptOutputMode = 'inplace' | 'newBlock';
 
 /**
  * Configuration for a single editor box
@@ -35,6 +36,7 @@ export interface CustomScript {
   name: string;
   code: string;
   description?: string;
+  outputMode?: ScriptOutputMode;
 }
 
 /**

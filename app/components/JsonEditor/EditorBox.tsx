@@ -25,6 +25,8 @@ interface EditorBoxProps {
   onDelete: (id: string) => void;
   onApplyOperation: (id: string, operation: string) => void;
   onSizeChange: (id: string, width: number, height: number) => void;
+  customScripts?: Array<{ id: string; name: string; code: string; description?: string; outputMode?: 'inplace' | 'newBlock' }>;
+  onExecuteScript?: (boxId: string, scriptId: string) => void;
 }
 
 /**
@@ -38,22 +40,40 @@ const EditorBox = ({
   onLabelChange,
   onDelete,
   onApplyOperation,
-  onSizeChange
+  onSizeChange,
+  customScripts = [],
+  onExecuteScript
 }: EditorBoxProps) => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingHeight, setIsDraggingHeight] = useState(false);
+  const [isDraggingWidth, setIsDraggingWidth] = useState(false);
   const [startY, setStartY] = useState(0);
+  const [startX, setStartX] = useState(0);
   const [startHeight, setStartHeight] = useState(0);
+  const [startWidth, setStartWidth] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const boxRef = useCallback((node: HTMLDivElement | null) => {
-    if (node && !box.height) {
-      // Set initial height if not set
+    if (node && (!box.height || !box.width)) {
+      // Set initial dimensions if not set
       const rect = node.getBoundingClientRect();
-      if (rect.height > 0) {
-        onSizeChange(box.id, box.width || 0, rect.height);
+      if (rect.height > 0 && rect.width > 0) {
+        onSizeChange(box.id, box.width || rect.width, box.height || rect.height);
       }
     }
   }, [box.id, box.height, box.width, onSizeChange]);
+
+  /**
+   * Detects mobile devices to disable horizontal resizing
+   */
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   /**
    * Handles copying box content to clipboard
@@ -84,45 +104,77 @@ const EditorBox = ({
   }, [box.id, onLanguageChange]);
 
   /**
-   * Handles resize drag start
+   * Handles vertical resize drag start
    */
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+  const handleHeightResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    setIsDragging(true);
+    setIsDraggingHeight(true);
     setStartY(e.clientY);
-    setStartHeight(box.height || 300);
+    setStartHeight(box.height || 400);
   }, [box.height]);
 
   /**
-   * Handles resize drag
+   * Handles horizontal resize drag start
    */
-  const handleResizeDrag = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
+  const handleWidthResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingWidth(true);
+    setStartX(e.clientX);
+    setStartWidth(box.width || 400);
+  }, [box.width]);
+
+  /**
+   * Handles vertical resize drag
+   */
+  const handleHeightResizeDrag = useCallback((e: MouseEvent) => {
+    if (!isDraggingHeight) return;
     const deltaY = e.clientY - startY;
     const newHeight = Math.max(200, Math.min(800, startHeight + deltaY));
     onSizeChange(box.id, box.width || 0, newHeight);
-  }, [isDragging, startY, startHeight, box.id, box.width, onSizeChange]);
+  }, [isDraggingHeight, startY, startHeight, box.id, box.width, onSizeChange]);
+
+  /**
+   * Handles horizontal resize drag
+   */
+  const handleWidthResizeDrag = useCallback((e: MouseEvent) => {
+    if (!isDraggingWidth) return;
+    const deltaX = e.clientX - startX;
+    const newWidth = Math.max(300, Math.min(1200, startWidth + deltaX));
+    onSizeChange(box.id, newWidth, box.height || 0);
+  }, [isDraggingWidth, startX, startWidth, box.id, box.height, onSizeChange]);
 
   /**
    * Handles resize drag end
    */
   const handleResizeEnd = useCallback(() => {
-    setIsDragging(false);
+    setIsDraggingHeight(false);
+    setIsDraggingWidth(false);
   }, []);
 
   /**
    * Sets up mouse event listeners for resize
    */
   useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleResizeDrag);
+    if (isDraggingHeight) {
+      document.addEventListener('mousemove', handleHeightResizeDrag);
       document.addEventListener('mouseup', handleResizeEnd);
       return () => {
-        document.removeEventListener('mousemove', handleResizeDrag);
+        document.removeEventListener('mousemove', handleHeightResizeDrag);
         document.removeEventListener('mouseup', handleResizeEnd);
       };
     }
-  }, [isDragging, handleResizeDrag, handleResizeEnd]);
+  }, [isDraggingHeight, handleHeightResizeDrag, handleResizeEnd]);
+
+  useEffect(() => {
+    if (isDraggingWidth) {
+      document.addEventListener('mousemove', handleWidthResizeDrag);
+      document.addEventListener('mouseup', handleResizeEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleWidthResizeDrag);
+        document.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [isDraggingWidth, handleWidthResizeDrag, handleResizeEnd]);
 
   /**
    * Renders the appropriate editor based on type
@@ -131,7 +183,7 @@ const EditorBox = ({
     switch (box.type) {
       case 'codemirror':
         return (
-          <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground">Loading editor...</div>}>
+          <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground">加载编辑器中...</div>}>
             <CodeMirrorEditor
               value={box.content}
               language={box.language}
@@ -142,7 +194,7 @@ const EditorBox = ({
       
       case 'markdown':
         return (
-          <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground">Loading preview...</div>}>
+          <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground">加载预览中...</div>}>
             <MarkdownPreview content={box.content} />
           </Suspense>
         );
@@ -153,7 +205,7 @@ const EditorBox = ({
           <textarea
             value={box.content}
             onChange={(e) => onContentChange(box.id, e.target.value)}
-            placeholder="Enter or paste text here..."
+            placeholder="在此输入或粘贴文本..."
             className={cn(
               "w-full h-full p-4 font-mono text-sm bg-transparent text-foreground",
               "placeholder-muted-foreground",
@@ -168,8 +220,11 @@ const EditorBox = ({
   return (
     <div 
       ref={boxRef}
-      className="flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden"
-      style={{ height: box.height ? `${box.height}px` : '400px' }}
+      className="flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden relative"
+      style={{ 
+        height: box.height ? `${box.height}px` : '400px',
+        width: !isMobile && box.width ? `${box.width}px` : 'auto'
+      }}
     >
       {/* Box Header */}
       <div className="bg-muted border-b border-border px-3 py-2 flex items-center justify-between gap-2">
@@ -182,7 +237,7 @@ const EditorBox = ({
               onBlur={() => setIsEditingLabel(false)}
               onKeyDown={(e) => e.key === 'Enter' && setIsEditingLabel(false)}
               className="px-2 py-1 text-sm border border-border rounded bg-background text-foreground flex-1 min-w-0"
-              placeholder="Box label..."
+              placeholder="编辑框标签..."
               autoFocus
             />
           ) : (
@@ -190,7 +245,7 @@ const EditorBox = ({
               onClick={() => setIsEditingLabel(true)}
               className="px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors flex-1 text-left min-w-0 truncate"
             >
-              {box.label || 'Untitled Box'}
+              {box.label || '未命名编辑框'}
             </button>
           )}
         </div>
@@ -204,7 +259,7 @@ const EditorBox = ({
                 "px-2 py-1 text-xs transition-colors",
                 box.type === 'textarea' ? "bg-background text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
-              title="Plain Text"
+              title="纯文本"
             >
               <RiFileTextLine className="w-4 h-4" />
             </button>
@@ -214,7 +269,7 @@ const EditorBox = ({
                 "px-2 py-1 text-xs transition-colors",
                 box.type === 'codemirror' ? "bg-background text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
-              title="Code Editor"
+              title="代码编辑器"
             >
               <RiCodeSSlashLine className="w-4 h-4" />
             </button>
@@ -224,7 +279,7 @@ const EditorBox = ({
                 "px-2 py-1 text-xs transition-colors",
                 box.type === 'markdown' ? "bg-background text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
-              title="Markdown Preview"
+              title="Markdown 预览"
             >
               <RiMarkdownLine className="w-4 h-4" />
             </button>
@@ -239,8 +294,9 @@ const EditorBox = ({
             >
               <option value="json">JSON</option>
               <option value="javascript">JavaScript</option>
+              <option value="bash">Bash</option>
               <option value="markdown">Markdown</option>
-              <option value="plaintext">Plain Text</option>
+              <option value="plaintext">纯文本</option>
             </select>
           )}
 
@@ -251,7 +307,7 @@ const EditorBox = ({
               "px-2 py-1 rounded text-xs transition-colors",
               copySuccess ? "text-green-600" : "text-muted-foreground hover:text-foreground"
             )}
-            title="Copy content"
+            title="复制内容"
           >
             {copySuccess ? <RiCheckLine className="w-4 h-4" /> : <RiFileCopyLine className="w-4 h-4" />}
           </button>
@@ -260,7 +316,7 @@ const EditorBox = ({
           <button
             onClick={() => onDelete(box.id)}
             className="px-2 py-1 rounded text-xs text-muted-foreground hover:text-red-600 transition-colors"
-            title="Delete box"
+            title="删除编辑框"
           >
             <RiCloseLine className="w-4 h-4" />
           </button>
@@ -272,37 +328,76 @@ const EditorBox = ({
         {renderEditor()}
       </div>
 
-      {/* Box Footer with Operations */}
+      {/* Box Footer with Operations and Script Selector */}
       <div className="bg-muted border-t border-border px-3 py-2">
-        <select
-          onChange={(e) => {
-            if (e.target.value) {
-              onApplyOperation(box.id, e.target.value);
-              e.target.value = ''; // Reset dropdown
-            }
-          }}
-          className="px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
-          defaultValue=""
-        >
-          <option value="" disabled>Quick Operations...</option>
-          <option value="format">Format JSON</option>
-          <option value="minify">Minify JSON</option>
-          <option value="unescape">Unescape String</option>
-          <option value="remove-newlines">Remove Newlines</option>
-          <option value="remove-tabs">Remove Tabs</option>
-          <option value="remove-quotes">Remove Quotes</option>
-        </select>
+        <div className="flex flex-col gap-2">
+          <select
+            onChange={(e) => {
+              if (e.target.value) {
+                onApplyOperation(box.id, e.target.value);
+                e.target.value = ''; // Reset dropdown
+              }
+            }}
+            className="flex-1 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+            defaultValue=""
+          >
+            <option value="" disabled>快速操作...</option>
+            <option value="format">格式化 JSON</option>
+            <option value="minify">压缩 JSON</option>
+            <option value="unescape">反转义字符串</option>
+            <option value="remove-newlines">移除换行符</option>
+            <option value="remove-tabs">移除制表符</option>
+            <option value="remove-quotes">移除引号</option>
+          </select>
+          
+          {/* Script Selector */}
+          {customScripts.length > 0 ? (
+            <select
+              onChange={(e) => {
+                if (e.target.value && onExecuteScript) {
+                  onExecuteScript(box.id, e.target.value);
+                  e.target.value = ''; // Reset dropdown
+                }
+              }}
+              className="flex-1 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+              defaultValue=""
+            >
+              <option value="" disabled>运行自定义脚本...</option>
+              {customScripts.map((script) => (
+                <option key={script.id} value={script.id}>
+                  {script.name}{script.description ? ` - ${script.description}` : ''}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="flex-1 text-xs text-muted-foreground text-center px-2 py-1">
+              暂无脚本
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Resize Handle */}
+      {/* Vertical Resize Handle */}
       <div
         className={cn(
           "h-2 bg-muted border-t border-border cursor-ns-resize hover:bg-accent transition-colors",
-          isDragging && "bg-accent"
+          isDraggingHeight && "bg-accent"
         )}
-        onMouseDown={handleResizeStart}
-        title="Drag to resize"
+        onMouseDown={handleHeightResizeStart}
+        title="拖动以调整高度"
       />
+
+      {/* Horizontal Resize Handle (desktop only) */}
+      {!isMobile && (
+        <div
+          className={cn(
+            "absolute top-0 right-0 w-2 h-full bg-transparent cursor-ew-resize hover:bg-accent hover:bg-opacity-50 transition-colors",
+            isDraggingWidth && "bg-accent bg-opacity-50"
+          )}
+          onMouseDown={handleWidthResizeStart}
+          title="拖动以调整宽度"
+        />
+      )}
     </div>
   );
 };
