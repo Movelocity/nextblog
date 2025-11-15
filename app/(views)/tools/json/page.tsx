@@ -19,9 +19,13 @@ import {
   RiUploadLine,
   RiRefreshLine,
   RiTerminalBoxLine,
-  RiPlayLine
+  RiPlayLine,
+  RiDeleteBinLine
 } from 'react-icons/ri';
 import { useToast } from '@/app/components/layout/ToastHook';
+import { useAuth } from '@/app/hooks/useAuth';
+import { fetchScripts, createScript, updateScript, deleteScript } from '@/app/services/jsonEditor';
+import { saveBoxes, loadBoxes, clearBoxes, migrateFromLocalStorage } from '@/app/utils/indexedDBHelper';
 
 const STORAGE_KEY = 'json-editor-state';
 const STORAGE_VERSION = 1;
@@ -37,41 +41,76 @@ export default function JsonEditorPage() {
   const [scriptName, setScriptName] = useState('');
   const [scriptDescription, setScriptDescription] = useState('');
   const [scriptOutputMode, setScriptOutputMode] = useState<'inplace' | 'newBlock'>('inplace');
+  const [editingScriptId, setEditingScriptId] = useState<string | null>(null);
   const { showToast } = useToast();
+  const { isAuthenticated, checkAuthStatus, openLoginModal } = useAuth();
 
   /**
-   * Initializes editor with default box or loads from localStorage
+   * Check authentication status on mount
    */
   useEffect(() => {
-    const savedState = loadState();
-    if (savedState && savedState.boxes.length > 0) {
-      setBoxes(savedState.boxes);
-      setCustomScripts(savedState.customScripts || []);
-    } else {
-      // Initialize with one default box
-      const defaultBox: EditorBoxType = {
-        id: generateId(),
-        type: 'textarea',
-        language: 'json',
-        content: '',
-        label: 'Box 1',
-      };
-      setBoxes([defaultBox]);
-    }
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  /**
+   * Load scripts from backend API on mount
+   */
+  useEffect(() => {
+    const loadScripts = async () => {
+      try {
+        const scripts = await fetchScripts();
+        setCustomScripts(scripts);
+      } catch (error) {
+        console.error('Failed to load scripts:', error);
+        // Silently fail - scripts will be empty
+      }
+    };
+    loadScripts();
   }, []);
 
   /**
-   * Auto-saves state to localStorage (debounced)
+   * Initializes editor boxes from IndexedDB or localStorage migration
+   */
+  useEffect(() => {
+    const initializeBoxes = async () => {
+      // Try loading from IndexedDB first
+      let boxes = await loadBoxes();
+      
+      // If no data in IndexedDB, try migrating from localStorage
+      if (!boxes) {
+        boxes = await migrateFromLocalStorage(STORAGE_KEY);
+      }
+      
+      if (boxes && boxes.length > 0) {
+        setBoxes(boxes);
+      } else {
+        // Initialize with one default box
+        const defaultBox: EditorBoxType = {
+          id: generateId(),
+          type: 'textarea',
+          language: 'json',
+          content: '',
+          label: '编辑框 1',
+        };
+        setBoxes([defaultBox]);
+      }
+    };
+    
+    initializeBoxes();
+  }, []);
+
+  /**
+   * Auto-saves boxes to IndexedDB (debounced)
    */
   useEffect(() => {
     if (boxes.length === 0) return;
 
     const timeoutId = setTimeout(() => {
-      saveState({ version: STORAGE_VERSION, boxes, customScripts });
+      saveBoxes(boxes);
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [boxes, customScripts]);
+  }, [boxes]);
 
   /**
    * Generates a unique ID for boxes
@@ -232,30 +271,96 @@ export default function JsonEditorPage() {
   }, [boxes, customScripts, handleContentChange, showToast]);
 
   /**
-   * Saves a custom script
+   * Saves or updates a custom script to backend
    */
-  const handleSaveScript = useCallback(() => {
+  const handleSaveScript = useCallback(async () => {
+    if (!isAuthenticated) {
+      showToast('需要登录才能保存脚本', 'error');
+      openLoginModal();
+      return;
+    }
+
     if (!scriptName.trim() || !currentScript.trim()) {
       showToast('脚本名称和代码为必填项', 'error');
       return;
     }
 
-    const newScript: CustomScript = {
-      id: generateId(),
-      name: scriptName,
-      code: currentScript,
-      description: scriptDescription,
-      outputMode: scriptOutputMode,
-    };
+    try {
+      const scriptData = {
+        name: scriptName,
+        code: currentScript,
+        description: scriptDescription,
+        outputMode: scriptOutputMode,
+      };
 
-    setCustomScripts(prev => [...prev, newScript]);
-    setShowScriptModal(false);
-    setScriptName('');
-    setScriptDescription('');
-    setCurrentScript('');
-    setScriptOutputMode('inplace');
-    showToast('脚本已保存', 'success');
-  }, [scriptName, currentScript, scriptDescription, scriptOutputMode, showToast]);
+      let savedScript: CustomScript;
+      
+      if (editingScriptId) {
+        // Update existing script
+        savedScript = await updateScript(editingScriptId, scriptData);
+        setCustomScripts(prev => 
+          prev.map(s => s.id === editingScriptId ? savedScript : s)
+        );
+        showToast('脚本已更新', 'success');
+      } else {
+        // Create new script
+        savedScript = await createScript(scriptData);
+        setCustomScripts(prev => [...prev, savedScript]);
+        showToast('脚本已保存', 'success');
+      }
+
+      // Reset modal state
+      setShowScriptModal(false);
+      setScriptName('');
+      setScriptDescription('');
+      setCurrentScript('');
+      setScriptOutputMode('inplace');
+      setEditingScriptId(null);
+    } catch (error) {
+      showToast((error as Error).message, 'error');
+    }
+  }, [isAuthenticated, scriptName, currentScript, scriptDescription, scriptOutputMode, editingScriptId, openLoginModal, showToast]);
+
+  /**
+   * Handles editing a script
+   */
+  const handleEditScript = useCallback((script: CustomScript) => {
+    if (!isAuthenticated) {
+      showToast('需要登录才能编辑脚本', 'error');
+      openLoginModal();
+      return;
+    }
+
+    setScriptName(script.name);
+    setScriptDescription(script.description || '');
+    setCurrentScript(script.code);
+    setScriptOutputMode(script.outputMode || 'inplace');
+    setEditingScriptId(script.id);
+    setShowScriptModal(true);
+  }, [isAuthenticated, openLoginModal, showToast]);
+
+  /**
+   * Handles deleting a script
+   */
+  const handleDeleteScript = useCallback(async (scriptId: string) => {
+    if (!isAuthenticated) {
+      showToast('需要登录才能删除脚本', 'error');
+      openLoginModal();
+      return;
+    }
+
+    if (!confirm('确定要删除此脚本吗？')) {
+      return;
+    }
+
+    try {
+      await deleteScript(scriptId);
+      setCustomScripts(prev => prev.filter(s => s.id !== scriptId));
+      showToast('脚本已删除', 'success');
+    } catch (error) {
+      showToast((error as Error).message, 'error');
+    }
+  }, [isAuthenticated, openLoginModal, showToast]);
 
   /**
    * Loads a script template
@@ -317,21 +422,47 @@ export default function JsonEditorPage() {
   }, [showToast]);
 
   /**
+   * Clears local editor boxes
+   */
+  const handleClearBoxes = useCallback(async () => {
+    if (confirm('确定要清除所有本地编辑框吗？此操作不可恢复。')) {
+      try {
+        await clearBoxes();
+        const defaultBox: EditorBoxType = {
+          id: generateId(),
+          type: 'textarea',
+          language: 'json',
+          content: '',
+          label: '编辑框 1',
+        };
+        setBoxes([defaultBox]);
+        showToast('本地编辑框已清除', 'success');
+      } catch (error) {
+        showToast('清除失败: ' + (error as Error).message, 'error');
+      }
+    }
+  }, [showToast]);
+
+  /**
    * Resets to default state
    */
-  const handleReset = useCallback(() => {
-    if (confirm('确定要重置吗？所有编辑框和脚本将被清空。')) {
-      const defaultBox: EditorBoxType = {
-        id: generateId(),
-        type: 'textarea',
-        language: 'json',
-        content: '',
-        label: '编辑框 1',
-      };
-      setBoxes([defaultBox]);
-      setCustomScripts([]);
-      localStorage.removeItem(STORAGE_KEY);
-      showToast('已重置为默认状态', 'success');
+  const handleReset = useCallback(async () => {
+    if (confirm('确定要重置吗？所有编辑框将被清空，脚本不受影响。')) {
+      try {
+        await clearBoxes();
+        localStorage.removeItem(STORAGE_KEY);
+        const defaultBox: EditorBoxType = {
+          id: generateId(),
+          type: 'textarea',
+          language: 'json',
+          content: '',
+          label: '编辑框 1',
+        };
+        setBoxes([defaultBox]);
+        showToast('已重置为默认状态', 'success');
+      } catch (error) {
+        showToast('重置失败: ' + (error as Error).message, 'error');
+      }
     }
   }, [showToast]);
 
@@ -360,7 +491,14 @@ export default function JsonEditorPage() {
                 添加编辑框
               </button>
               <button
-                onClick={() => setShowScriptModal(true)}
+                onClick={() => {
+                  setEditingScriptId(null);
+                  setScriptName('');
+                  setScriptDescription('');
+                  setCurrentScript('');
+                  setScriptOutputMode('inplace');
+                  setShowScriptModal(true);
+                }}
                 className="px-3 py-1.5 rounded text-sm bg-background hover:bg-accent hover:text-white transition-colors flex items-center gap-1.5 border border-border"
               >
                 <RiTerminalBoxLine className="w-4 h-4" />
@@ -379,6 +517,13 @@ export default function JsonEditorPage() {
               >
                 <RiSaveLine className="w-4 h-4" />
                 导出
+              </button>
+              <button
+                onClick={handleClearBoxes}
+                className="px-3 py-1.5 rounded text-sm bg-background hover:bg-yellow-50 dark:hover:bg-yellow-900 transition-colors flex items-center gap-1.5 border border-border"
+              >
+                <RiDeleteBinLine className="w-4 h-4" />
+                清除编辑框
               </button>
               <button
                 onClick={handleReset}
@@ -419,7 +564,9 @@ export default function JsonEditorPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-background border border-border rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
               <div className="border-b border-border px-6 py-4">
-                <h2 className="text-xl font-bold text-foreground">自定义脚本</h2>
+                <h2 className="text-xl font-bold text-foreground">
+                  {editingScriptId ? '编辑脚本' : '新建脚本'}
+                </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   编写 JavaScript 代码来转换文本。使用 'input' 获取内容，用 'return' 返回结果。
                 </p>
@@ -505,13 +652,59 @@ export default function JsonEditorPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Saved Scripts List */}
+                {customScripts.length > 0 && !editingScriptId && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      已保存的脚本 ({customScripts.length})
+                    </label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {customScripts.map((script) => (
+                        <div
+                          key={script.id}
+                          className="flex items-center justify-between p-2 bg-muted rounded border border-border"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{script.name}</div>
+                            {script.description && (
+                              <div className="text-xs text-muted-foreground truncate">
+                                {script.description}
+                              </div>
+                            )}
+                          </div>
+                          {isAuthenticated && (
+                            <div className="flex gap-1 ml-2">
+                              <button
+                                onClick={() => handleEditScript(script)}
+                                className="px-2 py-1 text-xs bg-background hover:bg-accent hover:text-white transition-colors rounded border border-border"
+                              >
+                                编辑
+                              </button>
+                              <button
+                                onClick={() => handleDeleteScript(script.id)}
+                                className="px-2 py-1 text-xs bg-background hover:bg-red-500 hover:text-white transition-colors rounded border border-border"
+                              >
+                                删除
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-border px-6 py-4 flex justify-end gap-2">
                 <button
                   onClick={() => {
                     setShowScriptModal(false);
+                    setScriptName('');
+                    setScriptDescription('');
+                    setCurrentScript('');
                     setScriptOutputMode('inplace');
+                    setEditingScriptId(null);
                   }}
                   className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -521,7 +714,7 @@ export default function JsonEditorPage() {
                   onClick={handleSaveScript}
                   className="px-4 py-2 text-sm bg-accent text-white rounded hover:bg-opacity-90 transition-colors"
                 >
-                  保存脚本
+                  {editingScriptId ? '更新脚本' : '保存脚本'}
                 </button>
               </div>
             </div>
@@ -531,30 +724,4 @@ export default function JsonEditorPage() {
     </div>
   );
 }
-
-/**
- * Saves state to localStorage
- */
-function saveState(state: PersistedState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (error) {
-    console.error('Failed to save state:', error);
-  }
-}
-
-/**
- * Loads state from localStorage
- */
-function loadState(): PersistedState | null {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return null;
-    return JSON.parse(stored) as PersistedState;
-  } catch (error) {
-    console.error('Failed to load state:', error);
-    return null;
-  }
-}
-
 

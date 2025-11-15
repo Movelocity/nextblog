@@ -24,7 +24,7 @@ export const authenticateRequest = (request: NextRequest): { email: string } | n
 };
 
 export const requireAuth = (handler: Function) => {
-    return async (request: NextRequest) => {
+    return async (request: NextRequest, context?: any) => {
         const user = authenticateRequest(request);
         
         if (!user) {
@@ -34,6 +34,6 @@ export const requireAuth = (handler: Function) => {
             );
         }
 
-        return handler(request, user);
+        return handler(request, context);
     };
 }; 

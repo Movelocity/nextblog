@@ -37,6 +37,8 @@ export interface CustomScript {
   code: string;
   description?: string;
   outputMode?: ScriptOutputMode;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
