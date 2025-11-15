@@ -131,6 +131,13 @@ export default function JsonEditorPage() {
   }, []);
 
   /**
+   * Handles box size change
+   */
+  const handleSizeChange = useCallback((id: string, width: number, height: number) => {
+    setBoxes(prev => prev.map(box => box.id === id ? { ...box, width, height } : box));
+  }, []);
+
+  /**
    * Deletes a box
    */
   const handleDeleteBox = useCallback((id: string) => {
@@ -403,6 +410,7 @@ export default function JsonEditorPage() {
               onLabelChange={handleLabelChange}
               onDelete={handleDeleteBox}
               onApplyOperation={handleApplyOperation}
+              onSizeChange={handleSizeChange}
             />
           ))}
         </div>

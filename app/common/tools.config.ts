@@ -49,8 +49,8 @@ export const toolCategories: Record<ToolCategory, { name: string; color: string 
 const tools: Tool[] = [
   {
     id: 'json-formatter',
-    name: 'JSON 格式化',
-    description: '格式化、压缩、验证 JSON 数据，支持智能检测垃圾文本中的有效 JSON',
+    name: 'JSON 编辑器',
+    description: '多框编辑器，支持语法高亮、Markdown 预览、文本操作和自定义脚本。可调整大小，状态自动保存',
     category: ToolCategory.DEVELOPER,
     icon: RiFileCodeLine,
     path: '/tools/json',

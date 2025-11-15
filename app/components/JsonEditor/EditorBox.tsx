@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { EditorBox as EditorBoxType, EditorType, EditorLanguage } from './types';
 import { 
   RiCloseLine, 
@@ -24,6 +24,7 @@ interface EditorBoxProps {
   onLabelChange: (id: string, label: string) => void;
   onDelete: (id: string) => void;
   onApplyOperation: (id: string, operation: string) => void;
+  onSizeChange: (id: string, width: number, height: number) => void;
 }
 
 /**
@@ -36,10 +37,23 @@ const EditorBox = ({
   onLanguageChange,
   onLabelChange,
   onDelete,
-  onApplyOperation
+  onApplyOperation,
+  onSizeChange
 }: EditorBoxProps) => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [startHeight, setStartHeight] = useState(0);
+  const boxRef = useCallback((node: HTMLDivElement | null) => {
+    if (node && !box.height) {
+      // Set initial height if not set
+      const rect = node.getBoundingClientRect();
+      if (rect.height > 0) {
+        onSizeChange(box.id, box.width || 0, rect.height);
+      }
+    }
+  }, [box.id, box.height, box.width, onSizeChange]);
 
   /**
    * Handles copying box content to clipboard
@@ -68,6 +82,47 @@ const EditorBox = ({
     const newLang = e.target.value as EditorLanguage;
     onLanguageChange(box.id, newLang);
   }, [box.id, onLanguageChange]);
+
+  /**
+   * Handles resize drag start
+   */
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setStartY(e.clientY);
+    setStartHeight(box.height || 300);
+  }, [box.height]);
+
+  /**
+   * Handles resize drag
+   */
+  const handleResizeDrag = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+    const deltaY = e.clientY - startY;
+    const newHeight = Math.max(200, Math.min(800, startHeight + deltaY));
+    onSizeChange(box.id, box.width || 0, newHeight);
+  }, [isDragging, startY, startHeight, box.id, box.width, onSizeChange]);
+
+  /**
+   * Handles resize drag end
+   */
+  const handleResizeEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  /**
+   * Sets up mouse event listeners for resize
+   */
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleResizeDrag);
+      document.addEventListener('mouseup', handleResizeEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleResizeDrag);
+        document.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [isDragging, handleResizeDrag, handleResizeEnd]);
 
   /**
    * Renders the appropriate editor based on type
@@ -111,7 +166,11 @@ const EditorBox = ({
   };
 
   return (
-    <div className="flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+    <div 
+      ref={boxRef}
+      className="flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden"
+      style={{ height: box.height ? `${box.height}px` : '400px' }}
+    >
       {/* Box Header */}
       <div className="bg-muted border-b border-border px-3 py-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -209,7 +268,7 @@ const EditorBox = ({
       </div>
 
       {/* Editor Content */}
-      <div className="flex-1 min-h-[300px] max-h-[500px] overflow-auto bg-background">
+      <div className="flex-1 overflow-auto bg-background">
         {renderEditor()}
       </div>
 
@@ -234,6 +293,16 @@ const EditorBox = ({
           <option value="remove-quotes">Remove Quotes</option>
         </select>
       </div>
+
+      {/* Resize Handle */}
+      <div
+        className={cn(
+          "h-2 bg-muted border-t border-border cursor-ns-resize hover:bg-accent transition-colors",
+          isDragging && "bg-accent"
+        )}
+        onMouseDown={handleResizeStart}
+        title="Drag to resize"
+      />
     </div>
   );
 };

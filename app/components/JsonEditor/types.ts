@@ -14,6 +14,8 @@ export interface EditorBox {
   language: EditorLanguage;
   content: string;
   label?: string;
+  width?: number;
+  height?: number;
 }
 
 /**

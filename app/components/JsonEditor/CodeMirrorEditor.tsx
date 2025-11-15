@@ -16,34 +16,36 @@ interface CodeMirrorEditorProps {
 const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<any>(null);
+  const isUpdatingRef = useRef(false);
 
   useEffect(() => {
     // Dynamically import CodeMirror only when needed
     const initCodeMirror = async () => {
       const { EditorView, basicSetup } = await import('codemirror');
-      const { EditorState } = await import('@codemirror/state');
+      const { EditorState, Compartment } = await import('@codemirror/state');
       const { javascript } = await import('@codemirror/lang-javascript');
       const { json } = await import('@codemirror/lang-json');
       const { markdown } = await import('@codemirror/lang-markdown');
       const { oneDark } = await import('@codemirror/theme-one-dark');
 
-      if (!editorRef.current) return;
+      if (!editorRef.current || viewRef.current) return;
+
+      // Create language compartment for dynamic updates
+      const languageCompartment = new Compartment();
 
       // Determine language extension
-      let langExtension;
-      switch (language) {
-        case 'json':
-          langExtension = json();
-          break;
-        case 'javascript':
-          langExtension = javascript();
-          break;
-        case 'markdown':
-          langExtension = markdown();
-          break;
-        default:
-          langExtension = [];
-      }
+      const getLangExtension = (lang: EditorLanguage) => {
+        switch (lang) {
+          case 'json':
+            return json();
+          case 'javascript':
+            return javascript();
+          case 'markdown':
+            return markdown();
+          default:
+            return [];
+        }
+      };
 
       // Check if dark mode is active
       const isDark = document.documentElement.classList.contains('dark');
@@ -53,10 +55,10 @@ const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) 
         doc: value,
         extensions: [
           basicSetup,
-          langExtension,
+          languageCompartment.of(getLangExtension(language)),
           ...(isDark ? [oneDark] : []),
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
+            if (update.docChanged && !isUpdatingRef.current) {
               onChange(update.state.doc.toString());
             }
           }),
@@ -79,18 +81,34 @@ const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) 
       });
 
       viewRef.current = view;
-
-      return () => {
-        view.destroy();
-      };
+      (viewRef.current as any).languageCompartment = languageCompartment;
+      (viewRef.current as any).getLangExtension = getLangExtension;
     };
 
     initCodeMirror();
-  }, [language]); // Reinitialize when language changes
+
+    return () => {
+      if (viewRef.current) {
+        viewRef.current.destroy();
+        viewRef.current = null;
+      }
+    };
+  }, []); // Only initialize once
+
+  // Update language when it changes
+  useEffect(() => {
+    if (viewRef.current && (viewRef.current as any).languageCompartment) {
+      const getLangExtension = (viewRef.current as any).getLangExtension;
+      viewRef.current.dispatch({
+        effects: (viewRef.current as any).languageCompartment.reconfigure(getLangExtension(language))
+      });
+    }
+  }, [language]);
 
   // Update content when value prop changes (but not from internal updates)
   useEffect(() => {
     if (viewRef.current && viewRef.current.state.doc.toString() !== value) {
+      isUpdatingRef.current = true;
       const transaction = viewRef.current.state.update({
         changes: {
           from: 0,
@@ -99,6 +117,7 @@ const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) 
         },
       });
       viewRef.current.dispatch(transaction);
+      isUpdatingRef.current = false;
     }
   }, [value]);
 
