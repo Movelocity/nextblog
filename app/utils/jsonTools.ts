@@ -235,6 +235,96 @@ export const unescapeJsonString = (str: string): string => {
 };
 
 /**
+ * Unescapes a string by one level (removes one layer of escape characters)
+ * Useful for "string printing" - converting escaped strings to their unescaped form
+ * @param text - The text to unescape
+ * @param levels - Number of levels to unescape (default: 1)
+ * @returns Unescaped text
+ */
+export const unescapeString = (text: string, levels: number = 1): string => {
+  let result = text;
+  for (let i = 0; i < levels; i++) {
+    result = unescapeJsonString(result);
+  }
+  return result;
+};
+
+/**
+ * Removes specific keywords or patterns from text
+ * @param text - The input text
+ * @param keywords - Array of keywords/patterns to remove
+ * @returns Text with keywords removed
+ */
+export const removeKeywords = (text: string, keywords: string[]): string => {
+  let result = text;
+  for (const keyword of keywords) {
+    // Escape special regex characters
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(escapedKeyword, 'g'), '');
+  }
+  return result;
+};
+
+/**
+ * Removes newline characters from text
+ * @param text - The input text
+ * @returns Text without newlines
+ */
+export const removeNewlines = (text: string): string => {
+  return text.replace(/\n/g, '').replace(/\r/g, '');
+};
+
+/**
+ * Removes tab characters from text
+ * @param text - The input text
+ * @returns Text without tabs
+ */
+export const removeTabs = (text: string): string => {
+  return text.replace(/\t/g, '');
+};
+
+/**
+ * Removes quotes from text (both single and double)
+ * @param text - The input text
+ * @returns Text without quotes
+ */
+export const removeQuotes = (text: string): string => {
+  return text.replace(/["']/g, '');
+};
+
+/**
+ * Parses JSON from a selection within text
+ * @param text - The text containing JSON
+ * @param start - Start index of selection (optional)
+ * @param end - End index of selection (optional)
+ * @returns Parsed JSON object or error
+ */
+export const parseJsonSelection = (
+  text: string,
+  start?: number,
+  end?: number
+): { success: boolean; data?: any; error?: string; formatted?: string } => {
+  const selectedText = start !== undefined && end !== undefined 
+    ? text.substring(start, end) 
+    : text;
+
+  try {
+    const parsed = JSON.parse(selectedText);
+    const formatted = JSON.stringify(parsed, null, 2);
+    return {
+      success: true,
+      data: parsed,
+      formatted
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message
+    };
+  }
+};
+
+/**
  * Converts JSON to a pretty-printed string with syntax highlighting HTML
  * @param json - The JSON object or string
  * @returns HTML string with syntax highlighting
