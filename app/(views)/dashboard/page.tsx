@@ -67,7 +67,7 @@ function DashboardContent() {
 
   if (!isAuthenticated) {
     return <div className="w-full h-full flex justify-center items-center">
-      <button className="text-gray-300" onClick={()=>{openLoginModal()}}>LOGIN</button>
+      <button className="text-gray-900 dark:text-gray-300" onClick={()=>{openLoginModal()}}>LOGIN</button>
     </div>; // 登录弹窗由全局 GlobalLoginModal 处理
   }
 

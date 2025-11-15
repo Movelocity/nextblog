@@ -86,7 +86,7 @@ export default function PostPage() {
           </div>
         </div>
 
-        <div className="flex-1 mt-4 mb-64 min-h-[40vh]">
+        <div className="flex-1 mt-4 mb-64 min-h-[40vh] max-w-4xl mx-auto">
           <Markdown content={post.content} />
         </div>
 

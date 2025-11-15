@@ -116,7 +116,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     {
       'w-full': fullWidth,
       'rounded-full': circular,
-      'hover:scale-105': !disabled && !loading,
       'cursor-not-allowed': disabled || loading,
     },
     className

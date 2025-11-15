@@ -82,8 +82,8 @@ const NoteEditor = ({ onSubmit, loading = false, placeholder = '写点什么...'
    * 处理快捷键
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Ctrl/Cmd + Enter 提交
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    // Ctrl/Cmd + s 保存
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       handleSubmit();
     }

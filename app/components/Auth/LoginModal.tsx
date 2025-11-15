@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Modal from '../ui/Modal';
+import { Modal, Button } from "@/app/components/ui"
 import { login, setAuthToken } from '@/app/services/auth';
 import { FiMail, FiLock, FiLoader, FiEye, FiEyeOff } from 'react-icons/fi';
-import classNames from 'classnames';
+import cn from 'classnames';
 import { readAccount, rememberAccount } from '@/app/components/Auth/utils';
 import { useToast } from '@/app/components/layout/ToastHook';
 import { useAuth } from '@/app/hooks/useAuth';
+import "./styles.css"
 
 export const LoginModal = () => {
   const [email, setEmail] = useState('');
@@ -79,7 +80,7 @@ export const LoginModal = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 text-sm  dark:bg-gray-700 dark:text-white outline-none"
+                className="pl-10 block w-full rounded-lg border border-gray-500 py-3 shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm  dark:bg-gray-700 dark:text-white outline-none"
                 placeholder="Enter your email"
                 aria-label="Email Address"
               />
@@ -97,7 +98,7 @@ export const LoginModal = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="pl-10 block w-full rounded-lg border border-gray-300 py-3 shadow-sm focus:border-blue-500 text-sm dark:bg-gray-700 dark:text-white outline-none"
+                className="pl-10 block w-full rounded-lg border border-gray-500 py-3 shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm dark:bg-gray-700 dark:text-white outline-none"
                 placeholder="Enter your password"
                 aria-label="Password"
               />
@@ -131,24 +132,14 @@ export const LoginModal = () => {
             </button>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className={classNames(
-              "w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white",
-              "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
-              "disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            )}
-          >
-            {isLoading ? (
-              <>
-                <FiLoader className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                Signing in...
-              </>
-            ) : (
-              'Sign in'
-            )}
-          </button>
+            variant="primary"
+            fullWidth
+            loading={isLoading}
+            text={isLoading ? 'Signing in...' : 'Sign in'}
+          />
         </form>
       </div>
     </Modal>

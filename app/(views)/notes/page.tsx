@@ -157,7 +157,7 @@ const NotesPage = () => {
   return (
     <div className="w-full flex flex-col lg:flex-row gap-4">
       {/* 主内容区 */}
-      <div className="flex-1 min-w-0 space-y-3 pt-6">
+      <div className="flex-1 min-w-0 space-y-3 pt-6 xl:max-w-3xl xl:mx-auto">
         {/* 不需要页面标题 */}
 
         {/* 创建笔记区域 */}

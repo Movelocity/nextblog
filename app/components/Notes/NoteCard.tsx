@@ -131,6 +131,17 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
     setEstimatedEditorRows(Math.min(Math.max(4, lines), 16));
   }, [editedData]);
 
+  /**
+   * 处理快捷键
+   */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Ctrl/Cmd + s 保存
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      handleSaveEdit();
+    }
+  };
+
   return (
     <div className={cn('bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow border border-card p-4 pb-2')}>
       {isEditing ? (
@@ -141,6 +152,7 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
             name="note-content"
             value={editedData}
             onChange={(e) => setEditedData(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="w-full px-1 py-2 rounded-lg outline-none bg-transparent dark:text-white muted-scrollbar"
             rows={estimatedEditorRows}
             placeholder="笔记内容..."

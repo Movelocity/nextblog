@@ -226,7 +226,7 @@ export default function SystemPage() {
   const diskSorted = Object.entries(disk).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* 页面标题和刷新按钮 */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">

@@ -31,7 +31,7 @@ export default function PostsList({ posts, isLoading = false }: PostsListProps) 
 
 
   return (
-    <div className="space-y-4 pb-48">
+    <div className="space-y-4 pb-48 max-w-4xl mx-auto">
       {posts.map((post) => (
         <ArticleItem key={post.id} post={post} />
       ))}
