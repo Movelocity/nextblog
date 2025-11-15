@@ -32,10 +32,10 @@ async function writeIndex(data: { scripts: CustomScript[] }): Promise<void> {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const scriptFile = path.join(SCRIPTS_DIR, `${id}.json`);
 
     try {
@@ -56,9 +56,9 @@ export async function GET(
  * Updates a script (requires auth)
  */
 export const PUT = requireAuth(
-  async (request: NextRequest, { params }: { params: { id: string } }) => {
+  async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     try {
-      const { id } = params;
+      const { id } = await params;
       const body = await request.json();
       const { name, code, description, outputMode } = body;
 
@@ -107,9 +107,9 @@ export const PUT = requireAuth(
  * Deletes a script (requires auth)
  */
 export const DELETE = requireAuth(
-  async (request: NextRequest, { params }: { params: { id: string } }) => {
+  async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     try {
-      const { id } = params;
+      const { id } = await params;
       const scriptFile = path.join(SCRIPTS_DIR, `${id}.json`);
 
       // Delete script file

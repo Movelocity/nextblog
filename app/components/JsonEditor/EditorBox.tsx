@@ -24,7 +24,7 @@ interface EditorBoxProps {
   onLabelChange: (id: string, label: string) => void;
   onDelete: (id: string) => void;
   onApplyOperation: (id: string, operation: string) => void;
-  onSizeChange: (id: string, width: number, height: number) => void;
+  onSizeChange: (id: string, height: number) => void;
   customScripts?: Array<{ id: string; name: string; code: string; description?: string; outputMode?: 'inplace' | 'newBlock' }>;
   onExecuteScript?: (boxId: string, scriptId: string) => void;
 }
@@ -47,33 +47,17 @@ const EditorBox = ({
   const [copySuccess, setCopySuccess] = useState(false);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [isDraggingHeight, setIsDraggingHeight] = useState(false);
-  const [isDraggingWidth, setIsDraggingWidth] = useState(false);
   const [startY, setStartY] = useState(0);
-  const [startX, setStartX] = useState(0);
   const [startHeight, setStartHeight] = useState(0);
-  const [startWidth, setStartWidth] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const boxRef = useCallback((node: HTMLDivElement | null) => {
-    if (node && (!box.height || !box.width)) {
-      // Set initial dimensions if not set
+    if (node && !box.height) {
+      // Set initial height if not set
       const rect = node.getBoundingClientRect();
-      if (rect.height > 0 && rect.width > 0) {
-        onSizeChange(box.id, box.width || rect.width, box.height || rect.height);
+      if (rect.height > 0) {
+        onSizeChange(box.id, rect.height);
       }
     }
-  }, [box.id, box.height, box.width, onSizeChange]);
-
-  /**
-   * Detects mobile devices to disable horizontal resizing
-   */
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [box.id, box.height, onSizeChange]);
 
   /**
    * Handles copying box content to clipboard
@@ -114,41 +98,20 @@ const EditorBox = ({
   }, [box.height]);
 
   /**
-   * Handles horizontal resize drag start
-   */
-  const handleWidthResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingWidth(true);
-    setStartX(e.clientX);
-    setStartWidth(box.width || 400);
-  }, [box.width]);
-
-  /**
    * Handles vertical resize drag
    */
   const handleHeightResizeDrag = useCallback((e: MouseEvent) => {
     if (!isDraggingHeight) return;
     const deltaY = e.clientY - startY;
     const newHeight = Math.max(200, Math.min(800, startHeight + deltaY));
-    onSizeChange(box.id, box.width || 0, newHeight);
-  }, [isDraggingHeight, startY, startHeight, box.id, box.width, onSizeChange]);
-
-  /**
-   * Handles horizontal resize drag
-   */
-  const handleWidthResizeDrag = useCallback((e: MouseEvent) => {
-    if (!isDraggingWidth) return;
-    const deltaX = e.clientX - startX;
-    const newWidth = Math.max(300, Math.min(1200, startWidth + deltaX));
-    onSizeChange(box.id, newWidth, box.height || 0);
-  }, [isDraggingWidth, startX, startWidth, box.id, box.height, onSizeChange]);
+    onSizeChange(box.id, newHeight);
+  }, [isDraggingHeight, startY, startHeight, box.id, onSizeChange]);
 
   /**
    * Handles resize drag end
    */
   const handleResizeEnd = useCallback(() => {
     setIsDraggingHeight(false);
-    setIsDraggingWidth(false);
   }, []);
 
   /**
@@ -164,17 +127,6 @@ const EditorBox = ({
       };
     }
   }, [isDraggingHeight, handleHeightResizeDrag, handleResizeEnd]);
-
-  useEffect(() => {
-    if (isDraggingWidth) {
-      document.addEventListener('mousemove', handleWidthResizeDrag);
-      document.addEventListener('mouseup', handleResizeEnd);
-      return () => {
-        document.removeEventListener('mousemove', handleWidthResizeDrag);
-        document.removeEventListener('mouseup', handleResizeEnd);
-      };
-    }
-  }, [isDraggingWidth, handleWidthResizeDrag, handleResizeEnd]);
 
   /**
    * Renders the appropriate editor based on type
@@ -220,10 +172,9 @@ const EditorBox = ({
   return (
     <div 
       ref={boxRef}
-      className="flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden relative"
+      className="flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden"
       style={{ 
-        height: box.height ? `${box.height}px` : '400px',
-        width: !isMobile && box.width ? `${box.width}px` : 'auto'
+        height: box.height ? `${box.height}px` : '400px'
       }}
     >
       {/* Box Header */}
@@ -386,18 +337,6 @@ const EditorBox = ({
         onMouseDown={handleHeightResizeStart}
         title="拖动以调整高度"
       />
-
-      {/* Horizontal Resize Handle (desktop only) */}
-      {!isMobile && (
-        <div
-          className={cn(
-            "absolute top-0 right-0 w-2 h-full bg-transparent cursor-ew-resize hover:bg-accent hover:bg-opacity-50 transition-colors",
-            isDraggingWidth && "bg-accent bg-opacity-50"
-          )}
-          onMouseDown={handleWidthResizeStart}
-          title="拖动以调整宽度"
-        />
-      )}
     </div>
   );
 };

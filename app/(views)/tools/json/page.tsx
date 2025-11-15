@@ -82,7 +82,14 @@ export default function JsonEditorPage() {
       }
       
       if (boxes && boxes.length > 0) {
-        setBoxes(boxes);
+        // Limit to maximum 3 boxes
+        if (boxes.length > 3) {
+          const truncatedBoxes = boxes.slice(0, 3);
+          setBoxes(truncatedBoxes);
+          showToast(`已加载前 3 个编辑框（共 ${boxes.length} 个），建议删除多余的编辑框`, 'warning');
+        } else {
+          setBoxes(boxes);
+        }
       } else {
         // Initialize with one default box
         const defaultBox: EditorBoxType = {
@@ -97,7 +104,7 @@ export default function JsonEditorPage() {
     };
     
     initializeBoxes();
-  }, []);
+  }, [showToast]);
 
   /**
    * Auto-saves boxes to IndexedDB (debounced)
@@ -121,9 +128,13 @@ export default function JsonEditorPage() {
 
 
   /**
-   * Adds a new editor box
+   * Adds a new editor box (maximum 3 boxes)
    */
   const handleAddBox = useCallback(() => {
+    if (boxes.length >= 3) {
+      showToast('最多只能创建 3 个编辑框', 'warning');
+      return;
+    }
     const newBox: EditorBoxType = {
       id: generateId(),
       type: 'textarea',
@@ -164,10 +175,10 @@ export default function JsonEditorPage() {
   }, []);
 
   /**
-   * Handles box size change
+   * Handles box height change (width is managed by responsive grid)
    */
-  const handleSizeChange = useCallback((id: string, width: number, height: number) => {
-    setBoxes(prev => prev.map(box => box.id === id ? { ...box, width, height } : box));
+  const handleSizeChange = useCallback((id: string, height: number) => {
+    setBoxes(prev => prev.map(box => box.id === id ? { ...box, height } : box));
   }, []);
 
   /**
@@ -250,16 +261,22 @@ export default function JsonEditorPage() {
     
     if (result.success && result.output) {
       if (script.outputMode === 'newBlock') {
-        // Create a new box with the result
-        const newBox: EditorBoxType = {
-          id: generateId(),
-          type: box.type,
-          language: box.language,
-          content: result.output,
-          label: `${box.label || '编辑框'} - 脚本结果`,
-        };
-        setBoxes(prev => [...prev, newBox]);
-        showToast(`脚本已执行，结果已创建新编辑框 (${result.executionTime?.toFixed(0)}ms)`, 'success');
+        // Check if we can create a new box (max 3)
+        if (boxes.length >= 3) {
+          showToast('已达到编辑框上限（3个），结果已原地替换', 'warning');
+          handleContentChange(boxId, result.output);
+        } else {
+          // Create a new box with the result
+          const newBox: EditorBoxType = {
+            id: generateId(),
+            type: box.type,
+            language: box.language,
+            content: result.output,
+            label: `${box.label || '编辑框'} - 脚本结果`,
+          };
+          setBoxes(prev => [...prev, newBox]);
+          showToast(`脚本已执行，结果已创建新编辑框 (${result.executionTime?.toFixed(0)}ms)`, 'success');
+        }
       } else {
         // Replace content in the current box (inplace)
         handleContentChange(boxId, result.output);
@@ -485,10 +502,15 @@ export default function JsonEditorPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleAddBox}
-                className="px-3 py-1.5 rounded text-sm bg-background hover:bg-accent hover:text-white transition-colors flex items-center gap-1.5 border border-border"
+                disabled={boxes.length >= 3}
+                className={`px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1.5 border border-border ${
+                  boxes.length >= 3
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
+                    : 'bg-background hover:bg-accent hover:text-white'
+                }`}
               >
                 <RiAddLine className="w-4 h-4" />
-                添加编辑框
+                添加编辑框 ({boxes.length}/3)
               </button>
               <button
                 onClick={() => {
@@ -535,13 +557,23 @@ export default function JsonEditorPage() {
             </div>
             
             <div className="text-xs text-muted-foreground">
-              {boxes.length} 个编辑框 • {customScripts.length} 个脚本
+              {customScripts.length} 个脚本
             </div>
           </div>
         </div>
 
-        {/* Editor Boxes Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        {/* Editor Boxes Grid - Responsive Layout */}
+        <div 
+          className={`grid gap-4 transition-all duration-300 ${
+            boxes.length === 1
+              ? 'grid-cols-1' // 1 box: full width on all screens
+              : boxes.length === 2
+              ? 'grid-cols-1 sm:grid-cols-2' // 2 boxes: stack on mobile, side by side on larger screens
+              : boxes.length === 3
+              ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 3 boxes: 1 col on mobile, 2 cols on tablet, 3 cols on desktop
+              : 'grid-cols-1'
+          }`}
+        >
           {boxes.map((box) => (
             <EditorBox
               key={box.id}

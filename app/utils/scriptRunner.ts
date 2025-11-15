@@ -43,11 +43,11 @@ export interface ScriptExecutionResult {
  * @param timeoutMs - Timeout in milliseconds (default: 5000)
  * @returns Execution result with output or error
  */
-export const executeUserScript = (
+export const executeUserScript = async (
   script: string,
   input: string,
   timeoutMs: number = 5000
-): ScriptExecutionResult => {
+): Promise<ScriptExecutionResult> => {
   const startTime = performance.now();
 
   try {
