@@ -61,6 +61,7 @@ const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) 
           basicSetup,
           languageCompartment.of(getLangExtension(language)),
           ...(isDark ? [oneDark] : []),
+          EditorView.lineWrapping,
           EditorView.updateListener.of((update) => {
             if (update.docChanged && !isUpdatingRef.current) {
               onChange(update.state.doc.toString());
@@ -73,6 +74,7 @@ const CodeMirrorEditor = ({ value, language, onChange }: CodeMirrorEditorProps) 
             },
             '.cm-scroller': {
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+              whiteSpace: 'pre-wrap',
             },
           }),
         ],

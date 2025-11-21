@@ -70,7 +70,7 @@ export default function PostPage() {
     <div>
       <div className="h-full py-8 flex flex-col flex-1">
         {/* Title and Controls */}
-        <div className="flex flex-col pb-4 border-b border-gray-200 dark:border-gray-700 px-4">
+        <div className="flex flex-col pb-4 border-b border-gray-200 dark:border-gray-700 px-4 max-w-4xl mx-auto w-full">
           <h1 className="block w-full px-0 break-words text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white">
             {post.title}
           </h1>
@@ -86,7 +86,7 @@ export default function PostPage() {
           </div>
         </div>
 
-        <div className="flex-1 mt-4 mb-64 min-h-[40vh] max-w-4xl mx-auto">
+        <div className="flex-1 mt-4 mb-64 min-h-[40vh] max-w-4xl mx-auto w-full">
           <Markdown content={post.content} />
         </div>
 

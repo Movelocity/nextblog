@@ -269,7 +269,8 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
               ref={contentRef}
               className={cn(
                 "prose prose-base dark:prose-invert max-w-none transition-all duration-300 overflow-hidden",
-                shouldCollapse && !isExpanded && "max-h-[280px]"
+                shouldCollapse && !isExpanded && "max-h-[280px]",
+                note.tags.length > 0 && "pb-6"
               )}
               style={shouldCollapse && !isExpanded ? {
                 maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',

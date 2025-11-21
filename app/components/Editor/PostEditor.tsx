@@ -169,7 +169,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
     <div className="py-6 pl-4 sm:pl-6">
       <div className='flex flex-col h-full mb-64 flex-1'>
         {/* Title and Controls */}
-        <div className="flex flex-col w-full border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col w-full border-b border-gray-200 dark:border-gray-700 max-w-4xl mx-auto w-full">
           <div className="flex flex-row items-center justify-between">
             <PublishHint published={post.published} onClick={onPublishToggle} />
           </div>
@@ -229,7 +229,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
           </div>
         </div>
         {/* Content Area */}
-        <div className="flex-1 mt-4">
+        <div className="flex-1 mt-4 max-w-4xl mx-auto w-full">
           {isPreview ? (
             <Markdown content={post.content} />
           ) : (
