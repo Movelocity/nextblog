@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import cn from 'classnames';
 import { RiMenuLine, RiCloseLine } from 'react-icons/ri';
 

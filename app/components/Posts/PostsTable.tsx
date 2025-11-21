@@ -1,15 +1,17 @@
 import { BlogMeta } from '@/app/common/types';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
-import { FaSort, FaSortUp, FaSortDown, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaSort, FaSortUp, FaSortDown, FaEdit, FaTrash, FaFilter, FaTimes } from 'react-icons/fa';
 import { MdPublish, MdUnpublished } from 'react-icons/md';
+import { RiSearchLine } from 'react-icons/ri';
 import classNames from 'classnames';
 import Modal from '../ui/Modal';
 import CategoryTag from '@/app/components/CategoryTag';
 
 // Types
-type SortField = 'title' | 'updatedAt' | 'published';
+type SortField = 'title' | 'updatedAt' | 'published' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
+type FilterStatus = 'all' | 'published' | 'draft';
 
 interface PostsTableProps {
   posts: BlogMeta[];
@@ -56,23 +58,22 @@ const StatusBadge = ({ published, onClick }: { published: boolean; onClick?: () 
   <button
     onClick={onClick}
     type="button"
+    disabled={!onClick}
     className={classNames(
-      'px-2 py-1 lg:py-0 inline-flex text-xs leading-5 font-semibold rounded-full transition-all duration-200',
+      'px-2.5 py-1 inline-flex items-center gap-1.5 text-xs font-semibold rounded-full transition-all duration-200',
       published 
-        ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-        : 'bg-amber-100 text-amber-800 hover:bg-amber-200',
-      onClick && 'cursor-pointer'
+        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/40' 
+        : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/40',
+      onClick ? 'cursor-pointer' : 'cursor-default'
     )}
-    aria-label={`${published ? 'Published' : 'Draft'} - Click to toggle status`}
+    aria-label={`${published ? 'Published' : 'Draft'}${onClick ? ' - Click to toggle status' : ''}`}
   >
-    <span className="flex items-center gap-1">
-      {published ? (
-        <MdPublish className="w-3 h-3" />
-      ) : (
-        <MdUnpublished className="w-3 h-3" />
-      )}
-      {published ? 'Published' : 'Draft'}
-    </span>
+    {published ? (
+      <MdPublish className="w-3.5 h-3.5" />
+    ) : (
+      <MdUnpublished className="w-3.5 h-3.5" />
+    )}
+    <span>{published ? 'Published' : 'Draft'}</span>
   </button>
 );
 
@@ -88,10 +89,15 @@ const CategoryTags = ({ categories }: { categories?: string[] }) => (
 );
 
 const SortIcon = ({ field, currentField, direction }: { field: SortField; currentField: SortField; direction: SortDirection }) => (
-  <span className="text-gray-400 group-hover:text-gray-600">
+  <span className={classNames(
+    'transition-colors',
+    field === currentField 
+      ? 'text-blue-600 dark:text-blue-400' 
+      : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400'
+  )}>
     {field === currentField
-      ? direction === 'asc' ? <FaSortUp /> : <FaSortDown />
-      : <FaSort />}
+      ? direction === 'asc' ? <FaSortUp className="w-3.5 h-3.5" /> : <FaSortDown className="w-3.5 h-3.5" />
+      : <FaSort className="w-3.5 h-3.5" />}
   </span>
 );
 
@@ -103,17 +109,17 @@ const ActionButtons = ({ post, onDelete }: { post: BlogMeta } & Pick<PostsTableP
       <div className="flex justify-end items-center space-x-2">
         <Link
           href={`/posts/${post.id}/edit`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-transparent dark:hover:bg-gray-600 dark:text-blue-400 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 rounded-lg transition-all"
         >
-          <FaEdit className="w-4 h-4" />
+          <FaEdit className="w-3.5 h-3.5" />
           <span>Edit</span>
         </Link>
         
         <button
           onClick={() => setShowDeleteModal(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-2.5 text-red-700 bg-red-50 dark:bg-transparent hover:bg-red-100 dark:hover:bg-gray-600 dark:text-red-400 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 border border-transparent hover:border-red-200 dark:hover:border-red-800 rounded-lg transition-all"
         >
-          <FaTrash className="w-4 h-4" />
+          <FaTrash className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -133,51 +139,181 @@ const ActionButtons = ({ post, onDelete }: { post: BlogMeta } & Pick<PostsTableP
 const TableHeader = ({
   selectedPosts,
   onTogglePublish,
-  setSelectedPosts
+  setSelectedPosts,
+  searchQuery,
+  setSearchQuery,
+  filterStatus,
+  setFilterStatus,
+  totalCount,
+  filteredCount
 }: {
   selectedPosts: string[];
   setSelectedPosts: (posts: string[]) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  filterStatus: FilterStatus;
+  setFilterStatus: (status: FilterStatus) => void;
+  totalCount: number;
+  filteredCount: number;
 } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => {
+  const [showFilters, setShowFilters] = useState(false);
+
   const handleBulkPublish = (publish: boolean) => {
-    if (!onTogglePublish || !window.confirm(`Are you sure you want to ${publish ? 'publish' : 'unpublish'} the selected posts?`)) return;
+    if (!onTogglePublish || !window.confirm(`Are you sure you want to ${publish ? 'publish' : 'unpublish'} ${selectedPosts.length} selected post${selectedPosts.length > 1 ? 's' : ''}?`)) return;
     selectedPosts.forEach(id => onTogglePublish(id, !publish));
     setSelectedPosts([]);
   };
 
+  const hasActiveFilters = searchQuery || filterStatus !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterStatus('all');
+  };
+
   return (
-    <div className="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Posts</h2>
-      <div className="flex items-center gap-3 overflow-x-auto">
-        {selectedPosts.length > 0 && (
-          <>
-            {onTogglePublish && (
-              <>
-                <button
-                  onClick={() => handleBulkPublish(true)}
-                  className="inline-flex items-center px-3 py-1.5 text-sm text-green-600 border border-green-600 rounded hover:bg-green-50"
-                >
-                  Publish Selected
-                </button>
-                <button
-                  onClick={() => handleBulkPublish(false)}
-                  className="inline-flex items-center px-3 py-1.5 text-sm text-amber-600 border border-amber-600 rounded hover:bg-amber-50"
-                >
-                  Unpublish Selected
-                </button>
-              </>
+    <div className="border-b dark:border-gray-700">
+      <div className="px-4 lg:px-6 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Posts</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            {filteredCount} {filteredCount === 1 ? 'post' : 'posts'}
+            {hasActiveFilters && totalCount !== filteredCount && (
+              <span> (filtered from {totalCount})</span>
             )}
-          </>
-        )}
-        <Link
-          href="/posts/new"
-          className="inline-flex items-center px-4 py-2 bg-blue-500 dark:bg-transparent dark:border dark:border-blue-500 text-white dark:text-blue-400 text-sm font-medium rounded-md hover:bg-blue-600 transition-colors"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-          </svg>
-          New Post
-        </Link>
+            {selectedPosts.length > 0 && (
+              <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium">
+                · {selectedPosts.length} selected
+              </span>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 w-full lg:w-auto">
+          {selectedPosts.length > 0 ? (
+            <>
+              {onTogglePublish && (
+                <>
+                  <button
+                    onClick={() => handleBulkPublish(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-green-700 bg-green-50 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                  >
+                    <MdPublish className="w-4 h-4" />
+                    Publish
+                  </button>
+                  <button
+                    onClick={() => handleBulkPublish(false)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                  >
+                    <MdUnpublished className="w-4 h-4" />
+                    Unpublish
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => setSelectedPosts([])}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Clear
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={classNames(
+                  'inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border rounded-lg transition-colors',
+                  hasActiveFilters
+                    ? 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                    : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                )}
+              >
+                <FaFilter className="w-3.5 h-3.5" />
+                Filters
+                {hasActiveFilters && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-600 dark:bg-blue-500 text-white rounded-full">
+                    •
+                  </span>
+                )}
+              </button>
+              <Link
+                href="/posts/new"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+                New Post
+              </Link>
+            </>
+          )}
+        </div>
       </div>
+      
+      {/* Filter Panel */}
+      {showFilters && (
+        <div className="px-4 lg:px-6 pb-4 space-y-3 animate-in slide-in-from-top-2">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search posts by title..."
+                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              />
+            </div>
+            
+            {/* Status Filter */}
+            <div className="flex gap-2">
+              {(['all', 'published', 'draft'] as FilterStatus[]).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={classNames(
+                    'px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize',
+                    filterStatus === status
+                      ? 'bg-blue-600 text-white dark:bg-blue-600'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  )}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Active Filters */}
+          {hasActiveFilters && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-600 dark:text-gray-400">Active filters:</span>
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
+                  Search: &quot;{searchQuery}&quot;
+                  <button onClick={() => setSearchQuery('')} className="hover:text-blue-900 dark:hover:text-blue-300">
+                    <FaTimes className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {filterStatus !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded capitalize">
+                  Status: {filterStatus}
+                  <button onClick={() => setFilterStatus('all')} className="hover:text-blue-900 dark:hover:text-blue-300">
+                    <FaTimes className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={clearFilters}
+                className="ml-auto text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -193,33 +329,65 @@ const getToggleHandler = (
 };
 
 // Mobile View Component
-const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
+const MobileView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setSearchQuery, filterStatus, setFilterStatus, totalCount, ...props }: {
   posts: BlogMeta[];
   selectedPosts: string[];
   setSelectedPosts: (posts: string[]) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  filterStatus: FilterStatus;
+  setFilterStatus: (status: FilterStatus) => void;
+  totalCount: number;
 } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => (
   <div className="space-y-4">
     <TableHeader
       selectedPosts={selectedPosts}
       setSelectedPosts={setSelectedPosts}
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      filterStatus={filterStatus}
+      setFilterStatus={setFilterStatus}
+      totalCount={totalCount}
+      filteredCount={posts.length}
       {...props}
     />
-    <div className="px-4">
-      <div className="text-sm text-gray-700 mb-4">
-        {selectedPosts.length > 0 ? (
-          <span>{selectedPosts.length} selected</span>
-        ) : (
-          <span></span>
+    {posts.length === 0 ? (
+      <div className="px-4 py-16 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+          {searchQuery || filterStatus !== 'all' ? 'No posts found' : 'No posts yet'}
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">
+          {searchQuery || filterStatus !== 'all'
+            ? 'Try adjusting your filters or search query'
+            : 'Get started by creating your first post'}
+        </p>
+        {!searchQuery && filterStatus === 'all' && (
+          <Link
+            href="/posts/new"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Post
+          </Link>
         )}
       </div>
-      {posts.map((post) => (
-        <div key={post.id} className=" rounded-lg shadow-sm border p-4 space-y-3 transition-all hover:shadow-md mb-4 dark:border-gray-700">
+    ) : (
+      <div className="px-4 space-y-3">
+        {posts.map((post) => (
+        <div key={post.id} className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 space-y-3 transition-all hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               {/* Checkbox */}
               <input
                 type="checkbox"
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
                 checked={selectedPosts.includes(post.id)}
                 onChange={() => setSelectedPosts(
                   selectedPosts.includes(post.id)
@@ -227,12 +395,24 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                     : [...selectedPosts, post.id]
                 )}
               />
-              <div>
+              <div className="flex-1 min-w-0">
                 <Link href={`/posts/${post.id}`}>
-                  <div className="font-medium text-gray-900 dark:text-white hover:text-blue-500">{post.title}</div>
+                  <div className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">
+                    {post.title}
+                  </div>
                 </Link>
-                <div className="text-sm text-gray-500 mt-1">
-                  Updated {new Date(post.updatedAt).toLocaleDateString()}
+                {post.description && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2 max-w-[60vw] text-ellipsis">
+                    {post.description}
+                  </p>
+                )}
+                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {new Date(post.updatedAt).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -242,21 +422,31 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
             />
           </div>
           
-          <div className="flex justify-between items-center gap-3 pt-2 border-t dark:border-gray-700">
-            {post.categories && <CategoryTags categories={post.categories} />}
+          {post.categories && post.categories.length > 0 && (
+            <div className="pt-2">
+              <CategoryTags categories={post.categories} />
+            </div>
+          )}
+          <div className="flex justify-end items-center gap-2 pt-2 border-t dark:border-gray-700">
             <ActionButtons post={post} {...props} />
           </div>
         </div>
       ))}
-    </div>
+      </div>
+    )}
   </div>
 );
 
 // Desktop View Component
-const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
+const DesktopView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setSearchQuery, filterStatus, setFilterStatus, totalCount, ...props }: {
   posts: BlogMeta[];
   selectedPosts: string[];
   setSelectedPosts: (posts: string[]) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  filterStatus: FilterStatus;
+  setFilterStatus: (status: FilterStatus) => void;
+  totalCount: number;
 } & Pick<PostsTableProps, 'onTogglePublish' | 'onDelete'>) => {
   const [sortField, setSortField] = useState<SortField>('updatedAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -289,18 +479,53 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
       <TableHeader
         selectedPosts={selectedPosts}
         setSelectedPosts={setSelectedPosts}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        totalCount={totalCount}
+        filteredCount={sortedPosts.length}
         {...props}
       />
-      <div className="overflow-x-auto w-full">
+      {sortedPosts.length === 0 ? (
+        <div className="px-6 py-20 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            {searchQuery || filterStatus !== 'all' ? 'No posts found' : 'No posts yet'}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+            {searchQuery || filterStatus !== 'all'
+              ? 'Try adjusting your filters or search query to find what you\'re looking for'
+              : 'Get started by creating your first post and share your ideas with the world'}
+          </p>
+          {!searchQuery && filterStatus === 'all' && (
+            <Link
+              href="/posts/new"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create Your First Post
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto w-full">
         <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200">
-          <thead className="text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left">
+          <thead className="bg-gray-50 dark:bg-gray-800/50">
+            <tr className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-4 text-left w-12">
                 <input
                   type="checkbox"
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  checked={selectedPosts.length === posts.length}
-                  onChange={(e) => setSelectedPosts(e.target.checked ? posts.map(post => post.id) : [])}
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                  checked={sortedPosts.length > 0 && selectedPosts.length === sortedPosts.length}
+                  onChange={(e) => setSelectedPosts(e.target.checked ? sortedPosts.map(post => post.id) : [])}
+                  disabled={sortedPosts.length === 0}
                 />
               </th>
               {[
@@ -311,31 +536,31 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 <th
                   key={field}
                   scope="col"
-                  className="px-6 py-3 text-left tracking-wider cursor-pointer group"
+                  className="px-6 py-4 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
                   onClick={() => handleSort(field)}
                 >
-                  <div className="flex items-center gap-2">
-                    {label}
+                  <div className="flex items-center gap-2 select-none">
+                    <span>{label}</span>
                     <SortIcon field={field} currentField={sortField} direction={sortDirection} />
                   </div>
                 </th>
               ))}
-              <th scope="col" className="px-6 py-3 text-left tracking-wider">
+              <th scope="col" className="px-6 py-4 text-left">
                 Categories
               </th>
-              <th scope="col" className="sticky right-0 px-6 py-3 text-right tracking-wider bg-gray-50 dark:bg-zinc-900">
+              <th scope="col" className="sticky right-0 px-6 py-4 text-right bg-gray-50 dark:bg-gray-800/50">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y dark:divide-gray-700 divide-gray-200">
+          <tbody className="divide-y dark:divide-gray-700 divide-gray-200 bg-white dark:bg-gray-900">
             {sortedPosts.map((post) => (
-              <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+              <tr key={post.id} className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 {/* Checkbox */}
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap w-12">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:text-white"
+                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
                     checked={selectedPosts.includes(post.id)}
                     onChange={() => setSelectedPosts(
                       selectedPosts.includes(post.id)
@@ -346,8 +571,15 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                 </td>
                 <td className="px-6 py-4">
                   <Link href={`/posts/${post.id}`}>
-                    <div className="max-w-[200px] text-ellipsis text-sm font-medium text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-500">
-                      {post.title}
+                    <div className="max-w-md">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        {post.title}
+                      </div>
+                      {post.description && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                          {post.description}
+                        </div>
+                      )}
                     </div>
                   </Link>
                 </td>
@@ -357,20 +589,30 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
                     onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
                   />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                  {new Date(post.updatedAt).toLocaleDateString()}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    {new Date(post.updatedAt).toLocaleDateString()}
+                  </div>
+                  <div className="text-xs text-gray-400 dark:text-gray-500">
+                    {new Date(post.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </td>
                 <td className="px-6 py-4">
-                  <CategoryTags categories={post.categories} />
+                  {post.categories && post.categories.length > 0 ? (
+                    <CategoryTags categories={post.categories} />
+                  ) : (
+                    <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+                  )}
                 </td>
-                <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right text-sm font-medium bg-gray-50 dark:bg-zinc-900">
+                <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right text-sm font-medium bg-white dark:bg-gray-900 group-hover:bg-gray-50 dark:group-hover:bg-gray-800/50">
                   <ActionButtons post={post} {...props} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -378,6 +620,8 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, ...props }: {
 export default function PostsTable(props: PostsTableProps) {
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
@@ -388,10 +632,33 @@ export default function PostsTable(props: PostsTableProps) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  // Filter and search posts
+  const filteredPosts = useMemo(() => {
+    return props.posts.filter(post => {
+      // Search filter
+      const matchesSearch = searchQuery.trim() === '' || 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Status filter
+      const matchesStatus = filterStatus === 'all' ||
+        (filterStatus === 'published' && post.published) ||
+        (filterStatus === 'draft' && !post.published);
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [props.posts, searchQuery, filterStatus]);
+
   const viewProps = {
     ...props,
+    posts: filteredPosts,
     selectedPosts,
     setSelectedPosts,
+    searchQuery,
+    setSearchQuery,
+    filterStatus,
+    setFilterStatus,
+    totalCount: props.posts.length,
   };
 
   return isMobile ? <MobileView {...viewProps} /> : <DesktopView {...viewProps} />;
