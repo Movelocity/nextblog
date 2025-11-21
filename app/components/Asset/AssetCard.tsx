@@ -1,8 +1,8 @@
 import { Asset } from '@/app/common/types';
 import { FiCopy, FiDownload, FiTrash2, FiFileText, FiEye } from 'react-icons/fi';
 import { AssetPreview } from './AssetPreview';
+import { ImageViewer } from './ImageViewer';
 import { useState } from 'react';
-import Modal from '@/app/components/ui/Modal';
 
 type AssetCardProps = {
   asset: Asset;
@@ -88,20 +88,13 @@ export const AssetCard: React.FC<AssetCardProps> = ({
         <div className="">{sizeInKb} KB</div>
       </div>
 
-      {/* Preview Modal */}
-      <Modal
+      {/* Image Viewer */}
+      <ImageViewer
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
-        size="lg"
-        className="p-0"
-        title={asset.name}
-      >
-        <img
-          src={assetUrl}
-          alt={asset.name}
-          className="max-w-full max-h-[80vh] object-contain mx-auto"
-        />
-      </Modal>
+        imageUrl={assetUrl}
+        imageName={asset.name}
+      />
     </div>
   );
 }; 
