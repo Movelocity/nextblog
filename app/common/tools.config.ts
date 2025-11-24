@@ -12,7 +12,8 @@ import {
   RiLockPasswordLine,
   RiQrCodeLine,
   RiImageEditLine,
-  RiFileCodeLine
+  RiFileCodeLine,
+  RiScissorsLine
 } from 'react-icons/ri';
 import { IconType } from 'react-icons';
 
@@ -54,6 +55,16 @@ const tools: Tool[] = [
     category: ToolCategory.DEVELOPER,
     icon: RiFileCodeLine,
     path: '/tools/json',
+    isNew: true,
+    isPopular: true
+  },
+  {
+    id: 'image-processor',
+    name: '图像处理器',
+    description: '纯前端图像处理工具，支持裁剪、圆角、边距、背景等功能，多格式导出',
+    category: ToolCategory.MEDIA,
+    icon: RiScissorsLine,
+    path: '/tools/image-processor',
     isNew: true,
     isPopular: true
   },
