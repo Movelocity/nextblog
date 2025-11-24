@@ -13,6 +13,7 @@ import {
   RiPaintBrushLine
 } from 'react-icons/ri';
 import { useToast } from '@/app/components/layout/ToastHook';
+import { ImagePreview } from './';
 
 interface ImageState {
   originalBase64: string;
@@ -41,6 +42,7 @@ export default function ImageProcessorPage() {
   const [cropY, setCropY] = useState(0);
   const [cropWidth, setCropWidth] = useState(100);
   const [cropHeight, setCropHeight] = useState(100);
+  const [appliedCrop, setAppliedCrop] = useState<{x: number, y: number, width: number, height: number} | null>(null);
   const [borderRadius, setBorderRadius] = useState(0);
   const [padding, setPadding] = useState(0);
   const [backgroundType, setBackgroundType] = useState<BackgroundType>('transparent');
@@ -58,7 +60,6 @@ export default function ImageProcessorPage() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
 
   /**
    * Convert file to base64
@@ -185,6 +186,7 @@ export default function ImageProcessorPage() {
     setCropY(0);
     setCropWidth(100);
     setCropHeight(100);
+    setAppliedCrop(null);
     setBorderRadius(0);
     setPadding(0);
     setBackgroundType('transparent');
@@ -192,6 +194,67 @@ export default function ImageProcessorPage() {
     setScalePercent(100);
     setKeepAspectRatio(true);
   };
+
+  /**
+   * Handle crop change from ImagePreview
+   */
+  const handleCropChange = useCallback((x: number, y: number, width: number, height: number) => {
+    setCropX(x);
+    setCropY(y);
+    setCropWidth(width);
+    setCropHeight(height);
+  }, []);
+
+  /**
+   * Apply crop - called when exiting crop mode
+   */
+  const handleApplyCrop = useCallback(() => {
+    if (cropEnabled) {
+      // Save crop parameters and exit crop mode
+      setAppliedCrop({ x: cropX, y: cropY, width: cropWidth, height: cropHeight });
+      setCropEnabled(false);
+      showToast('裁剪已应用', 'success');
+    }
+  }, [cropEnabled, cropX, cropY, cropWidth, cropHeight, showToast]);
+
+  /**
+   * Cancel crop - exit crop mode without applying
+   */
+  const handleCancelCrop = useCallback(() => {
+    setCropEnabled(false);
+    // Restore previous crop if there was one
+    if (appliedCrop) {
+      setCropX(appliedCrop.x);
+      setCropY(appliedCrop.y);
+      setCropWidth(appliedCrop.width);
+      setCropHeight(appliedCrop.height);
+    } else {
+      setCropX(0);
+      setCropY(0);
+      setCropWidth(100);
+      setCropHeight(100);
+    }
+    showToast('已取消裁剪', 'info');
+  }, [appliedCrop, showToast]);
+
+  /**
+   * Toggle crop mode
+   */
+  const handleToggleCropMode = useCallback((enabled: boolean) => {
+    if (enabled) {
+      // Entering crop mode - use applied crop or defaults
+      if (appliedCrop) {
+        setCropX(appliedCrop.x);
+        setCropY(appliedCrop.y);
+        setCropWidth(appliedCrop.width);
+        setCropHeight(appliedCrop.height);
+      }
+      setCropEnabled(true);
+    } else {
+      // Exiting crop mode - this shouldn't happen via checkbox anymore
+      setCropEnabled(false);
+    }
+  }, [appliedCrop]);
 
   /**
    * Process image with current parameters
@@ -210,11 +273,12 @@ export default function ImageProcessorPage() {
       let srcWidth = img.width;
       let srcHeight = img.height;
 
-      if (cropEnabled) {
-        srcX = (cropX / 100) * img.width;
-        srcY = (cropY / 100) * img.height;
-        srcWidth = (cropWidth / 100) * img.width;
-        srcHeight = (cropHeight / 100) * img.height;
+      // Only apply crop if it was confirmed (not in preview mode)
+      if (appliedCrop && !cropEnabled) {
+        srcX = (appliedCrop.x / 100) * img.width;
+        srcY = (appliedCrop.y / 100) * img.height;
+        srcWidth = (appliedCrop.width / 100) * img.width;
+        srcHeight = (appliedCrop.height / 100) * img.height;
       }
 
       // Calculate final dimensions with padding
@@ -286,7 +350,7 @@ export default function ImageProcessorPage() {
     };
 
     img.src = imageState.originalBase64;
-  }, [imageState, cropEnabled, cropX, cropY, cropWidth, cropHeight, borderRadius, padding, backgroundType, customBgColor]);
+  }, [imageState, appliedCrop, cropEnabled, borderRadius, padding, backgroundType, customBgColor]);
 
   /**
    * Create export canvas with scaling
@@ -448,12 +512,12 @@ export default function ImageProcessorPage() {
     resetProcessingParams();
   };
 
-  // Process image when parameters change
+  // Process image when parameters change (but not during crop preview)
   useEffect(() => {
-    if (imageState) {
+    if (imageState && !cropEnabled) {
       processImage();
     }
-  }, [imageState?.originalBase64, cropEnabled, cropX, cropY, cropWidth, cropHeight, borderRadius, padding, backgroundType, customBgColor, processImage]);
+  }, [imageState?.originalBase64, cropEnabled, appliedCrop, borderRadius, padding, backgroundType, customBgColor, processImage]);
 
   // Calculate export size when format, quality, or scale changes
   useEffect(() => {
@@ -560,64 +624,90 @@ export default function ImageProcessorPage() {
 
                 {/* Crop */}
                 <div className="mb-4">
-                  <label className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={cropEnabled}
-                      onChange={(e) => setCropEnabled(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      <RiScissorsLine className="inline mr-1" />
-                      启用裁剪
-                    </span>
-                  </label>
-                  
-                  {cropEnabled && (
-                    <div className="space-y-3 ml-6 mt-3">
-                      <div>
-                        <label className="text-xs text-gray-600 dark:text-gray-400">X 偏移: {cropX}%</label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={cropX}
-                          onChange={(e) => setCropX(Number(e.target.value))}
-                          className="w-full"
-                        />
+                  {!cropEnabled ? (
+                    <div>
+                      <button
+                        onClick={() => handleToggleCropMode(true)}
+                        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                      >
+                        <RiScissorsLine className="text-lg" />
+                        {appliedCrop ? '调整裁剪' : '开始裁剪'}
+                      </button>
+                      {appliedCrop && (
+                        <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900/20 rounded p-2">
+                          <RiCheckLine className="inline mr-1 text-green-600" />
+                          已应用裁剪: {appliedCrop.width.toFixed(1)}% × {appliedCrop.height.toFixed(1)}%
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="space-y-3 mb-3">
+                        <div>
+                          <label className="text-xs text-gray-600 dark:text-gray-400">X 偏移: {cropX.toFixed(1)}%</label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            value={cropX}
+                            onChange={(e) => setCropX(Number(e.target.value))}
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600 dark:text-gray-400">Y 偏移: {cropY.toFixed(1)}%</label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            value={cropY}
+                            onChange={(e) => setCropY(Number(e.target.value))}
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600 dark:text-gray-400">宽度: {cropWidth.toFixed(1)}%</label>
+                          <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            step="0.1"
+                            value={cropWidth}
+                            onChange={(e) => setCropWidth(Number(e.target.value))}
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600 dark:text-gray-400">高度: {cropHeight.toFixed(1)}%</label>
+                          <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            step="0.1"
+                            value={cropHeight}
+                            onChange={(e) => setCropHeight(Number(e.target.value))}
+                            className="w-full"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label className="text-xs text-gray-600 dark:text-gray-400">Y 偏移: {cropY}%</label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={cropY}
-                          onChange={(e) => setCropY(Number(e.target.value))}
-                          className="w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600 dark:text-gray-400">宽度: {cropWidth}%</label>
-                        <input
-                          type="range"
-                          min="1"
-                          max="100"
-                          value={cropWidth}
-                          onChange={(e) => setCropWidth(Number(e.target.value))}
-                          className="w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600 dark:text-gray-400">高度: {cropHeight}%</label>
-                        <input
-                          type="range"
-                          min="1"
-                          max="100"
-                          value={cropHeight}
-                          onChange={(e) => setCropHeight(Number(e.target.value))}
-                          className="w-full"
-                        />
+                      
+                      {/* Crop action buttons */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleApplyCrop}
+                          className="flex-1 py-2 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1 text-sm font-medium"
+                        >
+                          <RiCheckLine className="text-lg" />
+                          应用
+                        </button>
+                        <button
+                          onClick={handleCancelCrop}
+                          className="flex-1 py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
+                        >
+                          取消
+                        </button>
                       </div>
                     </div>
                   )}
@@ -838,37 +928,18 @@ export default function ImageProcessorPage() {
 
           {/* Right Panel - Preview */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 sticky top-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                预览
-              </h2>
-
-              {!imageState ? (
-                <div className="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-gray-400 dark:text-gray-500">
-                    <RiImageLine className="text-6xl mx-auto mb-4" />
-                    <p className="text-lg">请上传或粘贴图片开始处理</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  {/* Canvas for processing (hidden) */}
-                  <canvas ref={canvasRef} className="hidden" />
-                  
-                  {/* Preview */}
-                  <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg p-8 min-h-[400px]">
-                    <img
-                      src={imageState.processedBase64}
-                      alt="Preview"
-                      className="max-w-full max-h-[600px] object-contain"
-                      style={{
-                        imageRendering: 'crisp-edges'
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Canvas for processing (hidden) */}
+            <canvas ref={canvasRef} className="hidden" />
+            
+            <ImagePreview
+              imageBase64={cropEnabled ? imageState?.originalBase64 || null : imageState?.processedBase64 || null}
+              cropEnabled={cropEnabled}
+              cropX={cropX}
+              cropY={cropY}
+              cropWidth={cropWidth}
+              cropHeight={cropHeight}
+              onCropChange={handleCropChange}
+            />
           </div>
         </div>
       </div>
