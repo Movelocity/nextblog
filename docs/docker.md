@@ -91,13 +91,22 @@ BLOG_ROOT_DIR=blogs  # 博客存储目录（默认：'blogs'）
 JWT_SECRET=your-super-secret-jwt-key  # JWT 密钥 用于用户认证
 ADMIN_EMAIL=nextblog@example.com  # 管理员邮箱, 请修改为你的邮箱
 ADMIN_PASSWORD=nextblog123  # 管理员密码, 自行修改
+```
 
-NEXT_PUBLIC_ICP_INFO="粤ICP备xxx号-1"  # 备案信息
+4. 配置备案信息（可选）：
+编辑 `blogs/site-config.json` 文件：
+```json
+{
+  "icpInfo": "粤ICP备xxx号-1",
+  "siteName": "Next Blog",
+  "siteDescription": "A modern blog management system"
+}
 ```
 
 注意：
 - 确保 `.env` 文件中的敏感信息（如密码、密钥）不被提交到版本控制
 - 生产环境建议使用更安全的方式管理密钥，如Docker secrets或Kubernetes secrets
+- `site-config.json` 可以在运行时修改，无需重新构建镜像
 
 ## 版本标签格式
 

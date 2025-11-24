@@ -88,3 +88,13 @@ export interface Asset {
   type: string;
   lastModified: string;
 }
+
+/**
+ * 站点配置，存储在 site-config.json 中
+ * 可以在运行时修改，无需重新构建
+ */
+export interface SiteConfig {
+  icpInfo?: string;  // 备案信息
+  siteName?: string;  // 站点名称
+  siteDescription?: string;  // 站点描述
+}

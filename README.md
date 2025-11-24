@@ -88,6 +88,17 @@ app/
    ADMIN_PASSWORD=nextblog123  # 管理员密码, 自行修改
    ```
 
+   （可选）配置站点信息（备案号等）：
+   编辑 `blogs/site-config.json` 文件：
+   ```json
+   {
+     "icpInfo": "粤ICP备xxx号-1",
+     "siteName": "Next Blog",
+     "siteDescription": "A modern blog management system"
+   }
+   ```
+   注意：`site-config.json` 可以在运行时修改，无需重新构建。
+
 4. 启动开发服务器：
    ```bash
    pnpm dev
@@ -104,6 +115,7 @@ app/
 ```
 blogs/                # 博客根目录
 ├── meta.json         # 元数据缓存
+├── site-config.json  # 站点配置（备案信息等）
 ├── my-first-blog/    # 单个博客目录
 │   ├── index.md      # 主要内容
 │   └── assets/       # 资源目录

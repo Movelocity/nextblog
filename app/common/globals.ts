@@ -1,6 +1,7 @@
 export const BLOG_CONFIG = {
   ROOT_DIR: process.env.BLOG_ROOT_DIR || 'blogs',  // Root directory for all blogs
   META_FILE: 'meta.json',  // File to store metadata for all blogs
+  SITE_CONFIG_FILE: 'site-config.json',  // File to store site configuration
   CONTENT_FILE: 'index.md',  // Main content file for each blog
   ASSETS_DIR: 'assets',  // Directory for blog assets (images, etc.)
   MAX_POSTS_PER_PAGE: 10,

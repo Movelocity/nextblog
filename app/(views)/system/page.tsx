@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSystemStatus, SystemStatus } from '@/app/services/system';
+import { getSystemStatus, SystemStatus, getSiteConfig, updateSiteConfig } from '@/app/services/system';
 import { useAuth } from '@/app/hooks/useAuth';
 import { useToast } from '@/app/components/layout/ToastHook';
-import { FiServer, FiHardDrive, FiCpu, FiClock, FiRefreshCw } from 'react-icons/fi';
+import { FiServer, FiHardDrive, FiCpu, FiClock, FiRefreshCw, FiSettings, FiSave } from 'react-icons/fi';
+import type { SiteConfig } from '@/app/common/types';
 
 /**
  * 格式化运行时长
@@ -140,8 +141,10 @@ const StatItem = ({
 
 export default function SystemPage() {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>({ icpInfo: '', siteName: '', siteDescription: '' });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [savingSiteConfig, setSavingSiteConfig] = useState(false);
   const { isAuthenticated, isLoading, openLoginModal } = useAuth();
   const { showToast } = useToast();
 
@@ -168,15 +171,42 @@ export default function SystemPage() {
     }
   }, [showToast]);
 
+  const fetchSiteConfig = useCallback(async () => {
+    try {
+      const config = await getSiteConfig();
+      setSiteConfig(config);
+    } catch (error) {
+      console.error('Error fetching site config:', error);
+      showToast('获取站点配置失败', 'error');
+    }
+  }, [showToast]);
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchSystemStatus();
+      fetchSiteConfig();
     }
-  }, [isAuthenticated, fetchSystemStatus]);
+  }, [isAuthenticated, fetchSystemStatus, fetchSiteConfig]);
 
   const handleRefresh = () => {
     setRefreshing(true);
     fetchSystemStatus();
+  };
+
+  /**
+   * 保存站点配置
+   */
+  const handleSaveSiteConfig = async () => {
+    setSavingSiteConfig(true);
+    try {
+      await updateSiteConfig(siteConfig);
+      showToast('站点配置已保存', 'success');
+    } catch (error) {
+      console.error('Error saving site config:', error);
+      showToast('保存站点配置失败', 'error');
+    } finally {
+      setSavingSiteConfig(false);
+    }
   };
 
   if (isLoading) {
@@ -230,7 +260,7 @@ export default function SystemPage() {
       {/* 页面标题和刷新按钮 */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          系统状态
+          系统管理
         </h1>
         <button
           onClick={handleRefresh}
@@ -241,6 +271,65 @@ export default function SystemPage() {
           <span>刷新</span>
         </button>
       </div>
+
+      {/* 站点配置 */}
+      <InfoCard title="站点配置" icon={FiSettings}>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="siteName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              站点名称
+            </label>
+            <input
+              id="siteName"
+              type="text"
+              value={siteConfig.siteName || ''}
+              onChange={(e) => setSiteConfig({ ...siteConfig, siteName: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Next Blog"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="siteDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              站点描述
+            </label>
+            <input
+              id="siteDescription"
+              type="text"
+              value={siteConfig.siteDescription || ''}
+              onChange={(e) => setSiteConfig({ ...siteConfig, siteDescription: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="A modern blog management system"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="icpInfo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              ICP 备案信息
+            </label>
+            <input
+              id="icpInfo"
+              type="text"
+              value={siteConfig.icpInfo || ''}
+              onChange={(e) => setSiteConfig({ ...siteConfig, icpInfo: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="粤ICP备xxx号-1"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              修改后刷新页面即可生效，无需重启服务
+            </p>
+          </div>
+
+          <button
+            onClick={handleSaveSiteConfig}
+            disabled={savingSiteConfig}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FiSave className={`w-4 h-4 ${savingSiteConfig ? 'animate-pulse' : ''}`} />
+            <span>{savingSiteConfig ? '保存中...' : '保存配置'}</span>
+          </button>
+        </div>
+      </InfoCard>
 
       {/* 系统信息概览 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
