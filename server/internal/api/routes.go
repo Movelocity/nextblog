@@ -1,7 +1,9 @@
 package api
 
 import (
+	"nextblog-server/internal/config"
 	"nextblog-server/internal/middleware"
+	"nextblog-server/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +16,9 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 	router.Use(middleware.CORS(allowedOrigins))
 	router.Use(middleware.Logger())
 	router.Use(middleware.Recovery())
+	
+	// 初始化存储
+	fileStorage := storage.NewLocalFileStorage(config.AppConfig.StoragePath)
 
 	// API 路由组
 	api := router.Group("/api")
@@ -38,6 +43,13 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 			posts.GET("/:id", postHandler.GetPost)
 			posts.PUT("/:id", postHandler.UpdatePost)
 			posts.DELETE("/:id", postHandler.DeletePost)
+			
+			// 博客资产路由
+			assetHandler := NewAssetHandler(fileStorage)
+			posts.GET("/:postId/assets", assetHandler.ListAssets)
+			posts.POST("/:postId/assets", assetHandler.UploadAsset)
+			posts.GET("/:postId/assets/:fileId", assetHandler.GetAsset)
+			posts.DELETE("/:postId/assets/:fileId", assetHandler.DeleteAsset)
 		}
 
 		// 笔记路由
@@ -70,13 +82,32 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 		}
 
 		// 图片路由
-		imageHandler := NewImageHandler()
+		imageHandler := NewImageHandler(fileStorage)
 		images := api.Group("/images")
 		{
 			images.GET("", imageHandler.ListImages)
 			images.POST("/upload", imageHandler.UploadImage)
 			images.GET("/:filename", imageHandler.GetImage)
+			images.GET("/:filename/thumbnail", imageHandler.GetThumbnail)
 			images.DELETE("/:filename", imageHandler.DeleteImage)
+		}
+		
+		// 图片编辑路由
+		imageEditHandler := NewImageEditHandler()
+		imageEdit := api.Group("/image-edit")
+		{
+			imageEdit.GET("", imageEditHandler.GetTasks)
+			imageEdit.POST("", imageEditHandler.CreateTask)
+			imageEdit.PUT("", imageEditHandler.StopTask)
+			imageEdit.PATCH("", imageEditHandler.RetryTask)
+			imageEdit.DELETE("", imageEditHandler.DeleteTask)
+		}
+		
+		// 系统状态路由
+		systemHandler := NewSystemHandler()
+		system := api.Group("/system")
+		{
+			system.GET("/status", systemHandler.GetSystemStatus)
 		}
 	}
 }

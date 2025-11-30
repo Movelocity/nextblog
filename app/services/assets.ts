@@ -5,29 +5,46 @@ import { get, post, del } from './utils';
 export const assetService = {
   /**
    * List all assets for a blog
-   * 注意：Go 后端目前未实现按博客分组的资产管理 API
    */
   listAssets: async (blogId: string): Promise<Asset[]> => {
-    console.warn('Blog-specific asset management is not implemented in Go backend');
-    return [];
+    interface GoAssetResponse {
+      id: string;
+      filename: string;
+      size: number;
+      mimeType: string;
+      url: string;
+      createdAt: string;
+    }
+    
+    const response = await get<GoAssetResponse[]>(`/posts/${blogId}/assets`);
+    
+    // Adapt response format
+    return response.map(asset => ({
+      id: asset.id,
+      name: asset.filename,
+      size: asset.size,
+      mimeType: asset.mimeType,
+      url: asset.url,
+      createdAt: asset.createdAt
+    }));
   },
 
   /**
    * Upload a new asset
-   * 注意：Go 后端目前使用通用的图片上传 API
    */
   uploadAsset: async (blogId: string, file: File): Promise<{ assetPath: string }> => {
     const formData = new FormData();
     formData.append('file', file);
     
-    // 使用 Go 后端的图片上传 API
-    interface GoImageUploadResponse {
+    // Use Go backend blog asset upload API
+    interface GoAssetUploadResponse {
+      id: string;
       filename: string;
       url: string;
       size: number;
     }
     
-    const response = await post<GoImageUploadResponse>('/images/upload', formData);
+    const response = await post<GoAssetUploadResponse>(`/posts/${blogId}/assets`, formData);
     
     return {
       assetPath: response.url
@@ -36,18 +53,17 @@ export const assetService = {
 
   /**
    * Delete an asset
-   * 注意：Go 后端目前使用通用的图片删除 API
    */
-  deleteAsset: async (blogId: string, fileName: string): Promise<void> => {
-    await del<{ message: string }>(`/images/${fileName}`);
+  deleteAsset: async (blogId: string, fileId: string): Promise<void> => {
+    await del<{ message: string }>(`/posts/${blogId}/assets/${fileId}`);
   },
 
   /**
    * Get asset URL
    */
-  getAssetUrl: (blogId: string, fileName: string): string => {
+  getAssetUrl: (blogId: string, fileId: string): string => {
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-    return `${baseUrl}/images/${fileName}`;
+    return `${baseUrl}/posts/${blogId}/assets/${fileId}`;
   }
 };
 
@@ -72,27 +88,33 @@ export const imageAssetService = {
   /**
    * Upload an image asset with optional thumbnail generation
    * @param file Image file to upload
-   * @param generateThumbnail Whether to generate thumbnail (Go 后端暂不支持)
+   * @param generateThumbnail Whether to generate thumbnail
    */
   uploadImage: async (file: File, generateThumbnail: boolean = false): Promise<ImageUploadResponse> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    // 使用 Go 后端的图片上传 API
+    // Use Go backend image upload API with thumbnail support
     interface GoImageUploadResponse {
       filename: string;
       url: string;
       size: number;
+      thumbnail?: {
+        id: string;
+        url: string;
+      };
     }
     
-    const response = await post<GoImageUploadResponse>('/images/upload', formData);
+    const url = generateThumbnail ? '/images/upload?generateThumbnail=true' : '/images/upload';
+    const response = await post<GoImageUploadResponse>(url, formData);
     
-    // 适配返回格式
+    // Adapt response format
     return {
       success: true,
       assetPath: response.url,
       id: response.filename,
-      originalName: file.name
+      originalName: file.name,
+      thumbnail: response.thumbnail
     };
   },
 
@@ -108,10 +130,10 @@ export const imageAssetService = {
   /**
    * Get thumbnail URL for an image
    * @param fileName File name (same as original image)
-   * 注意：Go 后端暂不支持缩略图，返回原图 URL
    */
   getThumbnailUrl: (fileName: string): string => {
-    return imageAssetService.getImageUrl(fileName);
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+    return `${baseUrl}/images/${fileName}/thumbnail`;
   },
 
   /**
@@ -144,9 +166,15 @@ export const imageAssetService = {
   /**
    * Download thumbnail as blob
    * @param fileName File name (same as original image)
-   * 注意：Go 后端暂不支持缩略图，返回原图
    */
   downloadThumbnail: async (fileName: string): Promise<Blob> => {
-    return imageAssetService.downloadImage(fileName);
+    const url = imageAssetService.getThumbnailUrl(fileName);
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download thumbnail: ${response.statusText}`);
+    }
+    
+    return response.blob();
   }
 }; 

@@ -56,9 +56,7 @@ export interface SystemStatus {
  * @returns 系统状态信息
  */
 export const getSystemStatus = async (): Promise<SystemStatus> => {
-  // 注意：Go 后端目前没有实现系统状态 API
-  // 这里保留接口但标记为不可用
-  throw new Error('System status API is not implemented in Go backend. Use health check instead.');
+  return get<SystemStatus>('/system/status');
 };
 
 /**

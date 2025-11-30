@@ -75,12 +75,13 @@ type SiteConfig struct {
 
 // Image 图片模型
 type Image struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Filename  string    `json:"filename" gorm:"uniqueIndex;not null"`
-	Path      string    `json:"path" gorm:"not null"`
-	Size      int64     `json:"size"`
-	MimeType  string    `json:"mimeType"`
-	CreatedAt time.Time `json:"createdAt" gorm:"not null"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Filename    string    `json:"filename" gorm:"uniqueIndex;not null"`
+	Path        string    `json:"path" gorm:"not null"`
+	Size        int64     `json:"size"`
+	MimeType    string    `json:"mimeType"`
+	ThumbnailID string    `json:"thumbnailId,omitempty"` // 缩略图文件资源ID（外键 -> file_resources.id）
+	CreatedAt   time.Time `json:"createdAt" gorm:"not null"`
 }
 
 // PostListResponse 文章列表响应

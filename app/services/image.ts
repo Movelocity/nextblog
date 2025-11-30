@@ -64,10 +64,7 @@ export interface TaskActionResponse {
 
 export const imageEditService = {
   getAllTasks: async (): Promise<ImageEditTask[]> => {
-    // 注意：Go 后端目前未实现图片编辑 API
-    // 保留接口以兼容前端代码
-    console.warn('Image edit API is not implemented in Go backend');
-    return [];
+    return get<ImageEditTask[]>('/image-edit');
   },
 
   /**
@@ -76,8 +73,7 @@ export const imageEditService = {
    * @returns 任务信息
    */
   getTaskStatus: async (taskId: string): Promise<ImageEditTask> => {
-    // 注意：Go 后端目前未实现图片编辑 API
-    throw new Error('Image edit API is not implemented in Go backend');
+    return get<ImageEditTask>(`/image-edit?task_id=${taskId}`);
   },
 
   /**
@@ -86,8 +82,12 @@ export const imageEditService = {
    * @returns 任务ID
    */
   startEditTask: async (request: StartImageEditRequest): Promise<StartImageEditResponse> => {
-    // 注意：Go 后端目前未实现图片编辑 API
-    throw new Error('Image edit API is not implemented in Go backend');
+    const payload = {
+      original_image: request.orig_img,
+      prompt: request.prompt
+    };
+    const response = await post<ImageEditTask>('/image-edit', payload);
+    return { task_id: response.id };
   },
 
   /**
@@ -96,8 +96,7 @@ export const imageEditService = {
    * @returns 操作结果
    */
   stopTask: async (taskId: string): Promise<TaskActionResponse> => {
-    // 注意：Go 后端目前未实现图片编辑 API
-    throw new Error('Image edit API is not implemented in Go backend');
+    return put<TaskActionResponse>(`/image-edit?task_id=${taskId}`, {});
   },
 
   /**
@@ -106,8 +105,7 @@ export const imageEditService = {
    * @returns 操作结果
    */
   deleteTask: async (taskId: string): Promise<TaskActionResponse> => {
-    // 注意：Go 后端目前未实现图片编辑 API
-    throw new Error('Image edit API is not implemented in Go backend');
+    return del<TaskActionResponse>(`/image-edit?task_id=${taskId}`);
   },
 
   /**
@@ -117,8 +115,11 @@ export const imageEditService = {
    * @returns 操作结果
    */
   retryTask: async (taskId: string, newPrompt?: string): Promise<TaskActionResponse> => {
-    // 注意：Go 后端目前未实现图片编辑 API
-    throw new Error('Image edit API is not implemented in Go backend');
+    const payload = newPrompt ? { prompt: newPrompt } : {};
+    return baseFetch<TaskActionResponse>(`/image-edit?task_id=${taskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
   },
 
   /**
@@ -203,8 +204,8 @@ export const imageAssetService = {
    * @returns 缩略图URL
    */
   getThumbnailUrl: (id: string): string => {
-    // Go 后端目前不支持缩略图，返回原图 URL
-    return imageAssetService.getImageUrl(id);
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+    return `${baseUrl}/images/${id}/thumbnail`;
   },
 
   /**
@@ -243,8 +244,14 @@ export const imageAssetService = {
    * @returns 缩略图Blob
    */
   downloadThumbnail: async (id: string): Promise<Blob> => {
-    // Go 后端目前不支持缩略图，返回原图
-    return imageAssetService.downloadImage(id);
+    const url = imageAssetService.getThumbnailUrl(id);
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download thumbnail: ${response.statusText}`);
+    }
+    
+    return response.blob();
   }
 };
 

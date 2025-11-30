@@ -41,6 +41,9 @@ func InitDB(dbPath string) error {
 		&models.Tag{},
 		&models.SiteConfig{},
 		&models.Image{},
+		&models.FileResource{},
+		&models.PostAssetRelation{},
+		&models.ImageEditTask{},
 	); err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
