@@ -19,7 +19,24 @@ import { get, post, put, del } from './utils'
  * @throws {Error} 请求失败时抛出错误
  */
 export const fetchNotes = async (params?: GetNotesParams): Promise<NotesListResponse> => {
-  return get<NotesListResponse>('/api/notes', { params })
+  // Go 后端返回 { notes: Note[], total: number }
+  interface GoNoteListResponse {
+    notes: NoteData[];
+    total: number;
+  }
+  
+  const response = await get<GoNoteListResponse>('/notes', { params });
+  
+  // 适配返回格式
+  return {
+    notes: response.notes.map(note => ({
+      ...note,
+      tags: note.tags || []
+    })),
+    total: response.total,
+    page:1 ,
+    pageSize: response.total
+  };
 }
 
 /**
@@ -29,7 +46,8 @@ export const fetchNotes = async (params?: GetNotesParams): Promise<NotesListResp
  * @throws {Error} 请求失败时抛出错误
  */
 export const fetchNote = async (id: string): Promise<NoteData> => {
-  return get<NoteData>('/api/notes', { params: { id } })
+  // Go 后端使用 /notes/detail/:id
+  return get<NoteData>(`/notes/detail/${id}`);
 }
 
 /**
@@ -39,7 +57,7 @@ export const fetchNote = async (id: string): Promise<NoteData> => {
  * @throws {Error} 请求失败时抛出错误
  */
 export const createNote = async (params: CreateNoteParams): Promise<NoteData> => {
-  return post<NoteData>('/api/notes', params)
+  return post<NoteData>('/notes', params);
 }
 
 /**
@@ -49,7 +67,9 @@ export const createNote = async (params: CreateNoteParams): Promise<NoteData> =>
  * @throws {Error} 请求失败时抛出错误
  */
 export const updateNote = async (params: UpdateNoteParams): Promise<NoteData> => {
-  return put<NoteData>('/api/notes', params)
+  const { id, ...updateData } = params;
+  // Go 后端使用 PUT /notes/:id
+  return put<NoteData>(`/notes/${id}`, updateData);
 }
 
 /**
@@ -59,6 +79,8 @@ export const updateNote = async (params: UpdateNoteParams): Promise<NoteData> =>
  * @throws {Error} 请求失败时抛出错误
  */
 export const deleteNote = async (id: string): Promise<{ success: boolean }> => {
-  return del<{ success: boolean }>('/api/notes', { params: { id } })
+  // Go 后端使用 DELETE /notes/:id，返回 { message: string }
+  await del<{ message: string }>(`/notes/${id}`);
+  return { success: true };
 }
 

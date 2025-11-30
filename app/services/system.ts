@@ -1,5 +1,21 @@
-import { get, post } from '@/app/services/utils';
+import { get, put } from '@/app/services/utils';
 import type { SiteConfig } from '@/app/common/types';
+
+/**
+ * 健康检查响应类型
+ */
+export interface HealthCheck {
+  status: string;
+  time: string;
+}
+
+/**
+ * 健康检查
+ * @returns 健康检查结果
+ */
+export const getHealth = async (): Promise<HealthCheck> => {
+  return get<HealthCheck>('/health');
+};
 
 /**
  * 系统状态响应类型
@@ -40,7 +56,9 @@ export interface SystemStatus {
  * @returns 系统状态信息
  */
 export const getSystemStatus = async (): Promise<SystemStatus> => {
-  return get<SystemStatus>('/api/system');
+  // 注意：Go 后端目前没有实现系统状态 API
+  // 这里保留接口但标记为不可用
+  throw new Error('System status API is not implemented in Go backend. Use health check instead.');
 };
 
 /**
@@ -48,7 +66,23 @@ export const getSystemStatus = async (): Promise<SystemStatus> => {
  * @returns 站点配置信息
  */
 export const getSiteConfig = async (): Promise<SiteConfig> => {
-  return get<SiteConfig>('/api/system/site-config');
+  // Go 后端使用 /config 端点
+  interface GoSiteConfig {
+    id: number;
+    siteName: string;
+    siteDescription: string;
+    icpInfo: string;
+    updatedAt: string;
+  }
+  
+  const response = await get<GoSiteConfig>('/config');
+  
+  // 适配返回格式（Go 后端字段名与前端一致）
+  return {
+    siteName: response.siteName,
+    siteDescription: response.siteDescription,
+    icpInfo: response.icpInfo
+  };
 };
 
 /**
@@ -57,6 +91,22 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
  * @returns 更新后的站点配置
  */
 export const updateSiteConfig = async (config: SiteConfig): Promise<SiteConfig> => {
-  return post<SiteConfig>('/api/system/site-config', config);
+  // Go 后端使用 PUT /config
+  interface GoSiteConfig {
+    id: number;
+    siteName: string;
+    siteDescription: string;
+    icpInfo: string;
+    updatedAt: string;
+  }
+  
+  const response = await put<GoSiteConfig>('/config', config);
+  
+  // 适配返回格式
+  return {
+    siteName: response.siteName,
+    siteDescription: response.siteDescription,
+    icpInfo: response.icpInfo
+  };
 };
 

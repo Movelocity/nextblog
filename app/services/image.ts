@@ -64,7 +64,10 @@ export interface TaskActionResponse {
 
 export const imageEditService = {
   getAllTasks: async (): Promise<ImageEditTask[]> => {
-    return get<ImageEditTask[]>('/api/image-edit');
+    // 注意：Go 后端目前未实现图片编辑 API
+    // 保留接口以兼容前端代码
+    console.warn('Image edit API is not implemented in Go backend');
+    return [];
   },
 
   /**
@@ -73,9 +76,8 @@ export const imageEditService = {
    * @returns 任务信息
    */
   getTaskStatus: async (taskId: string): Promise<ImageEditTask> => {
-    return get<ImageEditTask>('/api/image-edit', {
-      params: { task_id: taskId }
-    });
+    // 注意：Go 后端目前未实现图片编辑 API
+    throw new Error('Image edit API is not implemented in Go backend');
   },
 
   /**
@@ -84,7 +86,8 @@ export const imageEditService = {
    * @returns 任务ID
    */
   startEditTask: async (request: StartImageEditRequest): Promise<StartImageEditResponse> => {
-    return post<StartImageEditResponse>('/api/image-edit', request);
+    // 注意：Go 后端目前未实现图片编辑 API
+    throw new Error('Image edit API is not implemented in Go backend');
   },
 
   /**
@@ -93,9 +96,8 @@ export const imageEditService = {
    * @returns 操作结果
    */
   stopTask: async (taskId: string): Promise<TaskActionResponse> => {
-    return put<TaskActionResponse>('/api/image-edit', undefined, {
-      params: { task_id: taskId }
-    });
+    // 注意：Go 后端目前未实现图片编辑 API
+    throw new Error('Image edit API is not implemented in Go backend');
   },
 
   /**
@@ -104,9 +106,8 @@ export const imageEditService = {
    * @returns 操作结果
    */
   deleteTask: async (taskId: string): Promise<TaskActionResponse> => {
-    return del<TaskActionResponse>('/api/image-edit', {
-      params: { task_id: taskId }
-    });
+    // 注意：Go 后端目前未实现图片编辑 API
+    throw new Error('Image edit API is not implemented in Go backend');
   },
 
   /**
@@ -116,11 +117,8 @@ export const imageEditService = {
    * @returns 操作结果
    */
   retryTask: async (taskId: string, newPrompt?: string): Promise<TaskActionResponse> => {
-    return baseFetch<TaskActionResponse>('/api/image-edit', {
-      method: 'PATCH',
-      params: { task_id: taskId },
-      body: newPrompt ? { prompt: newPrompt } : undefined
-    });
+    // 注意：Go 后端目前未实现图片编辑 API
+    throw new Error('Image edit API is not implemented in Go backend');
   },
 
   /**
@@ -171,18 +169,32 @@ export const imageAssetService = {
     const formData = new FormData();
     formData.append('file', file);
     
-    return post<ImageUploadResponse>('/api/asset/image', formData, {
-      params: { generateThumbnail: generateThumbnail.toString() }
-    });
+    // Go 后端使用 /images/upload
+    interface GoImageUploadResponse {
+      filename: string;
+      url: string;
+      size: number;
+    }
+    
+    const response = await post<GoImageUploadResponse>('/images/upload', formData);
+    
+    // 适配返回格式
+    return {
+      success: true,
+      id: response.filename,
+      originalName: file.name
+    };
   },
 
   /**
    * 获取图片URL
-   * @param id 图片ID
+   * @param id 图片ID（filename）
    * @returns 图片URL
    */
   getImageUrl: (id: string): string => {
-    return `/api/asset/image/${id}`;
+    // 如果配置了 Go 后端，返回完整 URL
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+    return `${baseUrl}/images/${id}`;
   },
 
   /**
@@ -191,25 +203,32 @@ export const imageAssetService = {
    * @returns 缩略图URL
    */
   getThumbnailUrl: (id: string): string => {
-    return `/api/asset/thumbnail/${id}`;
+    // Go 后端目前不支持缩略图，返回原图 URL
+    return imageAssetService.getImageUrl(id);
   },
 
   /**
    * 删除图片资产及其缩略图
-   * @param id 图片ID
+   * @param id 图片ID（filename）
    * @returns 删除结果
    */
   deleteImage: async (id: string): Promise<ImageDeleteResponse> => {
-    return del<ImageDeleteResponse>(`/api/asset/image/${id}`);
+    // Go 后端使用 DELETE /images/:filename
+    const response = await del<{ message: string }>(`/images/${id}`);
+    return {
+      success: true,
+      message: response.message
+    };
   },
 
   /**
    * 下载图片为Blob对象
-   * @param id 图片ID
+   * @param id 图片ID（filename）
    * @returns 图片Blob
    */
   downloadImage: async (id: string): Promise<Blob> => {
-    const response = await fetch(`/api/asset/image/${id}`);
+    const url = imageAssetService.getImageUrl(id);
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Failed to download image: ${response.statusText}`);
@@ -224,13 +243,8 @@ export const imageAssetService = {
    * @returns 缩略图Blob
    */
   downloadThumbnail: async (id: string): Promise<Blob> => {
-    const response = await fetch(`/api/asset/thumbnail/${id}`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to download thumbnail: ${response.statusText}`);
-    }
-    
-    return response.blob();
+    // Go 后端目前不支持缩略图，返回原图
+    return imageAssetService.downloadImage(id);
   }
 };
 

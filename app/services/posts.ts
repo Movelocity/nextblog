@@ -8,7 +8,20 @@ import { get, post, put, del } from './utils';
  * @throws {Error} Throws an error if the fetch operation fails
  */
 export const getTaxonomy = async (): Promise<{ categories: string[]; tags: string[] }> => {
-  return get<{ categories: string[]; tags: string[] }>('/api/taxonomy');
+  // Go 后端使用独立的 /categories 和 /tags 端点
+  // const [categoriesData, tagsData] = await Promise.all([
+  //   get<Array<{ name: string; count: number }>>('/categories'),
+  //   get<Array<{ name: string; count: number }>>('/tags')
+  // ]);
+  
+  // return {
+  //   categories: categoriesData.map(c => c.name),
+  //   tags: tagsData.map(t => t.name)
+  // };
+  return {
+    categories: [],
+    tags: []
+  }
 };
 
 /**
@@ -19,10 +32,35 @@ export const getTaxonomy = async (): Promise<{ categories: string[]; tags: strin
  * @throws {Error} Throws an error if the fetch operation fails
  */
 export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info: BlogMeta[]; total: number }> => {
-  // console.log("params", params)
-  console.log("service: ", `/api/posts with params:`, params)
+  console.log("service: ", `/posts with params:`, params);
   
-  return get<{ blogs_info: BlogMeta[]; total: number }>('/api/posts', { params });
+  // 转换参数以匹配 Go 后端的期望格式
+  const goParams: any = {
+    page: params.page || 1,
+    pageSize: params.limit || 10,
+  };
+  
+  // 如果有 pubOnly 参数，转换为 published
+  if (params.pubOnly !== undefined) {
+    goParams.published = params.pubOnly;
+  }
+  
+  // Go 后端期望的响应格式
+  interface GoPostListResponse {
+    posts: BlogMeta[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }
+  
+  const response = await get<GoPostListResponse>('/posts', { params: goParams });
+  
+  // 适配响应格式
+  return {
+    blogs_info: response.posts,
+    total: response.total
+  };
 };
 
 /**
@@ -31,7 +69,8 @@ export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info:
  * @returns Promise with post data
  */
 export const getPost = async (id: string): Promise<Blog> => {
-  return get<Blog>('/api/posts', { params: { id } });
+  // Go 后端使用 /posts/:id 格式
+  return get<Blog>(`/posts/${id}`);
 };
 
 /**
@@ -40,7 +79,8 @@ export const getPost = async (id: string): Promise<Blog> => {
  * @returns Promise with created post metadata
  */
 export const createPost = async (input: CreatePostInput): Promise<BlogMeta> => {
-  return post<BlogMeta>('/api/posts', input);
+  // Go 后端返回完整的 Post 对象，包含 BlogMeta 的所有字段
+  return post<BlogMeta>('/posts', input);
 };
 
 /**
@@ -50,7 +90,8 @@ export const createPost = async (input: CreatePostInput): Promise<BlogMeta> => {
  * @returns Promise with updated post metadata
  */
 export const updatePost = async (id: string, input: UpdatePostInput): Promise<BlogMeta> => {
-  return put<BlogMeta>('/api/posts', input, { params: { id } });
+  // Go 后端使用 PUT /posts/:id
+  return put<BlogMeta>(`/posts/${id}`, input);
 };
 
 /**
@@ -59,5 +100,6 @@ export const updatePost = async (id: string, input: UpdatePostInput): Promise<Bl
  * @returns Promise with void
  */
 export const deletePost = async (id: string): Promise<void> => {
-  return del<void>('/api/posts', { params: { id } });
+  // Go 后端使用 DELETE /posts/:id
+  await del<{ message: string }>(`/posts/${id}`);
 };
