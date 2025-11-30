@@ -71,3 +71,39 @@ func (r *NoteRepository) GetPublic() ([]models.Note, error) {
 	}
 	return notes, nil
 }
+
+/**
+ * GetWithPagination 分页获取笔记
+ */
+func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPublic *bool) ([]models.Note, int64, error) {
+	var notes []models.Note
+	var total int64
+
+	query := db.DB.Model(&models.Note{})
+
+	// 标签过滤
+	if tag != "" {
+		query = query.Where("tags LIKE ?", "%\""+tag+"\"%")
+	}
+
+	// 公开状态过滤
+	if isPublic != nil {
+		query = query.Where("is_public = ?", *isPublic)
+	}
+
+	// 计算总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	offset := (page - 1) * pageSize
+	if err := query.Order("date DESC, updated_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&notes).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return notes, total, nil
+}

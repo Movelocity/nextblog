@@ -27,6 +27,10 @@ export const fetchNotes = async (params?: GetNotesParams): Promise<NotesListResp
   
   const response = await get<GoNoteListResponse>('/notes', { params });
   
+  // 获取实际使用的参数值
+  const actualPage = params?.page || 1;
+  const actualPageSize = params?.pageSize || 20;
+  
   // 适配返回格式
   return {
     notes: response.notes.map(note => ({
@@ -34,8 +38,8 @@ export const fetchNotes = async (params?: GetNotesParams): Promise<NotesListResp
       tags: note.tags || []
     })),
     total: response.total,
-    page:1 ,
-    pageSize: response.total
+    page: actualPage,
+    pageSize: actualPageSize
   };
 }
 

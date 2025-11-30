@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"nextblog-server/internal/models"
@@ -22,11 +23,34 @@ func NewNoteHandler() *NoteHandler {
 }
 
 /**
- * GetNotes 获取所有笔记
+ * GetNotes 获取所有笔记（支持分页）
  * GET /api/notes
+ * Query params: page, pageSize, tag, isPublic
  */
 func (h *NoteHandler) GetNotes(c *gin.Context) {
-	notes, err := h.repo.GetAll()
+	// 解析分页参数
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+	tag := c.Query("tag")
+
+	// 解析 isPublic 参数
+	var isPublic *bool
+	if isPublicStr := c.Query("isPublic"); isPublicStr != "" {
+		if val, err := strconv.ParseBool(isPublicStr); err == nil {
+			isPublic = &val
+		}
+	}
+
+	// 参数验证
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	// 分页查询
+	notes, total, err := h.repo.GetWithPagination(page, pageSize, tag, isPublic)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -34,7 +58,7 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.NoteListResponse{
 		Notes: notes,
-		Total: int64(len(notes)),
+		Total: total,
 	})
 }
 
