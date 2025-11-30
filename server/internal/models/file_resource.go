@@ -14,6 +14,7 @@ type FileResource struct {
 	Size         int64     `json:"size" gorm:"not null"`                    // 文件大小（字节）
 	Category     string    `json:"category" gorm:"index"`                   // 文件分类：image/thumbnail/blog-asset/edit-result
 	StoragePath  string    `json:"storage_path" gorm:"not null"`            // 存储路径
+	ThumbnailID  string    `json:"thumbnail_id,omitempty" gorm:"index"`     // 缩略图文件资源ID（外键 -> file_resources.id）
 	CreatedAt    time.Time `json:"created_at" gorm:"index"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }

@@ -26,8 +26,6 @@ build:
 	@echo "Building server..."
 	@mkdir -p bin
 	@go build -o $(SERVER_BIN) ./cmd/server/main.go
-	@echo "Building migrate tool..."
-	@go build -o $(MIGRATE_BIN) ./cmd/migrate/main.go
 	@echo "Build complete!"
 
 ## run: 运行服务器
@@ -35,8 +33,14 @@ run: build
 	@echo "Starting server..."
 	@$(SERVER_BIN)
 
+build-migrate:
+	@echo "Building migrate tool..."
+	@mkdir -p bin
+	@go build -o $(MIGRATE_BIN) ./cmd/migrate/main.go
+	@echo "Build complete!"
+
 ## migrate: 运行数据迁移
-migrate: build
+migrate: build-migrate
 	@echo "Running data migration..."
 	@$(MIGRATE_BIN) -source $(SOURCE_PATH) -db $(DB_PATH) -storage ./storage
 

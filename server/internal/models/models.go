@@ -73,14 +73,15 @@ type SiteConfig struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
-// Image 图片模型
+// Image 已废弃: 使用 FileResource 替代
+// 保留此类型仅用于数据迁移兼容
 type Image struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Filename    string    `json:"filename" gorm:"uniqueIndex;not null"`
 	Path        string    `json:"path" gorm:"not null"`
 	Size        int64     `json:"size"`
 	MimeType    string    `json:"mimeType"`
-	ThumbnailID string    `json:"thumbnailId,omitempty"` // 缩略图文件资源ID（外键 -> file_resources.id）
+	ThumbnailID string    `json:"thumbnailId,omitempty"`
 	CreatedAt   time.Time `json:"createdAt" gorm:"not null"`
 }
 

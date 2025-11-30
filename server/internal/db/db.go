@@ -41,7 +41,6 @@ func InitDB(dbPath string) error {
 		&models.Category{},
 		&models.Tag{},
 		&models.SiteConfig{},
-		&models.Image{},
 		&models.FileResource{},
 		&models.PostAssetRelation{},
 		&models.ImageEditTask{},

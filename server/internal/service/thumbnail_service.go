@@ -80,8 +80,8 @@ func (s *ThumbnailService) GenerateThumbnail(originalData []byte, originalExt st
  * @return 缩略图文件资源和错误
  */
 func (s *ThumbnailService) CreateThumbnailForImage(imageID string, thumbnailID string, originalExt string) (*models.FileResource, error) {
-	// 获取原始图片数据
-	imageData, err := s.storage.Get("images", imageID)
+	// 获取原始图片数据（从统一的持久化文件目录）
+	imageData, err := s.storage.Get("files", imageID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original image: %w", err)
 	}

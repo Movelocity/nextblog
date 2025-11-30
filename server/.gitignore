@@ -40,4 +40,4 @@ Thumbs.db
 /storage/thumbnails/*
 !/storage/thumbnails/.gitkeep
 
-storage/
+./storage/

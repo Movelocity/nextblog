@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"nextblog-server/internal/db"
@@ -79,8 +80,8 @@ type SiteConfigData struct {
 }
 
 var (
-	sourcePath string
-	dbPath     string
+	sourcePath  string
+	dbPath      string
 	storagePath string
 )
 
@@ -128,6 +129,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// 迁移旧的Image表数据到FileResource表（如果存在）
+	if err := migrateImagesToFileResources(); err != nil {
+		log.Printf("Warning: Failed to migrate images to file resources: %v", err)
+	}
+
 	// 复制图片文件
 	if err := copyImages(); err != nil {
 		log.Printf("Warning: Failed to copy images: %v", err)
@@ -156,7 +162,7 @@ func initDatabase(path string) error {
 		&models.Category{},
 		&models.Tag{},
 		&models.SiteConfig{},
-		&models.Image{},
+		&models.FileResource{},
 	); err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
@@ -168,16 +174,18 @@ func initDatabase(path string) error {
 
 /**
  * createStorageDirectories 创建存储目录
+ * 统一存储策略：持久化文件存储在 files/ 目录，派生文件（缩略图）存储在 thumbnails/ 目录
  */
 func createStorageDirectories(basePath string) error {
-	dirs := []string{"images", "uploads", "thumbnails"}
+	// 统一存储目录：files（持久化文件）和 thumbnails（派生文件）
+	dirs := []string{"files", "thumbnails"}
 	for _, dir := range dirs {
 		path := filepath.Join(basePath, dir)
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", path, err)
 		}
 	}
-	
+
 	// 创建 .gitkeep 文件
 	for _, dir := range dirs {
 		gitkeep := filepath.Join(basePath, dir, ".gitkeep")
@@ -187,7 +195,7 @@ func createStorageDirectories(basePath string) error {
 			}
 		}
 	}
-	
+
 	log.Println("Storage directories created")
 	return nil
 }
@@ -269,6 +277,11 @@ func migratePosts() error {
 			log.Printf("Warning: Failed to save post %s: %v", id, result.Error)
 		} else {
 			count++
+
+			// 迁移博客的资产文件
+			if err := migratePostAssets(id); err != nil {
+				log.Printf("Warning: Failed to migrate assets for post %s: %v", id, err)
+			}
 		}
 	}
 
@@ -277,11 +290,143 @@ func migratePosts() error {
 }
 
 /**
+ * migratePostAssets 迁移单个博客的资产文件
+ * 从 blogs/{postID}/assets/ 迁移文件到统一的持久化文件目录 storage/files/
+ * 并创建 file_resources 记录和 post_asset_relations 关联
+ */
+func migratePostAssets(postID string) error {
+	assetsDir := filepath.Join(sourcePath, postID, "assets")
+
+	// 检查 assets 目录是否存在
+	if _, err := os.Stat(assetsDir); os.IsNotExist(err) {
+		return nil // 没有资产文件，跳过
+	}
+
+	entries, err := os.ReadDir(assetsDir)
+	if err != nil {
+		return fmt.Errorf("failed to read assets directory: %w", err)
+	}
+
+	count := 0
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		originalName := entry.Name()
+		sourcePath := filepath.Join(assetsDir, originalName)
+
+		// 获取文件信息和扩展名
+		info, err := entry.Info()
+		if err != nil {
+			log.Printf("Warning: Failed to get file info for %s: %v", originalName, err)
+			continue
+		}
+
+		ext := filepath.Ext(originalName)
+
+		// 生成符合规范的文件ID: {timestamp}-{suffix}-{randomid}
+		// suffix 为文件扩展名（不含点）
+		extWithoutDot := strings.TrimPrefix(ext, ".")
+		if extWithoutDot == "" {
+			extWithoutDot = "file" // 无扩展名时使用通用后缀
+		}
+
+		// 生成文件ID
+		fileID := fmt.Sprintf("%d-%s-%d",
+			time.Now().UnixMilli(),
+			extWithoutDot,
+			time.Now().Nanosecond()%1000000)
+
+		// 目标路径（统一的持久化文件目录）
+		destDir := filepath.Join(storagePath, "files")
+		if err := os.MkdirAll(destDir, 0755); err != nil {
+			return fmt.Errorf("failed to create files directory: %w", err)
+		}
+
+		destPath := filepath.Join(destDir, fileID)
+
+		// 复制文件
+		if err := copyFile(sourcePath, destPath); err != nil {
+			log.Printf("Warning: Failed to copy asset %s: %v", originalName, err)
+			continue
+		}
+
+		// 检查是否已存在相同的文件资源（通过原始文件名和博客ID）
+		var existing models.FileResource
+		result := db.DB.Where("original_name = ? AND category = ?", originalName, "blog-asset").First(&existing)
+
+		if result.Error == nil {
+			// 文件资源已存在，只需创建关联关系
+			var existingRelation models.PostAssetRelation
+			relResult := db.DB.Where("post_id = ? AND file_id = ?", postID, existing.ID).First(&existingRelation)
+			if relResult.Error != nil {
+				// 创建关联关系
+				relation := models.PostAssetRelation{
+					PostID:       postID,
+					FileID:       existing.ID,
+					RelationType: "attachment",
+					CreatedAt:    time.Now(),
+				}
+				if err := db.DB.Create(&relation).Error; err != nil {
+					log.Printf("Warning: Failed to create asset relation for %s: %v", originalName, err)
+				}
+			}
+			count++
+			continue
+		}
+
+		// 创建文件资源记录
+		fileResource := models.FileResource{
+			ID:           fileID,
+			OriginalName: originalName,
+			Extension:    ext,
+			MimeType:     getMimeType(originalName),
+			Size:         info.Size(),
+			Category:     "blog-asset",
+			StoragePath:  destPath,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		}
+
+		if err := db.DB.Create(&fileResource).Error; err != nil {
+			log.Printf("Warning: Failed to save file resource for %s: %v", originalName, err)
+			continue
+		}
+
+		// 创建博客-资产关联关系
+		relation := models.PostAssetRelation{
+			PostID:       postID,
+			FileID:       fileID,
+			RelationType: "attachment",
+			DisplayOrder: count,
+			CreatedAt:    time.Now(),
+		}
+
+		if err := db.DB.Create(&relation).Error; err != nil {
+			log.Printf("Warning: Failed to create asset relation for %s: %v", originalName, err)
+			// 清理已创建的文件资源
+			db.DB.Delete(&fileResource)
+			os.Remove(destPath)
+			continue
+		}
+
+		count++
+	}
+
+	if count > 0 {
+		log.Printf("  Migrated %d assets for post %s", count, postID)
+	}
+
+	return nil
+}
+
+/**
  * migrateNotes 迁移笔记
  */
 func migrateNotes() error {
 	notesDir := filepath.Join(sourcePath, "notes")
-	
+
 	// 读取 notes/index.json
 	indexPath := filepath.Join(notesDir, "index.json")
 	indexData, err := os.ReadFile(indexPath)
@@ -345,7 +490,7 @@ func migrateCategoriesAndTags() error {
 		Name  string
 		Count int64
 	}
-	
+
 	// 使用原始 SQL 查询，因为 GORM 在处理 JSON 数组时有限制
 	db.DB.Raw(`
 		SELECT json_each.value as Name, COUNT(*) as Count
@@ -368,7 +513,7 @@ func migrateCategoriesAndTags() error {
 		Name  string
 		Count int64
 	}
-	
+
 	db.DB.Raw(`
 		SELECT json_each.value as Name, COUNT(*) as Count
 		FROM posts, json_each(posts.tags)
@@ -388,11 +533,167 @@ func migrateCategoriesAndTags() error {
 }
 
 /**
- * copyImages 复制图片文件
+ * migrateImagesToFileResources 将旧的images表数据迁移到file_resources表
+ * 注意：需要保持文件ID的一致性，因为 post_asset_relations 表可能引用了这些ID
+ */
+func migrateImagesToFileResources() error {
+	// 检查images表是否存在
+	if !db.DB.Migrator().HasTable("images") {
+		log.Println("No images table found, skipping image data migration")
+		return nil
+	}
+
+	var oldImages []models.Image
+	if result := db.DB.Find(&oldImages); result.Error != nil {
+		return fmt.Errorf("failed to read old images: %w", result.Error)
+	}
+
+	if len(oldImages) == 0 {
+		log.Println("No images to migrate")
+		// 删除旧的images表
+		if err := db.DB.Migrator().DropTable("images"); err != nil {
+			log.Printf("Warning: Failed to drop old images table: %v", err)
+		} else {
+			log.Println("Dropped old images table")
+		}
+		return nil
+	}
+
+	count := 0
+	skipped := 0
+	for _, img := range oldImages {
+		// 检查是否已存在（通过原始文件名）
+		var existing models.FileResource
+		result := db.DB.Where("original_name = ? AND category = ?", img.Filename, "image").First(&existing)
+		if result.Error == nil {
+			log.Printf("File resource already exists for image: %s, skipping", img.Filename)
+			skipped++
+			continue
+		}
+
+		// 生成新的文件ID（使用文件名去除扩展名）
+		ext := filepath.Ext(img.Filename)
+		fileID := img.Filename[:len(img.Filename)-len(ext)]
+
+		// 如果没有扩展名，尝试从MimeType推断
+		if ext == "" {
+			ext = getExtensionFromMimeType(img.MimeType)
+			fileID = img.Filename
+		}
+
+		// 如果fileID为空，使用旧的ID
+		if fileID == "" {
+			fileID = fmt.Sprintf("%d", img.ID)
+		}
+
+		// 检查是否有 post_asset_relations 引用了这个图片
+		// 如果有引用，需要检查 FileID 是否匹配
+		var relationsCount int64
+		db.DB.Model(&models.PostAssetRelation{}).Where("file_id = ?", fileID).Count(&relationsCount)
+		if relationsCount > 0 {
+			log.Printf("Image %s has %d post asset relations, preserving file ID: %s", img.Filename, relationsCount, fileID)
+		}
+
+		fileResource := models.FileResource{
+			ID:           fileID,
+			OriginalName: img.Filename,
+			Extension:    ext,
+			MimeType:     img.MimeType,
+			Size:         img.Size,
+			Category:     "image",
+			StoragePath:  img.Path,
+			ThumbnailID:  img.ThumbnailID,
+			CreatedAt:    img.CreatedAt,
+			UpdatedAt:    img.CreatedAt,
+		}
+
+		if result := db.DB.Save(&fileResource); result.Error != nil {
+			log.Printf("Warning: Failed to migrate image %s: %v", img.Filename, result.Error)
+		} else {
+			count++
+		}
+	}
+
+	log.Printf("Migrated %d images to file_resources table (%d skipped)", count, skipped)
+
+	// 验证 post_asset_relations 的完整性
+	if err := validatePostAssetRelations(); err != nil {
+		log.Printf("Warning: Post asset relations validation failed: %v", err)
+	}
+
+	return nil
+}
+
+/**
+ * validatePostAssetRelations 验证 post_asset_relations 表的完整性
+ * 检查所有引用的文件资源是否存在
+ */
+func validatePostAssetRelations() error {
+	// 检查 post_asset_relations 表是否存在
+	if !db.DB.Migrator().HasTable("post_asset_relations") {
+		log.Println("No post_asset_relations table found, skipping validation")
+		return nil
+	}
+
+	var relations []models.PostAssetRelation
+	if result := db.DB.Find(&relations); result.Error != nil {
+		return fmt.Errorf("failed to read post_asset_relations: %w", result.Error)
+	}
+
+	if len(relations) == 0 {
+		log.Println("No post asset relations to validate")
+		return nil
+	}
+
+	log.Printf("Validating %d post asset relations...", len(relations))
+
+	missingCount := 0
+	validCount := 0
+
+	for _, relation := range relations {
+		var fileResource models.FileResource
+		result := db.DB.Where("id = ?", relation.FileID).First(&fileResource)
+		if result.Error != nil {
+			log.Printf("Warning: Post %s references missing file resource: %s", relation.PostID, relation.FileID)
+			missingCount++
+		} else {
+			validCount++
+		}
+	}
+
+	log.Printf("Post asset relations validation: %d valid, %d missing", validCount, missingCount)
+
+	if missingCount > 0 {
+		return fmt.Errorf("found %d missing file resource references", missingCount)
+	}
+
+	return nil
+}
+
+/**
+ * getExtensionFromMimeType 根据MIME类型获取文件扩展名
+ */
+func getExtensionFromMimeType(mimeType string) string {
+	switch mimeType {
+	case "image/jpeg":
+		return ".jpg"
+	case "image/png":
+		return ".png"
+	case "image/gif":
+		return ".gif"
+	case "image/webp":
+		return ".webp"
+	default:
+		return ""
+	}
+}
+
+/**
+ * copyImages 复制图片文件到统一的持久化文件目录
  */
 func copyImages() error {
 	imagesSourceDir := filepath.Join(sourcePath, "images")
-	imagesDestDir := filepath.Join(storagePath, "images")
+	imagesDestDir := filepath.Join(storagePath, "files") // 统一存储到 files/ 目录
 
 	if _, err := os.Stat(imagesSourceDir); os.IsNotExist(err) {
 		log.Println("No images directory found, skipping image migration")
@@ -410,28 +711,57 @@ func copyImages() error {
 			continue
 		}
 
-		sourcePath := filepath.Join(imagesSourceDir, entry.Name())
-		destPath := filepath.Join(imagesDestDir, entry.Name())
+		// 获取文件信息
+		info, err := entry.Info()
+		if err != nil {
+			log.Printf("Warning: Failed to get file info for %s: %v", entry.Name(), err)
+			continue
+		}
 
-		if err := copyFile(sourcePath, destPath); err != nil {
+		// 解析扩展名
+		ext := filepath.Ext(entry.Name())
+		extWithoutDot := strings.TrimPrefix(ext, ".")
+
+		// 生成新文件ID（统一命名格式：{timestamp}-{ext}-{random}，无扩展名）
+		fileID := fmt.Sprintf("%d-%s-%d", time.Now().UnixMilli(), extWithoutDot, time.Now().Nanosecond()%1000000)
+
+		// 检查是否已存在（通过原始文件名）
+		var existing models.FileResource
+		result := db.DB.Where("original_name = ? AND category = ?", entry.Name(), "image").First(&existing)
+		if result.Error == nil {
+			log.Printf("File resource already exists for image: %s, skipping", entry.Name())
+			count++
+			continue
+		}
+
+		// 复制文件到新位置（使用新的文件ID，无扩展名）
+		sourceFilePath := filepath.Join(imagesSourceDir, entry.Name())
+		destPath := filepath.Join(imagesDestDir, fileID)
+
+		if err := copyFile(sourceFilePath, destPath); err != nil {
 			log.Printf("Warning: Failed to copy image %s: %v", entry.Name(), err)
 			continue
 		}
 
-		// 保存图片记录到数据库
-		info, _ := entry.Info()
-		image := models.Image{
-			Filename:  entry.Name(),
-			Path:      destPath,
-			Size:      info.Size(),
-			MimeType:  getMimeType(entry.Name()),
-			CreatedAt: time.Now(),
+		// 保存图片记录到file_resources表
+		fileResource := models.FileResource{
+			ID:           fileID,
+			OriginalName: entry.Name(),
+			Extension:    ext,
+			MimeType:     getMimeType(entry.Name()),
+			Size:         info.Size(),
+			Category:     "image",
+			StoragePath:  destPath,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
 		}
 
-		if result := db.DB.Save(&image); result.Error != nil {
+		if result := db.DB.Save(&fileResource); result.Error != nil {
 			log.Printf("Warning: Failed to save image record %s: %v", entry.Name(), result.Error)
+			continue
 		}
 
+		log.Printf("Migrated image: %s -> %s", entry.Name(), fileID)
 		count++
 	}
 
@@ -477,4 +807,3 @@ func getMimeType(filename string) string {
 		return "application/octet-stream"
 	}
 }
-

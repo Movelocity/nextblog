@@ -26,10 +26,9 @@ server/
 │   └── service/        # 业务逻辑层
 ├── pkg/
 │   └── utils/          # 工具函数
-├── storage/            # 文件存储目录
-│   ├── images/         # 图片文件
-│   ├── uploads/        # 上传文件
-│   └── thumbnails/     # 缩略图
+├── storage/            # 文件存储目录（统一存储策略）
+│   ├── files/          # 持久化文件（图片、博客资产等，无扩展名格式）
+│   └── thumbnails/     # 派生文件（缩略图，可重新生成）
 ├── data/               # SQLite 数据库文件
 ├── scripts/            # 迁移脚本
 ├── go.mod
@@ -99,8 +98,19 @@ go run cmd/server/main.go
 
 ### Images (图片)
 
-- `GET /api/images/:filename` - 获取图片
+- `GET /api/images/:fileId` - 获取图片（通过文件ID）
+- `GET /api/images/:fileId/thumbnail` - 获取缩略图
 - `POST /api/images/upload` - 上传图片
+- `DELETE /api/images/:fileId` - 删除图片
+
+**注意**: 所有文件使用统一的无扩展名命名格式 `{timestamp}-{ext}-{random}`，详见 [FILE_STORAGE_UNIFICATION.md](FILE_STORAGE_UNIFICATION.md)
+
+### Assets (博客资产)
+
+- `GET /api/posts/:id/assets` - 获取博客资产列表
+- `GET /api/posts/:id/assets/:fileId` - 获取资产文件
+- `POST /api/posts/:id/assets` - 上传博客资产
+- `DELETE /api/posts/:id/assets/:fileId` - 删除资产文件
 
 ### System (系统配置)
 

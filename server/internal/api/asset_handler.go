@@ -126,8 +126,8 @@ func (h *AssetHandler) UploadAsset(c *gin.Context) {
 		return
 	}
 
-	// 保存文件到存储
-	if err := h.storage.Save("blog-assets", fileID, fileData); err != nil {
+	// 保存文件到统一的持久化文件目录
+	if err := h.storage.Save("files", fileID, fileData); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
 		return
 	}
@@ -140,14 +140,14 @@ func (h *AssetHandler) UploadAsset(c *gin.Context) {
 		MimeType:     file.Header.Get("Content-Type"),
 		Size:         file.Size,
 		Category:     "blog-asset",
-		StoragePath:  h.storage.GetPath("blog-assets", fileID),
+		StoragePath:  h.storage.GetPath("files", fileID),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
 
 	if err := h.fileResourceRepo.CreateFileResource(resource); err != nil {
 		// 清理已保存的文件
-		_ = h.storage.Delete("blog-assets", fileID)
+		_ = h.storage.Delete("files", fileID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create file resource"})
 		return
 	}
@@ -163,7 +163,7 @@ func (h *AssetHandler) UploadAsset(c *gin.Context) {
 	if err := h.postAssetRepo.CreateRelation(relation); err != nil {
 		// 清理已创建的资源
 		_ = h.fileResourceRepo.DeleteFileResource(fileID)
-		_ = h.storage.Delete("blog-assets", fileID)
+		_ = h.storage.Delete("files", fileID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create asset relation"})
 		return
 	}
@@ -211,8 +211,8 @@ func (h *AssetHandler) GetAsset(c *gin.Context) {
 		return
 	}
 
-	// 获取文件数据
-	fileData, err := h.storage.Get("blog-assets", fileID)
+	// 获取文件数据（从统一的持久化文件目录）
+	fileData, err := h.storage.Get("files", fileID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "File not found in storage"})
 		return
@@ -245,9 +245,9 @@ func (h *AssetHandler) DeleteAsset(c *gin.Context) {
 		return
 	}
 
-	// 如果没有其他关联，删除文件和记录
+	// 如果没有其他关联，删除文件和记录（从统一的持久化文件目录）
 	if count == 0 {
-		_ = h.storage.Delete("blog-assets", fileID)
+		_ = h.storage.Delete("files", fileID)
 		_ = h.fileResourceRepo.DeleteFileResource(fileID)
 	}
 
