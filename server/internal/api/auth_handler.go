@@ -39,6 +39,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// 检查是否允许注册
+	allowed, err := h.authService.IsRegistrationAllowed()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to check registration status",
+		})
+		return
+	}
+	if !allowed {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "registration is currently disabled",
+		})
+		return
+	}
+
 	// 注册用户
 	user, err := h.authService.Register(&req)
 	if err != nil {
@@ -201,5 +216,23 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
+	})
+}
+
+/**
+ * GetRegistrationStatus 获取注册状态
+ * GET /api/auth/registration-status
+ */
+func (h *AuthHandler) GetRegistrationStatus(c *gin.Context) {
+	allowed, err := h.authService.IsRegistrationAllowed()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to check registration status",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"allowed": allowed,
 	})
 }

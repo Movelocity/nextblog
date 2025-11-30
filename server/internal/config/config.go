@@ -18,8 +18,8 @@ type Config struct {
 	DBPath string
 
 	// Storage
-	StoragePath    string
-	UploadMaxSize  int64
+	StoragePath   string
+	UploadMaxSize int64
 
 	// CORS
 	CORSAllowedOrigins []string
@@ -46,17 +46,17 @@ func LoadConfig() *Config {
 	}
 
 	config := &Config{
-		Port:    getEnv("PORT", "8080"),
-		GinMode: getEnv("GIN_MODE", "debug"),
-		DBPath:  getEnv("DB_PATH", "./data/nextblog.db"),
-		StoragePath: getEnv("STORAGE_PATH", "./storage"),
-		UploadMaxSize: getEnvAsInt64("UPLOAD_MAX_SIZE", 10485760), // 10MB
+		Port:               getEnv("PORT", "8080"),
+		GinMode:            getEnv("GIN_MODE", "debug"),
+		DBPath:             getEnv("DB_PATH", "./data/nextblog.db"),
+		StoragePath:        getEnv("STORAGE_PATH", "./storage"),
+		UploadMaxSize:      getEnvAsInt64("UPLOAD_MAX_SIZE", 10485760), // 20MB
 		CORSAllowedOrigins: getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000"}),
-		JWTSecret: getEnv("JWT_SECRET", "your-secret-key-here"),
-		JWTExpiry: getEnv("JWT_EXPIRY", "24h"),
-		SiteName:        getEnv("SITE_NAME", "Next Blog"),
-		SiteDescription: getEnv("SITE_DESCRIPTION", "A modern blog management system"),
-		ICPInfo:         getEnv("ICP_INFO", "本地开发不需备案"),
+		JWTSecret:          getEnv("JWT_SECRET", "your-secret-key-here"),
+		JWTExpiry:          getEnv("JWT_EXPIRY", "24h"),
+		SiteName:           getEnv("SITE_NAME", "Next Blog"),
+		SiteDescription:    getEnv("SITE_DESCRIPTION", "A modern blog management system"),
+		ICPInfo:            getEnv("ICP_INFO", ""),
 	}
 
 	AppConfig = config
@@ -95,4 +95,3 @@ func getEnvAsSlice(key string, defaultValue []string) []string {
 	}
 	return defaultValue
 }
-

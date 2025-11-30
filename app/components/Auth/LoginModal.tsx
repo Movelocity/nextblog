@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Modal, Button } from "@/app/components/ui"
-import { login, setAuthToken } from '@/app/services/auth';
-import { FiMail, FiLock, FiLoader, FiEye, FiEyeOff } from 'react-icons/fi';
+import { login, register, setAuthToken, checkRegistrationStatus } from '@/app/services/auth';
+import { FiMail, FiLock, FiLoader, FiEye, FiEyeOff, FiUser } from 'react-icons/fi';
 import cn from 'classnames';
 import { readAccount, rememberAccount } from '@/app/components/Auth/utils';
 import { useToast } from '@/app/components/layout/ToastHook';
@@ -13,9 +13,12 @@ import "./styles.css"
 export const LoginModal = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [registrationAllowed, setRegistrationAllowed] = useState(false);
   const { showToast } = useToast();
   const { setIsAuthenticated, loginCallback, isLoginModalOpened, closeLoginModal } = useAuth();
 
@@ -23,6 +26,13 @@ export const LoginModal = () => {
     const authInfo = readAccount();
     setEmail(authInfo.email);
     setPassword(authInfo.password);
+    
+    // Check registration status
+    checkRegistrationStatus().then(status => {
+      setRegistrationAllowed(status.allowed);
+    }).catch(err => {
+      console.error('Failed to check registration status:', err);
+    });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,20 +41,42 @@ export const LoginModal = () => {
     setIsLoading(true);
     
     try {
-      const response = await login({ email, password });
-      if (response?.token) {
-        setAuthToken(response.token);
-        setIsAuthenticated(true);
-        rememberAccount({ email, password }, rememberMe);
-        showToast('Login successful!', 'success');
-        loginCallback?.();
-        closeLoginModal();
+      if (isRegisterMode) {
+        // Registration
+        if (!username.trim()) {
+          setError('Username is required');
+          setIsLoading(false);
+          return;
+        }
+        const response = await register({ username, email, password });
+        if (response?.token) {
+          setAuthToken(response.token);
+          setIsAuthenticated(true);
+          rememberAccount({ email, password }, rememberMe);
+          showToast('Registration successful!', 'success');
+          loginCallback?.();
+          closeLoginModal();
+          // After registration, no more registrations allowed
+          setRegistrationAllowed(false);
+        }
       } else {
-        setError('Invalid email or password');
+        // Login
+        const response = await login({ email, password });
+        if (response?.token) {
+          setAuthToken(response.token);
+          setIsAuthenticated(true);
+          rememberAccount({ email, password }, rememberMe);
+          showToast('Login successful!', 'success');
+          loginCallback?.();
+          closeLoginModal();
+        } else {
+          setError('Invalid email or password');
+        }
       }
-    } catch (err) {
-      console.error('Login error:', err);
-      setError('Invalid email or password');
+    } catch (err: any) {
+      console.error(isRegisterMode ? 'Registration error:' : 'Login error:', err);
+      const errorMsg = err?.message || (isRegisterMode ? 'Registration failed' : 'Invalid email or password');
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +89,7 @@ export const LoginModal = () => {
   const [hidePassword, setHidePassword] = useState(true)
 
   return (
-    <Modal isOpen={isLoginModalOpened} onClose={closeLoginModal} title="Welcome Back">
+    <Modal isOpen={isLoginModalOpened} onClose={closeLoginModal} title={isRegisterMode ? "Create Admin Account" : "Welcome Back"}>
       <div className="p-6">
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
@@ -69,6 +101,25 @@ export const LoginModal = () => {
         )}
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {isRegisterMode && (
+            <div className="space-y-2">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiUser className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required={isRegisterMode}
+                  className="pl-10 block w-full rounded-lg border border-gray-500 py-3 shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm  dark:bg-gray-700 dark:text-white outline-none"
+                  placeholder="Enter your username"
+                  aria-label="Username"
+                />
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -138,9 +189,24 @@ export const LoginModal = () => {
             variant="primary"
             fullWidth
             loading={isLoading}
-            text={isLoading ? 'Signing in...' : 'Sign in'}
+            text={isLoading ? (isRegisterMode ? 'Creating account...' : 'Signing in...') : (isRegisterMode ? 'Create Account' : 'Sign in')}
           />
         </form>
+
+        {registrationAllowed && (
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsRegisterMode(!isRegisterMode);
+                setError('');
+              }}
+              className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              {isRegisterMode ? 'Already have an account? Sign in' : 'Need an account? Register as admin'}
+            </button>
+          </div>
+        )}
       </div>
     </Modal>
   );

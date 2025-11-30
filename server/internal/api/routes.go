@@ -32,6 +32,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 		authHandler := NewAuthHandler(db.DB)
 		auth := api.Group("/auth")
 		{
+			auth.GET("/registration-status", authHandler.GetRegistrationStatus)
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
 			auth.GET("/check", middleware.AuthMiddleware(db.DB), authHandler.CheckAuth)

@@ -205,3 +205,16 @@ func (s *AuthService) ValidateToken(tokenString string) (*models.JWTClaims, erro
 func (s *AuthService) GetUserByID(id uint) (*models.User, error) {
 	return s.userRepo.GetByID(id)
 }
+
+/**
+ * IsRegistrationAllowed 检查是否允许注册
+ * 当前策略：只允许注册一个用户（管理员）
+ */
+func (s *AuthService) IsRegistrationAllowed() (bool, error) {
+	count, err := s.userRepo.CountUsers()
+	if err != nil {
+		return false, err
+	}
+	// 如果用户数为0，允许注册第一个用户（管理员）
+	return count == 0, nil
+}

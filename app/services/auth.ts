@@ -32,6 +32,10 @@ export interface AuthCheckResponse {
   error?: string;
 }
 
+export interface RegistrationStatusResponse {
+  allowed: boolean;
+}
+
 /**
  * 用户注册
  * @param credentials 注册凭据
@@ -147,4 +151,12 @@ export const refreshToken = async (): Promise<{ token: string }> => {
  */
 export const logout = () => {
   removeAuthToken();
+};
+
+/**
+ * 检查注册是否允许
+ * @returns 注册状态
+ */
+export const checkRegistrationStatus = async (): Promise<RegistrationStatusResponse> => {
+  return get<RegistrationStatusResponse>('/api/auth/registration-status');
 }; 
