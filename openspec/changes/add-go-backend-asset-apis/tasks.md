@@ -61,12 +61,13 @@
 ## 4. 博客资产管理 API
 - [x] 4.1 创建数据库迁移：确保 `file_resources` 和 `post_asset_relations` 表已创建
 - [x] 4.2 创建 `server/internal/api/asset_handler.go` 实现以下接口：
-  - `GET /api/posts/:postId/assets` - 列出博客资产（通过关联表查询）
-  - `POST /api/posts/:postId/assets` - 上传博客资产
-  - `GET /api/posts/:postId/assets/:fileId` - 获取单个资产
-  - `DELETE /api/posts/:postId/assets/:fileId` - 删除资产
+  - `GET /api/posts/:id/assets` - 列出博客资产（通过关联表查询）
+  - `POST /api/posts/:id/assets` - 上传博客资产
+  - `GET /api/posts/:id/assets/:fileId` - 获取单个资产
+  - `DELETE /api/posts/:id/assets/:fileId` - 删除资产
 - [x] 4.3 在 `routes.go` 中注册资产路由
-- [ ] 4.4 编写 Handler 单元测试
+- [x] 4.4 修复路由参数命名冲突（`:postId` → `:id`）
+- [ ] 4.5 编写 Handler 单元测试
   - 留待后续 PR 实现
 
 ## 5. 缩略图生成和管理
@@ -117,10 +118,41 @@
 - [x] 7.4 实现启动时间记录和运行时长计算
 - [x] 7.5 实现数据格式化（字节转可读字符串）
 - [x] 7.6 在 `routes.go` 中注册系统状态路由 `GET /api/system/status`
-- [ ] 7.7 添加认证中间件保护系统状态 API
-  - 留待后续实现（需要先实现认证系统）
+- [x] 7.7 添加认证中间件保护系统状态 API
+  - 已实现完整的 JWT 认证系统
 - [ ] 7.8 编写单元测试
   - 留待后续 PR 实现
+
+## 7A. JWT 认证系统（新增）
+- [x] 7A.1 创建 User 数据模型 (`server/internal/models/user.go`)
+  - 支持多用户
+  - 使用 bcrypt 加密密码
+  - 角色系统（admin, editor, user）
+- [x] 7A.2 创建用户 Repository (`server/internal/repository/user_repository.go`)
+- [x] 7A.3 创建认证服务 (`server/internal/service/auth_service.go`)
+  - 注册、登录、token 生成和验证
+  - 第一个用户自动成为管理员
+- [x] 7A.4 实现 JWT 认证中间件 (`server/internal/middleware/middleware.go`)
+  - AuthMiddleware: 强制认证
+  - OptionalAuth: 可选认证
+  - RequireRole: 角色权限检查
+- [x] 7A.5 创建认证 API 处理器 (`server/internal/api/auth_handler.go`)
+  - POST /api/auth/register: 用户注册
+  - POST /api/auth/login: 用户登录
+  - GET /api/auth/check: 检查认证状态
+  - GET /api/auth/profile: 获取用户信息
+  - POST /api/auth/refresh: 刷新 token
+- [x] 7A.6 更新数据库迁移（添加 users 表）
+- [x] 7A.7 保护需要认证的 API 路由
+  - 文章创建/更新/删除
+  - 笔记管理
+  - 图片上传/删除
+  - 资产管理
+  - 系统状态（仅管理员）
+  - 配置更新（仅管理员）
+- [x] 7A.8 更新前端服务层
+  - 新增 register、checkAuth、getUserProfile、refreshToken、logout
+  - 更新认证响应接口以支持完整用户信息
 
 ## 8. 前端服务层更新
 - [x] 8.1 修改 `app/services/assets.ts`：
@@ -179,20 +211,25 @@
 
 ## 总结
 
-### 已完成 (✅ 完成率: ~75%)
+### 已完成 (✅ 完成率: ~85%)
 - 核心功能全部实现
 - 所有 API 端点已创建并注册
 - 前端服务层已更新
 - 数据模型和迁移已配置
+- **完整的 JWT 认证系统已实现**
+  - 多用户支持
+  - 密码加密（bcrypt）
+  - 角色权限控制（RBAC）
+  - 所有敏感 API 已受保护
 
 ### 跳过 (⏭️)
 - 数据迁移功能（无旧数据需要迁移）
 - 单元测试（留待后续 PR）
-- 认证中间件（需先实现认证系统）
 
 ### 待完成 (⏳)
 - 手动集成测试
 - 文档更新
 - 部署配置检查
+- 安装 `github.com/golang-jwt/jwt/v5` 依赖
 
 详细实现说明请参考 `IMPLEMENTATION_SUMMARY.md`

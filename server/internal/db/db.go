@@ -35,6 +35,7 @@ func InitDB(dbPath string) error {
 
 	// 自动迁移数据库结构
 	if err := db.AutoMigrate(
+		&models.User{},
 		&models.Post{},
 		&models.Note{},
 		&models.Category{},

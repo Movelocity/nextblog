@@ -16,10 +16,10 @@ Next.js API 路由（`app/api/*`）中已有完整实现，但 Go 后端缺失�
 ## What Changes
 
 ### 1. 博客资产管理 API
-- 实现按 blogId 分组的资产列表查询 `GET /api/posts/:postId/assets`
-- 实现按 blogId 上传资产 `POST /api/posts/:postId/assets`
-- 实现按 blogId 删除资产 `DELETE /api/posts/:postId/assets/:filename`
-- 实现获取单个资产 `GET /api/posts/:postId/assets/:filename`
+- 实现按 blogId 分组的资产列表查询 `GET /api/posts/:id/assets`
+- 实现按 blogId 上传资产 `POST /api/posts/:id/assets`
+- 实现按 blogId 删除资产 `DELETE /api/posts/:id/assets/:filename`
+- 实现获取单个资产 `GET /api/posts/:id/assets/:filename`
 
 ### 2. 缩略图管理
 - 在图片上传时支持自动生成缩略图（可选参数 `generateThumbnail`）
