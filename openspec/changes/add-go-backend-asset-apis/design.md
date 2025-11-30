@@ -40,9 +40,10 @@
 **方案**：文件存储时使用独立ID作为文件名，扩展名和元数据存储在数据库
 
 **文件命名规则**：
-- 存储文件名：`{uuid}` 或 `{timestamp}-{random}` (无扩展名)
+- 存储文件名：`{timestamp}-{suffix}-{randomid}` (无扩展名)
 - 原始文件名、扩展名、MIME类型存储在数据库表中
-- 示例：`1638123456789-abc` (文件系统) + `{original_name: "avatar.jpg", extension: ".jpg"}` (数据库)
+- 示例：`1638123456789-jpg-abc` (文件系统) + `{original_name: "avatar.jpg", extension: ".jpg"}` (数据库)
+- suffix 为文件扩展名（不含点），便于文件恢复时识别文件类型
 
 **数据库表结构**：
 ```go
