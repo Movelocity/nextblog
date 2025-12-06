@@ -129,11 +129,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 迁移旧的Image表数据到FileResource表（如果存在）
-	if err := migrateImagesToFileResources(); err != nil {
-		log.Printf("Warning: Failed to migrate images to file resources: %v", err)
-	}
-
 	// 复制图片文件
 	if err := copyImages(); err != nil {
 		log.Printf("Warning: Failed to copy images: %v", err)
@@ -163,6 +158,7 @@ func initDatabase(path string) error {
 		&models.Tag{},
 		&models.SiteConfig{},
 		&models.FileResource{},
+		&models.PostAssetRelation{},
 	); err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
@@ -533,142 +529,50 @@ func migrateCategoriesAndTags() error {
 }
 
 /**
- * migrateImagesToFileResources 将旧的images表数据迁移到file_resources表
- * 注意：需要保持文件ID的一致性，因为 post_asset_relations 表可能引用了这些ID
- */
-func migrateImagesToFileResources() error {
-	// 检查images表是否存在
-	if !db.DB.Migrator().HasTable("images") {
-		log.Println("No images table found, skipping image data migration")
-		return nil
-	}
-
-	var oldImages []models.Image
-	if result := db.DB.Find(&oldImages); result.Error != nil {
-		return fmt.Errorf("failed to read old images: %w", result.Error)
-	}
-
-	if len(oldImages) == 0 {
-		log.Println("No images to migrate")
-		// 删除旧的images表
-		if err := db.DB.Migrator().DropTable("images"); err != nil {
-			log.Printf("Warning: Failed to drop old images table: %v", err)
-		} else {
-			log.Println("Dropped old images table")
-		}
-		return nil
-	}
-
-	count := 0
-	skipped := 0
-	for _, img := range oldImages {
-		// 检查是否已存在（通过原始文件名）
-		var existing models.FileResource
-		result := db.DB.Where("original_name = ? AND category = ?", img.Filename, "image").First(&existing)
-		if result.Error == nil {
-			log.Printf("File resource already exists for image: %s, skipping", img.Filename)
-			skipped++
-			continue
-		}
-
-		// 生成新的文件ID（使用文件名去除扩展名）
-		ext := filepath.Ext(img.Filename)
-		fileID := img.Filename[:len(img.Filename)-len(ext)]
-
-		// 如果没有扩展名，尝试从MimeType推断
-		if ext == "" {
-			ext = getExtensionFromMimeType(img.MimeType)
-			fileID = img.Filename
-		}
-
-		// 如果fileID为空，使用旧的ID
-		if fileID == "" {
-			fileID = fmt.Sprintf("%d", img.ID)
-		}
-
-		// 检查是否有 post_asset_relations 引用了这个图片
-		// 如果有引用，需要检查 FileID 是否匹配
-		var relationsCount int64
-		db.DB.Model(&models.PostAssetRelation{}).Where("file_id = ?", fileID).Count(&relationsCount)
-		if relationsCount > 0 {
-			log.Printf("Image %s has %d post asset relations, preserving file ID: %s", img.Filename, relationsCount, fileID)
-		}
-
-		fileResource := models.FileResource{
-			ID:           fileID,
-			OriginalName: img.Filename,
-			Extension:    ext,
-			MimeType:     img.MimeType,
-			Size:         img.Size,
-			Category:     "image",
-			StoragePath:  img.Path,
-			ThumbnailID:  img.ThumbnailID,
-			CreatedAt:    img.CreatedAt,
-			UpdatedAt:    img.CreatedAt,
-		}
-
-		if result := db.DB.Save(&fileResource); result.Error != nil {
-			log.Printf("Warning: Failed to migrate image %s: %v", img.Filename, result.Error)
-		} else {
-			count++
-		}
-	}
-
-	log.Printf("Migrated %d images to file_resources table (%d skipped)", count, skipped)
-
-	// 验证 post_asset_relations 的完整性
-	if err := validatePostAssetRelations(); err != nil {
-		log.Printf("Warning: Post asset relations validation failed: %v", err)
-	}
-
-	return nil
-}
-
-/**
  * validatePostAssetRelations 验证 post_asset_relations 表的完整性
  * 检查所有引用的文件资源是否存在
  */
-func validatePostAssetRelations() error {
-	// 检查 post_asset_relations 表是否存在
-	if !db.DB.Migrator().HasTable("post_asset_relations") {
-		log.Println("No post_asset_relations table found, skipping validation")
-		return nil
-	}
+// func validatePostAssetRelations() error {
+// 	// 检查 post_asset_relations 表是否存在
+// 	if !db.DB.Migrator().HasTable("post_asset_relations") {
+// 		log.Println("No post_asset_relations table found, skipping validation")
+// 		return nil
+// 	}
 
-	var relations []models.PostAssetRelation
-	if result := db.DB.Find(&relations); result.Error != nil {
-		return fmt.Errorf("failed to read post_asset_relations: %w", result.Error)
-	}
+// 	var relations []models.PostAssetRelation
+// 	if result := db.DB.Find(&relations); result.Error != nil {
+// 		return fmt.Errorf("failed to read post_asset_relations: %w", result.Error)
+// 	}
 
-	if len(relations) == 0 {
-		log.Println("No post asset relations to validate")
-		return nil
-	}
+// 	if len(relations) == 0 {
+// 		log.Println("No post asset relations to validate")
+// 		return nil
+// 	}
 
-	log.Printf("Validating %d post asset relations...", len(relations))
+// 	log.Printf("Validating %d post asset relations...", len(relations))
 
-	missingCount := 0
-	validCount := 0
+// 	missingCount := 0
+// 	validCount := 0
 
-	for _, relation := range relations {
-		var fileResource models.FileResource
-		result := db.DB.Where("id = ?", relation.FileID).First(&fileResource)
-		if result.Error != nil {
-			log.Printf("Warning: Post %s references missing file resource: %s", relation.PostID, relation.FileID)
-			missingCount++
-		} else {
-			validCount++
-		}
-	}
+// 	for _, relation := range relations {
+// 		var fileResource models.FileResource
+// 		result := db.DB.Where("id = ?", relation.FileID).First(&fileResource)
+// 		if result.Error != nil {
+// 			log.Printf("Warning: Post %s references missing file resource: %s", relation.PostID, relation.FileID)
+// 			missingCount++
+// 		} else {
+// 			validCount++
+// 		}
+// 	}
 
-	log.Printf("Post asset relations validation: %d valid, %d missing", validCount, missingCount)
+// 	log.Printf("Post asset relations validation: %d valid, %d missing", validCount, missingCount)
 
-	if missingCount > 0 {
-		return fmt.Errorf("found %d missing file resource references", missingCount)
-	}
+// 	if missingCount > 0 {
+// 		return fmt.Errorf("found %d missing file resource references", missingCount)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 /**
  * getExtensionFromMimeType 根据MIME类型获取文件扩展名

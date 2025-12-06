@@ -48,7 +48,7 @@ class BlogStorage {
     return this.manager.listBlogs(options);
   }
 
-  async listAssets(blogId: string): Promise<Asset[]> {
+  async listAssets(blogId: string): Promise<any> {
     const blog = await this.manager.getBlog(blogId);
     const assets = await Promise.all(blog.assets.map(async (name) => {
       const assetInfo = await this.manager.getAsset(blogId, name);

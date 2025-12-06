@@ -16,7 +16,6 @@ function DashboardContent() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
   const { isAuthenticated, isLoading, openLoginModal } = useAuth();
-  // const { setIsOpen: setLoginModalOpen, setOnSuccess: setLoginSuccess } = useLoginModal();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
   const [postsCnt, setPostsCnt] = useState(0);
@@ -47,7 +46,7 @@ function DashboardContent() {
       const { blogs_info, total } = await getPosts({ 
         page: page, 
         limit: BLOG_CONFIG.MAX_POSTS_PER_PAGE,
-        pubOnly: false 
+        // pubOnly: false 
       });
       setBlogsInfo(blogs_info);
       setPostsCnt(total);

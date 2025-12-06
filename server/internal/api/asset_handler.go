@@ -12,6 +12,8 @@ import (
 	"nextblog-server/internal/repository"
 	"nextblog-server/internal/storage"
 
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,34 +39,93 @@ func NewAssetHandler(storage storage.FileStorage) *AssetHandler {
 
 /**
  * ListAssets 列出博客资产
- * GET /api/posts/:id/assets
+ * GET /api/assets?postID=xxx&page=xxx&limit=xxx
+ * 支持分页和博客参数可选查询
  */
 func (h *AssetHandler) ListAssets(c *gin.Context) {
-	postID := c.Param("id")
+	postID := c.Query("postID")
 
-	// 获取博客-资产关联关系
-	relations, err := h.postAssetRepo.GetRelationsByPostID(postID)
+	page := c.Query("page")
+	limit := c.Query("limit")
+
+	if page == "" {
+		page = "1"
+	}
+	if limit == "" {
+		limit = "10"
+	}
+
+	pageInt, err := strconv.Atoi(page)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page parameter"})
 		return
 	}
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit parameter"})
+		return
+	}
+
+	// 计算偏移量
+	offset := (pageInt - 1) * limitInt
+
+	var resources []*models.FileResource
+	var total int64
 
 	// 提取文件ID列表
 	var fileIDs []string
-	for _, rel := range relations {
-		fileIDs = append(fileIDs, rel.FileID)
-	}
 
-	if len(fileIDs) == 0 {
-		c.JSON(http.StatusOK, []interface{}{})
-		return
-	}
+	if postID != "" {
+		// 获取博客-资产关联关系
+		relations, err := h.postAssetRepo.GetRelationsByPostID(postID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
-	// 批量获取文件资源信息
-	resources, err := h.fileResourceRepo.GetFileResourcesByIDs(fileIDs)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		for _, rel := range relations {
+			fileIDs = append(fileIDs, rel.FileID)
+		}
+
+		if len(fileIDs) == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"data":  []interface{}{},
+				"total": 0,
+				"page":  pageInt,
+				"limit": limitInt,
+			})
+			return
+		}
+
+		// 统计总数
+		total, err = h.fileResourceRepo.CountFileResourcesByIDs(fileIDs)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 批量获取文件资源信息（带分页）
+		resources, err = h.fileResourceRepo.GetFileResourcesByIDsWithPagination(fileIDs, offset, limitInt)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+	} else {
+		// 查询所有文件资源
+		// 统计总数
+		total, err = h.fileResourceRepo.CountAllFileResources()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 获取所有文件资源（带分页）
+		resources, err = h.fileResourceRepo.GetAllFileResourcesWithPagination(offset, limitInt)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	// 构建响应
@@ -75,20 +136,24 @@ func (h *AssetHandler) ListAssets(c *gin.Context) {
 			"filename":  resource.OriginalName,
 			"size":      resource.Size,
 			"mimeType":  resource.MimeType,
-			"url":       fmt.Sprintf("/api/posts/%s/assets/%s", postID, resource.ID),
+			"url":       fmt.Sprintf("/api/assets/%s", resource.ID),
 			"createdAt": resource.CreatedAt,
 		})
 	}
 
-	c.JSON(http.StatusOK, assets)
+	c.JSON(http.StatusOK, gin.H{
+		"data":  assets,
+		"total": total,
+		"page":  pageInt,
+		"limit": limitInt,
+	})
 }
 
 /**
  * UploadAsset 上传博客资产
- * POST /api/posts/:id/assets
+ * POST /api/assets?postID=xxx
  */
 func (h *AssetHandler) UploadAsset(c *gin.Context) {
-	postID := c.Param("id")
 
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -152,57 +217,39 @@ func (h *AssetHandler) UploadAsset(c *gin.Context) {
 		return
 	}
 
-	// 创建博客-资产关联关系
-	relation := &models.PostAssetRelation{
-		PostID:       postID,
-		FileID:       fileID,
-		RelationType: "attachment",
-		CreatedAt:    time.Now(),
-	}
-
-	if err := h.postAssetRepo.CreateRelation(relation); err != nil {
-		// 清理已创建的资源
-		_ = h.fileResourceRepo.DeleteFileResource(fileID)
-		_ = h.storage.Delete("files", fileID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create asset relation"})
-		return
+	postID := c.Query("postID")
+	// 如果 postID 不为空，则创建博客-资产关联关系
+	if postID != "" {
+		// 创建博客-资产关联关系
+		relation := &models.PostAssetRelation{
+			PostID:       postID,
+			FileID:       fileID,
+			RelationType: "attachment",
+			CreatedAt:    time.Now(),
+		}
+		if err := h.postAssetRepo.CreateRelation(relation); err != nil {
+			// 清理已创建的资源
+			_ = h.fileResourceRepo.DeleteFileResource(fileID)
+			_ = h.storage.Delete("files", fileID)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create asset relation"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"id":       fileID,
 		"filename": file.Filename,
-		"url":      fmt.Sprintf("/api/posts/%s/assets/%s", postID, fileID),
+		"url":      fmt.Sprintf("/api/assets/%s", fileID),
 		"size":     file.Size,
 	})
 }
 
 /**
  * GetAsset 获取单个资产
- * GET /api/posts/:id/assets/:fileId
+ * GET /api/assets/:fileId
  */
 func (h *AssetHandler) GetAsset(c *gin.Context) {
-	postID := c.Param("id")
 	fileID := c.Param("fileId")
-
-	// 验证关联关系是否存在
-	relations, err := h.postAssetRepo.GetRelationsByPostID(postID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	found := false
-	for _, rel := range relations {
-		if rel.FileID == fileID {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Asset not found for this post"})
-		return
-	}
 
 	// 获取文件资源信息
 	resource, err := h.fileResourceRepo.GetFileResource(fileID)
@@ -226,16 +273,24 @@ func (h *AssetHandler) GetAsset(c *gin.Context) {
 
 /**
  * DeleteAsset 删除资产
- * DELETE /api/posts/:id/assets/:fileId
+ * DELETE /api/assets?postID=xxx&fileID=xxx
  */
 func (h *AssetHandler) DeleteAsset(c *gin.Context) {
-	postID := c.Param("id")
-	fileID := c.Param("fileId")
 
-	// 删除关联关系
-	if err := h.postAssetRepo.DeleteRelation(postID, fileID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete relation"})
+	fileID := c.Query("fileID")
+
+	if fileID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "fileID is required"})
 		return
+	}
+
+	postID := c.Query("postID")
+	if postID != "" {
+		// 删除关联关系
+		if err := h.postAssetRepo.DeleteRelation(postID, fileID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete relation"})
+			return
+		}
 	}
 
 	// 检查文件是否还有其他关联

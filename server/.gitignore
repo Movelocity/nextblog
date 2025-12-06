@@ -32,12 +32,6 @@
 .DS_Store
 Thumbs.db
 
-# Uploads and storage
-/storage/uploads/*
-!/storage/uploads/.gitkeep
-/storage/images/*
-!/storage/images/.gitkeep
-/storage/thumbnails/*
-!/storage/thumbnails/.gitkeep
-
-./storage/
+storage/files/*
+storage/thumbnails/*
+!.gitkeep

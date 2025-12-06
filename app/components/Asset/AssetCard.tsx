@@ -21,12 +21,12 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   const [showPreview, setShowPreview] = useState(false);
   const sizeInKb = (asset.size / 1024).toFixed(1);
   const MAX_PREVIEW_SIZE = 2 * 1024 * 1024; // 2MB in bytes
-  const isImage = asset.type.startsWith('image/');
+  const isImage = asset.mimeType.startsWith('image/');
 
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = assetUrl;
-    link.download = asset.name;
+    link.download = asset.mimeType;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -37,7 +37,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
     <div
       className="relative group bg-white w-full rounded-lg overflow-hidden hover:border-blue-400 transition-colors h-full min-h-20"
       role="article"
-      aria-label={`Asset: ${asset.name}`}
+      aria-label={`Asset: ${asset.filename}`}
     >
       <div className="aspect-square rounded overflow-hidden">
         {asset.size > MAX_PREVIEW_SIZE ? (
@@ -46,7 +46,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
             <span className="text-xs text-center px-2">Beyond 2MB</span>
           </div>
         ) : (
-          <AssetPreview type={asset.type} url={assetUrl} name={asset.name} />
+          <AssetPreview type={asset.mimeType} url={assetUrl} name={asset.filename} />
         )}
       </div>
 
@@ -55,36 +55,36 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           <button
             onClick={() => setShowPreview(true)}
             className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
-            aria-label={`Preview ${asset.name}`}
+            aria-label={`Preview ${asset.filename}`}
           >
             <FiEye size={14} className="md:w-4 md:h-4" />
           </button>
         )}
         <button
-          onClick={() => onCopy(asset.name)}
+          onClick={() => onCopy(asset.filename)}
           className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
-          aria-label={`Copy URL for ${asset.name}`}
+          aria-label={`Copy URL for ${asset.filename}`}
         >
           <FiCopy size={14} className="md:w-4 md:h-4" />
         </button>
         <button
           onClick={handleDownload}
           className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
-          aria-label={`Download ${asset.name}`}
+          aria-label={`Download ${asset.filename}`}
         >
           <FiDownload size={14} className="md:w-4 md:h-4" />
         </button>
         <button
-          onClick={() => onDelete(asset.name)}
+          onClick={() => onDelete(asset.filename)}
           className="p-1.5 text-gray-600 hover:text-red-500 bg-white shadow-sm rounded-full"
-          aria-label={`Delete ${asset.name}`}
+          aria-label={`Delete ${asset.filename}`}
         >
           <FiTrash2 size={14} className="md:w-4 md:h-4" />
         </button>
       </div>
 
       <div className="absolute bottom-0 left-0 w-full py-1 px-2 space-y-1 bg-gray-300/70 text-gray-900 text-sm">
-        <div className="truncate">{asset.name}</div>
+        <div className="truncate">{asset.filename}</div>
         <div className="">{sizeInKb} KB</div>
       </div>
 
@@ -93,7 +93,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
         imageUrl={assetUrl}
-        imageName={asset.name}
+        imageName={asset.filename}
       />
     </div>
   );

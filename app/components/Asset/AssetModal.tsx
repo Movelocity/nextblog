@@ -26,6 +26,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
     try {
       setIsLoading(true);
       const data = await assetService.listAssets(blogId);
+      console.log("list assets", data);
       setAssets(data);
     } catch (error) {
       showToast('Failed to load assets', 'error');
@@ -82,7 +83,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
 
   const handleDelete = useCallback(async (fileName: string) => {
     try {
-      await assetService.deleteAsset(blogId, fileName);
+      await assetService.deleteAsset(fileName);
       showToast('Asset deleted successfully', 'success');
       loadAssets();
     } catch (error) {
@@ -91,7 +92,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
   }, [blogId, loadAssets, showToast]);
 
   const handleCopyUrl = useCallback((fileName: string) => {
-    const assetUrl = assetService.getAssetUrl(blogId, fileName);
+    const assetUrl = assetService.getAssetUrl(fileName);
     const markdownUrl = `![${fileName}](${assetUrl})`;
     copyToClipboard(markdownUrl).then(success => {
       if (success) {
@@ -133,14 +134,14 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
               {isLoading ? (
                 <div className="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-8 text-gray-500">Loading assets...</div>
               ) : (
-                assets.map((asset) => (
+                assets?.map((asset) => (
                   <AssetCard
-                    key={asset.path}
+                    key={asset.id}
                     asset={asset}
                     blogId={blogId}
                     onDelete={handleDelete}
                     onCopy={handleCopyUrl}
-                    assetUrl={assetService.getAssetUrl(blogId, asset.name)}
+                    assetUrl={assetService.getAssetUrl(asset.id)}
                   />
                 ))
               )}

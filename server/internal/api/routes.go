@@ -63,15 +63,20 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 				postsAuth.DELETE("/:id", postHandler.DeletePost)
 			}
 
-			// 博客资产路由（需要认证）
-			assetHandler := NewAssetHandler(fileStorage)
-			assetsAuth := posts.Group("", middleware.AuthMiddleware(db.DB))
-			{
-				assetsAuth.GET("/:id/assets", assetHandler.ListAssets)
-				assetsAuth.POST("/:id/assets", assetHandler.UploadAsset)
-				assetsAuth.GET("/:id/assets/:fileId", assetHandler.GetAsset)
-				assetsAuth.DELETE("/:id/assets/:fileId", assetHandler.DeleteAsset)
-			}
+		}
+
+		// 文件资源路由（需要认证）
+		assetHandler := NewAssetHandler(fileStorage)
+		assets := api.Group("/assets", middleware.AuthMiddleware(db.DB))
+		{
+			assets.GET("", assetHandler.ListAssets)
+			assets.POST("", assetHandler.UploadAsset)
+
+			assets.DELETE("/:fileId", assetHandler.DeleteAsset)
+		}
+		publicAssets := api.Group("/assets")
+		{
+			publicAssets.GET("/:fileId", assetHandler.GetAsset)
 		}
 
 		// 笔记路由（需要认证）

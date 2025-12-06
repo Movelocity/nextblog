@@ -82,11 +82,12 @@ export interface SearchParams {
 }
 
 export interface Asset {
-  name: string;
-  path: string;
+  id: string;
+  filename: string;
   size: number;
-  type: string;
-  lastModified: string;
+  mimeType: string;
+  url: string;
+  createdAt: string;
 }
 
 /**

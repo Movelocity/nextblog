@@ -7,26 +7,17 @@ export const assetService = {
    * List all assets for a blog
    */
   listAssets: async (blogId: string): Promise<Asset[]> => {
-    interface GoAssetResponse {
-      id: string;
-      filename: string;
-      size: number;
-      mimeType: string;
-      url: string;
-      createdAt: string;
+    interface AssetsResponse {
+      data: Asset[];
+      total: number;
+      page: number;
+      limit: number;
     }
     
-    const response = await get<GoAssetResponse[]>(`/posts/${blogId}/assets`);
+    const response = await get<AssetsResponse>(`/assets?postID=${blogId}`);
     
     // Adapt response format
-    return response.map(asset => ({
-      id: asset.id,
-      name: asset.filename,
-      size: asset.size,
-      mimeType: asset.mimeType,
-      url: asset.url,
-      createdAt: asset.createdAt
-    }));
+    return response.data;
   },
 
   /**
@@ -44,7 +35,7 @@ export const assetService = {
       size: number;
     }
     
-    const response = await post<GoAssetUploadResponse>(`/posts/${blogId}/assets`, formData);
+    const response = await post<GoAssetUploadResponse>(`/assets?postID=${blogId}`, formData);
     
     return {
       assetPath: response.url
@@ -54,16 +45,16 @@ export const assetService = {
   /**
    * Delete an asset
    */
-  deleteAsset: async (blogId: string, fileId: string): Promise<void> => {
-    await del<{ message: string }>(`/posts/${blogId}/assets/${fileId}`);
+  deleteAsset: async (fileId: string): Promise<void> => {
+    await del<{ message: string }>(`/assets/${fileId}`);
   },
 
   /**
    * Get asset URL
    */
-  getAssetUrl: (blogId: string, fileId: string): string => {
+  getAssetUrl: (fileId: string): string => {
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-    return `${baseUrl}/posts/${blogId}/assets/${fileId}`;
+    return `${baseUrl}/assets/${fileId}`;
   }
 };
 
@@ -114,7 +105,10 @@ export const imageAssetService = {
       assetPath: response.url,
       id: response.filename,
       originalName: file.name,
-      thumbnail: response.thumbnail
+      thumbnail: response.thumbnail ? {
+        id: response.thumbnail.id,
+        path: response.thumbnail.url
+      } : undefined
     };
   },
 

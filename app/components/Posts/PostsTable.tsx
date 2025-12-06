@@ -174,20 +174,7 @@ const TableHeader = ({
   return (
     <div className="border-b dark:border-gray-700">
       <div className="px-4 lg:px-6 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Posts</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            {filteredCount} {filteredCount === 1 ? 'post' : 'posts'}
-            {hasActiveFilters && totalCount !== filteredCount && (
-              <span> (filtered from {totalCount})</span>
-            )}
-            {selectedPosts.length > 0 && (
-              <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium">
-                · {selectedPosts.length} selected
-              </span>
-            )}
-          </p>
-        </div>
+        
         <div className="flex items-center gap-2 w-full lg:w-auto">
           {selectedPosts.length > 0 ? (
             <>
@@ -218,6 +205,20 @@ const TableHeader = ({
             </>
           ) : (
             <>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Posts</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {filteredCount} {filteredCount === 1 ? 'post' : 'posts'}
+                  {hasActiveFilters && totalCount !== filteredCount && (
+                    <span> (filtered from {totalCount})</span>
+                  )}
+                  {selectedPosts.length > 0 && (
+                    <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium">
+                      · {selectedPosts.length} selected
+                    </span>
+                  )}
+                </p>
+              </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={classNames(
@@ -397,12 +398,12 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setSe
               />
               <div className="flex-1 min-w-0">
                 <Link href={`/posts/${post.id}`}>
-                  <div className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate">
+                  <div className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                     {post.title}
                   </div>
                 </Link>
                 {post.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2 max-w-[60vw] text-ellipsis">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2 w-[70vw] text-ellipsis">
                     {post.description}
                   </p>
                 )}
@@ -416,10 +417,7 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setSe
                 </div>
               </div>
             </div>
-            <StatusBadge 
-              published={post.published} 
-              onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
-            />
+            
           </div>
           
           {post.categories && post.categories.length > 0 && (
@@ -427,7 +425,11 @@ const MobileView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setSe
               <CategoryTags categories={post.categories} />
             </div>
           )}
-          <div className="flex justify-end items-center gap-2 pt-2 border-t dark:border-gray-700">
+          <div className="flex justify-between items-center gap-2 pt-2 border-t dark:border-gray-700">
+            <StatusBadge 
+              published={post.published} 
+              onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
+            />
             <ActionButtons post={post} {...props} />
           </div>
         </div>
@@ -516,101 +518,101 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setS
         </div>
       ) : (
         <div className="overflow-x-auto w-full">
-        <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200">
-          <thead className="bg-gray-50 dark:bg-gray-800/50">
-            <tr className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              <th scope="col" className="px-6 py-4 text-left w-12">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
-                  checked={sortedPosts.length > 0 && selectedPosts.length === sortedPosts.length}
-                  onChange={(e) => setSelectedPosts(e.target.checked ? sortedPosts.map(post => post.id) : [])}
-                  disabled={sortedPosts.length === 0}
-                />
-              </th>
-              {[
-                { field: 'title' as const, label: 'Title' },
-                { field: 'published' as const, label: 'Status' },
-                { field: 'updatedAt' as const, label: 'Updated' }
-              ].map(({ field, label }) => (
-                <th
-                  key={field}
-                  scope="col"
-                  className="px-6 py-4 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
-                  onClick={() => handleSort(field)}
-                >
-                  <div className="flex items-center gap-2 select-none">
-                    <span>{label}</span>
-                    <SortIcon field={field} currentField={sortField} direction={sortDirection} />
-                  </div>
-                </th>
-              ))}
-              <th scope="col" className="px-6 py-4 text-left">
-                Categories
-              </th>
-              <th scope="col" className="sticky right-0 px-6 py-4 text-right bg-gray-50 dark:bg-gray-800/50">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y dark:divide-gray-700 divide-gray-200 bg-white dark:bg-gray-900">
-            {sortedPosts.map((post) => (
-              <tr key={post.id} className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                {/* Checkbox */}
-                <td className="px-6 py-4 whitespace-nowrap w-12">
+          <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <thead>
+              <tr className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-4 text-left w-12">
                   <input
                     type="checkbox"
                     className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
-                    checked={selectedPosts.includes(post.id)}
-                    onChange={() => setSelectedPosts(
-                      selectedPosts.includes(post.id)
-                        ? selectedPosts.filter(id => id !== post.id)
-                        : [...selectedPosts, post.id]
-                    )}
+                    checked={sortedPosts.length > 0 && selectedPosts.length === sortedPosts.length}
+                    onChange={(e) => setSelectedPosts(e.target.checked ? sortedPosts.map(post => post.id) : [])}
+                    disabled={sortedPosts.length === 0}
                   />
-                </td>
-                <td className="px-6 py-4">
-                  <Link href={`/posts/${post.id}`}>
-                    <div className="max-w-md">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                        {post.title}
-                      </div>
-                      {post.description && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                          {post.description}
-                        </div>
-                      )}
+                </th>
+                {[
+                  { field: 'title' as const, label: 'Title' },
+                  { field: 'published' as const, label: 'Status' },
+                  { field: 'updatedAt' as const, label: 'Updated' }
+                ].map(({ field, label }) => (
+                  <th
+                    key={field}
+                    scope="col"
+                    className="px-6 py-4 text-left cursor-pointer group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => handleSort(field)}
+                  >
+                    <div className="flex items-center gap-2 select-none">
+                      <span>{label}</span>
+                      <SortIcon field={field} currentField={sortField} direction={sortDirection} />
                     </div>
-                  </Link>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge 
-                    published={post.published} 
-                    onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {new Date(post.updatedAt).toLocaleDateString()}
-                  </div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500">
-                    {new Date(post.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {post.categories && post.categories.length > 0 ? (
-                    <CategoryTags categories={post.categories} />
-                  ) : (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
-                  )}
-                </td>
-                <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right text-sm font-medium bg-white dark:bg-gray-900 group-hover:bg-gray-50 dark:group-hover:bg-gray-800/50">
-                  <ActionButtons post={post} {...props} />
-                </td>
+                  </th>
+                ))}
+                <th scope="col" className="px-6 py-4 text-left">
+                  Categories
+                </th>
+                <th scope="col" className="sticky right-0 px-6 py-4 text-right bg-gray-50 dark:bg-gray-800">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y dark:divide-gray-700 divide-gray-200 bg-white dark:bg-gray-800">
+              {sortedPosts.map((post) => (
+                <tr key={post.id} className="group transition-colors">
+                  {/* Checkbox */}
+                  <td className="px-6 py-4 whitespace-nowrap w-12 group-hover:brightness-95">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                      checked={selectedPosts.includes(post.id)}
+                      onChange={() => setSelectedPosts(
+                        selectedPosts.includes(post.id)
+                          ? selectedPosts.filter(id => id !== post.id)
+                          : [...selectedPosts, post.id]
+                      )}
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <Link href={`/posts/${post.id}`}>
+                      <div className="max-w-md">
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                          {post.title}
+                        </div>
+                        {post.description && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                            {post.description}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <StatusBadge 
+                      published={post.published} 
+                      onClick={getToggleHandler(props.onTogglePublish, post.id, post.published)}
+                    />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {new Date(post.updatedAt).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500">
+                      {new Date(post.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {post.categories && post.categories.length > 0 ? (
+                      <CategoryTags categories={post.categories} />
+                    ) : (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+                    )}
+                  </td>
+                  <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right text-sm font-medium bg-white dark:bg-gray-800 group-hover:brightness-95">
+                    <ActionButtons post={post} {...props} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
@@ -634,19 +636,9 @@ export default function PostsTable(props: PostsTableProps) {
 
   // Filter and search posts
   const filteredPosts = useMemo(() => {
-    return props.posts.filter(post => {
-      // Search filter
-      const matchesSearch = searchQuery.trim() === '' || 
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Status filter
-      const matchesStatus = filterStatus === 'all' ||
-        (filterStatus === 'published' && post.published) ||
-        (filterStatus === 'draft' && !post.published);
-      
-      return matchesSearch && matchesStatus;
-    });
+    // 14行垃圾代码已删除
+    // 备注：只允许通过API查询时增加参数，不要在前端做冗余操作
+    return props.posts;
   }, [props.posts, searchQuery, filterStatus]);
 
   const viewProps = {
