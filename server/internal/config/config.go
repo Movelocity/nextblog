@@ -46,10 +46,10 @@ func LoadConfig() *Config {
 	}
 
 	config := &Config{
-		Port:               getEnv("PORT", "8080"),
+		Port:               getEnv("PORT", "8666"),
 		GinMode:            getEnv("GIN_MODE", "debug"),
 		DBPath:             getEnv("DB_PATH", "./data/nextblog.db"),
-		StoragePath:        getEnv("STORAGE_PATH", "./storage"),
+		StoragePath:        getEnv("STORAGE_PATH", "./data"),
 		UploadMaxSize:      getEnvAsInt64("UPLOAD_MAX_SIZE", 10485760), // 20MB
 		CORSAllowedOrigins: getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000"}),
 		JWTSecret:          getEnv("JWT_SECRET", "your-secret-key-here"),

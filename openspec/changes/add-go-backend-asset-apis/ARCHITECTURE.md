@@ -291,15 +291,15 @@ Response: { status: "completed", result_image: "result-xxx.jpg" }
 │  │  └── image-edit/                                        │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                │
-  │  ┌──────────────────────────────────────────────────────────┐  │
-  │  │                    SQLite Database                       │  │
-  │  │  /app/data/nextblog.db                                   │  │
-  │  │  - posts, notes, categories, tags                        │  │
-  │  │  - images (新增 thumbnail_id 字段)                       │  │
-  │  │  - file_resources (文件元数据：ID、原始名、扩展名)         │  │
-  │  │  - post_asset_relations (博客-资产关联)                  │  │
-  │  │  - image_edit_tasks (编辑任务)                           │  │
-  │  └──────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────┐    │
+│  │                    SQLite Database                     │    │
+│  │  /app/data/nextblog.db                                 │    │
+│  │  - posts, notes, categories, tags                      │    │
+│  │  - images (新增 thumbnail_id 字段)                       │   │
+│  │  - file_resources (文件元数据：ID、原始名、扩展名)          │    │
+│  │  - post_asset_relations (博客-资产关联)                  │    │
+│  │  - image_edit_tasks (编辑任务)                           │   │
+│  └─────────────────────────────────────────────────────────┘   │
 └────────────────────────────────────────────────────────────────┘
            │                                │
            │ HTTP :3000                     │ HTTP :8080

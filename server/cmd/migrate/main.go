@@ -88,7 +88,7 @@ var (
 func init() {
 	flag.StringVar(&sourcePath, "source", "../blogs", "Source blogs directory path")
 	flag.StringVar(&dbPath, "db", "./data/nextblog.db", "Database file path")
-	flag.StringVar(&storagePath, "storage", "./storage", "Storage directory path")
+	flag.StringVar(&storagePath, "storage", "./data", "Storage directory path")
 }
 
 func main() {
@@ -526,70 +526,6 @@ func migrateCategoriesAndTags() error {
 
 	log.Printf("Migrated %d tags", len(tagStats))
 	return nil
-}
-
-/**
- * validatePostAssetRelations 验证 post_asset_relations 表的完整性
- * 检查所有引用的文件资源是否存在
- */
-// func validatePostAssetRelations() error {
-// 	// 检查 post_asset_relations 表是否存在
-// 	if !db.DB.Migrator().HasTable("post_asset_relations") {
-// 		log.Println("No post_asset_relations table found, skipping validation")
-// 		return nil
-// 	}
-
-// 	var relations []models.PostAssetRelation
-// 	if result := db.DB.Find(&relations); result.Error != nil {
-// 		return fmt.Errorf("failed to read post_asset_relations: %w", result.Error)
-// 	}
-
-// 	if len(relations) == 0 {
-// 		log.Println("No post asset relations to validate")
-// 		return nil
-// 	}
-
-// 	log.Printf("Validating %d post asset relations...", len(relations))
-
-// 	missingCount := 0
-// 	validCount := 0
-
-// 	for _, relation := range relations {
-// 		var fileResource models.FileResource
-// 		result := db.DB.Where("id = ?", relation.FileID).First(&fileResource)
-// 		if result.Error != nil {
-// 			log.Printf("Warning: Post %s references missing file resource: %s", relation.PostID, relation.FileID)
-// 			missingCount++
-// 		} else {
-// 			validCount++
-// 		}
-// 	}
-
-// 	log.Printf("Post asset relations validation: %d valid, %d missing", validCount, missingCount)
-
-// 	if missingCount > 0 {
-// 		return fmt.Errorf("found %d missing file resource references", missingCount)
-// 	}
-
-// 	return nil
-// }
-
-/**
- * getExtensionFromMimeType 根据MIME类型获取文件扩展名
- */
-func getExtensionFromMimeType(mimeType string) string {
-	switch mimeType {
-	case "image/jpeg":
-		return ".jpg"
-	case "image/png":
-		return ".png"
-	case "image/gif":
-		return ".gif"
-	case "image/webp":
-		return ".webp"
-	default:
-		return ""
-	}
 }
 
 /**

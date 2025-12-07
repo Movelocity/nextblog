@@ -33,7 +33,6 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   };
 
   return (
-
     <div
       className="relative group bg-white w-full rounded-lg overflow-hidden hover:border-blue-400 transition-colors h-full min-h-20"
       role="article"
@@ -61,9 +60,9 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           </button>
         )}
         <button
-          onClick={() => onCopy(asset.filename)}
+          onClick={() => onCopy(asset.url)}
           className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
-          aria-label={`Copy URL for ${asset.filename}`}
+          aria-label={`Copy URL for ${asset.url}`}
         >
           <FiCopy size={14} className="md:w-4 md:h-4" />
         </button>

@@ -184,7 +184,7 @@ interface StyledLinkProps {
 
 const StyledLink = ({icon, name, tgUrl, currentPath, children}: StyledLinkProps) => {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   
   // Determine if this link is active
   const isActive = currentPath === tgUrl || currentPath?.startsWith(tgUrl + '/');
@@ -195,7 +195,7 @@ const StyledLink = ({icon, name, tgUrl, currentPath, children}: StyledLinkProps)
       router.push(tgUrl);
     }
     if(children) {
-      setIsOpen(true);
+      setIsOpen(!isOpen);
     }
   }
 

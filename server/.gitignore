@@ -32,6 +32,6 @@
 .DS_Store
 Thumbs.db
 
-storage/files/*
-storage/thumbnails/*
+data/files/*
+data/thumbnails/*
 !.gitkeep

@@ -9,19 +9,19 @@ import { get, post, put, del } from './utils';
  */
 export const getTaxonomy = async (): Promise<{ categories: string[]; tags: string[] }> => {
   // Go 后端使用独立的 /categories 和 /tags 端点
-  // const [categoriesData, tagsData] = await Promise.all([
-  //   get<Array<{ name: string; count: number }>>('/categories'),
-  //   get<Array<{ name: string; count: number }>>('/tags')
-  // ]);
+  const [categoriesData, tagsData] = await Promise.all([
+    get<Array<{ name: string; count: number }>>('/categories'),
+    get<Array<{ name: string; count: number }>>('/tags')
+  ]);
   
-  // return {
-  //   categories: categoriesData.map(c => c.name),
-  //   tags: tagsData.map(t => t.name)
-  // };
   return {
-    categories: [],
-    tags: []
-  }
+    categories: categoriesData.map(c => c.name),
+    tags: tagsData.map(t => t.name)
+  };
+  // return {
+  //   categories: [],
+  //   tags: []
+  // }
 };
 
 /**
@@ -30,20 +30,15 @@ export const getTaxonomy = async (): Promise<{ categories: string[]; tags: strin
  * @param {SearchParams} params - Search parameters including query, categories, tags, pagination, etc.
  * @returns {Promise<{ posts: BlogMeta[]; total: number }>} A promise that resolves to posts and total count
  * @throws {Error} Throws an error if the fetch operation fails
+ * 
+ * /api/posts/search?keyword=xxx&page=1&pageSize=10
  */
 export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info: BlogMeta[]; total: number }> => {
-  console.log("service: ", `/posts with params:`, params);
-  
   // 转换参数以匹配 Go 后端的期望格式
   const goParams: any = {
     page: params.page || 1,
     pageSize: params.limit || 10,
   };
-  
-  // 如果有 pubOnly 参数，转换为 published
-  if (params.pubOnly !== undefined) {
-    goParams.published = params.pubOnly;
-  }
   
   // Go 后端期望的响应格式
   interface GoPostListResponse {
@@ -62,6 +57,49 @@ export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info:
     total: response.total
   };
 };
+
+/**
+ * Fetches a list of posts from the API with optional search parameters.
+ *
+ * @param {SearchParams} params - Search parameters including query, categories, tags, pagination, etc.
+ * @returns {Promise<{ posts: BlogMeta[]; total: number }>} A promise that resolves to posts and total count
+ * @throws {Error} Throws an error if the fetch operation fails
+ * 
+ * /api/posts/search?keyword=xxx&page=1&pageSize=10
+ */
+export const searchPosts = async (params: SearchParams = {}): Promise<{ blogs_info: BlogMeta[]; total: number }> => {
+  console.log("service: ", `/posts with params:`, params);
+  
+  // 转换参数以匹配 Go 后端的期望格式
+  const goParams: any = {
+    keyword: params.query || undefined,
+    page: params.page || 1,
+    pageSize: params.limit || 10,
+  };
+  
+  // 如果有 pubOnly 参数，转换为 published
+  // if (params.pubOnly !== undefined) {
+  //   goParams.published = params.pubOnly;
+  // }
+  
+  // Go 后端期望的响应格式
+  interface GoPostListResponse {
+    posts: BlogMeta[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }
+  
+  const response = await get<GoPostListResponse>('/posts/search', { params: goParams });
+  
+  // 适配响应格式
+  return {
+    blogs_info: response.posts,
+    total: response.total
+  };
+};
+
 
 /**
  * Fetches a single post by ID

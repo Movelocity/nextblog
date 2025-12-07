@@ -6,6 +6,7 @@
 APP_NAME=nextblog-server
 SERVER_BIN=bin/server
 MIGRATE_BIN=bin/migrate
+DATA_PATH=./data
 DB_PATH=./data/nextblog.db
 SOURCE_PATH=../blogs
 
@@ -42,7 +43,7 @@ build-migrate:
 ## migrate: 运行数据迁移
 migrate: build-migrate
 	@echo "Running data migration..."
-	@$(MIGRATE_BIN) -source $(SOURCE_PATH) -db $(DB_PATH) -storage ./storage
+	@$(MIGRATE_BIN) -source $(SOURCE_PATH) -db $(DB_PATH) -storage ${DATA_PATH}
 
 ## clean: 清理构建文件和数据库
 clean:

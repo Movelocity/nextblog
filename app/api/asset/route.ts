@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
 
     const fileName = searchParams.get('fileName');
     if (fileName) {
-      const assetData = await blogStorage.getAsset(blogId, fileName);
+      // const assetData = await blogStorage.getAsset(blogId, fileName);
+      const assetData = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assets/${fileName}`);
       if (!assetData) {
         return NextResponse.json(
           { error: 'Asset not found' },
@@ -31,20 +32,26 @@ export async function GET(request: NextRequest) {
       const ext = fileName.split('.').pop()?.toLowerCase();
       let contentType = 'application/octet-stream'; // default binary
       
-      
-      
       if (ext && ext in mimeTypes) {
         contentType = mimeTypes[ext];
       }
 
       // Create response with proper headers using the standard Response object for binary data
-      return new Response(new Uint8Array(assetData.buffer), {
+      // return new Response(new Uint8Array(assetData.buffer), {
+      //   status: 200,
+      //   headers: {
+      //     'Content-Type': contentType,
+      //     'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
+      //     'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+      //     'Content-Length': assetData.size.toString()
+      //   },
+      // });
+      return new NextResponse(assetData.body, {
         status: 200,
         headers: {
           'Content-Type': contentType,
           'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
           'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
-          'Content-Length': assetData.size.toString()
         },
       });
     }

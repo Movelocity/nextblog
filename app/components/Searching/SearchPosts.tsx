@@ -3,7 +3,7 @@ import { BlogMeta, SearchParams } from '../../common/types';
 import debounce from 'lodash/debounce';
 import { getTaxonomy } from '../../services/posts';
 import CategoryTag from '@/app/components/CategoryTag';
-import { getPosts } from '@/app/services/posts';
+import { searchPosts } from '@/app/services/posts';
 import { useAuth } from '@/app/hooks/useAuth';
 
 interface SearchPostsProps {
@@ -44,7 +44,7 @@ export default function SearchPosts({
       return;
     }
     console.log('searchParams', searchParams);
-    getPosts(searchParams).then(result => {
+    searchPosts(searchParams).then(result => {
       onResult(result.blogs_info);
     }).catch(error => {
       console.error('Error searching posts:', error);
