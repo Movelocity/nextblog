@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import imageStorage from '@/app/lib/ImageStorage';
 import { requireAuth } from '@/app/lib/auth';
-import { generateId } from '@/app/api/image-edit/utils';
+import { generateId } from '@/app/legacy-api/image-edit/utils';
 import sharp from 'sharp';
 import path from 'path';
 

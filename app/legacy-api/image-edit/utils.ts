@@ -2,7 +2,7 @@ import { TaskInfo, TaskResponse } from './types';
 import { readFileSync, writeFileSync } from 'fs';
 import sharp from 'sharp';
 import imageStorage from '@/app/lib/ImageStorage';
-import { textFile } from "@/app/api/files"
+import { textFile } from "@/app/legacy-api/files"
 
 export const INDEX_FILE = textFile("image-edit", 'index.json', JSON.stringify({ tasks: [] }))
 

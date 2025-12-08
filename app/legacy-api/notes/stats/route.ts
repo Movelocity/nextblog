@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { textFile } from "@/app/api/files"
+import { textFile } from "@/app/legacy-api/files"
 import { readFileSync } from "fs"
 import type { NoteIndex } from "@/app/common/types.notes"
 

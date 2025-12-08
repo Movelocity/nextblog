@@ -22,14 +22,14 @@ echo ""
 echo "创建目录结构..."
 mkdir -p bin
 mkdir -p data
-mkdir -p storage/images
-mkdir -p storage/uploads
-mkdir -p storage/thumbnails
+mkdir -p data/images
+mkdir -p data/uploads
+mkdir -p data/thumbnails
 
 # 创建 .gitkeep 文件
-touch storage/images/.gitkeep
-touch storage/uploads/.gitkeep
-touch storage/thumbnails/.gitkeep
+touch data/images/.gitkeep
+touch data/uploads/.gitkeep
+touch data/thumbnails/.gitkeep
 
 echo "✓ 目录创建完成"
 
@@ -39,14 +39,14 @@ if [ ! -f .env ]; then
     echo "创建 .env 文件..."
     cat > .env << 'EOF'
 # Server Configuration
-PORT=8080
+PORT=8666
 GIN_MODE=debug
 
 # Database Configuration
 DB_PATH=./data/nextblog.db
 
 # Storage Configuration
-STORAGE_PATH=./storage
+STORAGE_PATH=./data
 UPLOAD_MAX_SIZE=10485760
 
 # CORS Configuration
@@ -89,17 +89,12 @@ echo ""
 echo "下一步操作："
 echo ""
 echo "1. 运行数据迁移（将 Next.js 项目的数据迁移到 SQLite）："
-echo "   ./bin/migrate -source ../blogs -db ./data/nextblog.db -storage ./storage"
+echo "   make migrate"
 echo ""
 echo "2. 启动服务器："
-echo "   ./bin/server"
+echo "   make run"
 echo ""
-echo "   或使用 make 命令："
-echo "   make migrate    # 运行数据迁移"
-echo "   make run        # 启动服务器"
-echo "   make dev        # 开发模式（热重载）"
-echo ""
-echo "服务器将运行在: http://localhost:8080"
+echo "服务器将运行在: http://localhost:8666"
 echo "API 文档: 查看 README.md"
 echo ""
 

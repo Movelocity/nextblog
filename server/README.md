@@ -26,7 +26,7 @@ server/
 │   └── service/        # 业务逻辑层
 ├── pkg/
 │   └── utils/          # 工具函数
-├── data/            # 文件存储目录（统一存储策略）
+├── data/               # 文件存储目录（统一存储策略）
 |   ├── nextblog.db     # sqlite 文件
 │   ├── files/          # 持久化文件（图片、博客资产等，无扩展名格式）
 │   └── thumbnails/     # 派生文件（缩略图，可重新生成）
@@ -136,7 +136,7 @@ go build -o bin/server cmd/server/main.go
 
 ```bash
 docker build -t nextblog-server:latest .
-docker run -d -p 8080:8080 -v $(pwd)/data:/app/data -v $(pwd)/storage:/app/storage nextblog-server:latest
+docker run -d -p 8666:8666 -v $(pwd)/data:/app/data -v $(pwd)/storage:/app/storage nextblog-server:latest
 ```
 
 ## 许可证
