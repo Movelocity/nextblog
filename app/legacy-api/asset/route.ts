@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const fileName = searchParams.get('fileName');
     if (fileName) {
       // const assetData = await blogStorage.getAsset(blogId, fileName);
-      const assetData = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assets/${fileName}`);
+      const assetData = await fetch(`api/assets/${fileName}`);
       if (!assetData) {
         return NextResponse.json(
           { error: 'Asset not found' },

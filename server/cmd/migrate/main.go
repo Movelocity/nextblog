@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm/logger"
+
 	"nextblog-server/internal/db"
 	"nextblog-server/internal/models"
 
@@ -94,7 +96,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	log.Println("Starting data migration...")
+	log.Println("开始数据迁移...")
 	log.Printf("Source: %s", sourcePath)
 	log.Printf("Database: %s", dbPath)
 	log.Printf("Storage: %s", storagePath)
@@ -111,7 +113,7 @@ func main() {
 
 	// 迁移站点配置
 	if err := migrateSiteConfig(); err != nil {
-		log.Printf("Warning: Failed to migrate site config: %v", err)
+		log.Printf("迁移站点配置失败: %v", err)
 	}
 
 	// 迁移博客文章
@@ -131,24 +133,34 @@ func main() {
 
 	// 复制图片文件
 	if err := copyImages(); err != nil {
-		log.Printf("Warning: Failed to copy images: %v", err)
+		log.Printf("复制图片失败: %v", err)
 	}
 
-	log.Println("Data migration completed successfully!")
+	log.Println("数据迁移完成!")
 }
 
 /**
  * initDatabase 初始化数据库
  */
 func initDatabase(path string) error {
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,   // Slow SQL threshold
+			LogLevel:                  logger.Silent, // Log level
+			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
+			ParameterizedQueries:      true,          // Don't include params in the SQL log
+			Colorful:                  false,         // Disable color
+		},
+	)
 	dbDir := filepath.Dir(path)
 	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		return fmt.Errorf("failed to create database directory: %w", err)
+		return fmt.Errorf("创建数据库目录失败: %w", err)
 	}
 
-	dbInstance, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	dbInstance, err := gorm.Open(sqlite.Open(path), &gorm.Config{Logger: newLogger})
 	if err != nil {
-		return fmt.Errorf("failed to connect database: %w", err)
+		return fmt.Errorf("连接数据库失败: %w", err)
 	}
 
 	if err := dbInstance.AutoMigrate(
@@ -160,11 +172,11 @@ func initDatabase(path string) error {
 		&models.FileResource{},
 		&models.PostAssetRelation{},
 	); err != nil {
-		return fmt.Errorf("failed to migrate database: %w", err)
+		return fmt.Errorf("迁移数据库失败: %w", err)
 	}
 
 	db.DB = dbInstance
-	log.Println("Database initialized")
+	log.Println("数据库初始化完成")
 	return nil
 }
 
@@ -178,7 +190,7 @@ func createStorageDirectories(basePath string) error {
 	for _, dir := range dirs {
 		path := filepath.Join(basePath, dir)
 		if err := os.MkdirAll(path, 0755); err != nil {
-			return fmt.Errorf("failed to create directory %s: %w", path, err)
+			return fmt.Errorf("创建目录失败: %s: %w", path, err)
 		}
 	}
 
@@ -187,12 +199,12 @@ func createStorageDirectories(basePath string) error {
 		gitkeep := filepath.Join(basePath, dir, ".gitkeep")
 		if _, err := os.Stat(gitkeep); os.IsNotExist(err) {
 			if err := os.WriteFile(gitkeep, []byte(""), 0644); err != nil {
-				log.Printf("Warning: Failed to create .gitkeep in %s: %v", dir, err)
+				log.Printf("创建 .gitkeep 失败: %s: %v", dir, err)
 			}
 		}
 	}
 
-	log.Println("Storage directories created")
+	log.Println("存储目录创建完成")
 	return nil
 }
 
@@ -203,12 +215,12 @@ func migrateSiteConfig() error {
 	configPath := filepath.Join(sourcePath, "site-config.json")
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return fmt.Errorf("failed to read site config: %w", err)
+		return fmt.Errorf("读取站点配置失败: %w", err)
 	}
 
 	var siteConfig SiteConfigData
 	if err := json.Unmarshal(data, &siteConfig); err != nil {
-		return fmt.Errorf("failed to parse site config: %w", err)
+		return fmt.Errorf("解析站点配置失败: %w", err)
 	}
 
 	config := models.SiteConfig{
@@ -221,10 +233,10 @@ func migrateSiteConfig() error {
 
 	result := db.DB.Save(&config)
 	if result.Error != nil {
-		return fmt.Errorf("failed to save site config: %w", result.Error)
+		return fmt.Errorf("保存站点配置失败: %w", result.Error)
 	}
 
-	log.Printf("Site config migrated: %s", config.SiteName)
+	log.Printf("站点配置迁移完成: %s", config.SiteName)
 	return nil
 }
 
@@ -235,12 +247,12 @@ func migratePosts() error {
 	metaPath := filepath.Join(sourcePath, "meta.json")
 	data, err := os.ReadFile(metaPath)
 	if err != nil {
-		return fmt.Errorf("failed to read meta.json: %w", err)
+		return fmt.Errorf("读取 meta.json 失败: %w", err)
 	}
 
 	var meta MetaData
 	if err := json.Unmarshal(data, &meta); err != nil {
-		return fmt.Errorf("failed to parse meta.json: %w", err)
+		return fmt.Errorf("解析 meta.json 失败: %w", err)
 	}
 
 	count := 0
@@ -249,7 +261,7 @@ func migratePosts() error {
 		contentPath := filepath.Join(sourcePath, id, "index.md")
 		content, err := os.ReadFile(contentPath)
 		if err != nil {
-			log.Printf("Warning: Failed to read content for post %s: %v", id, err)
+			log.Printf("解析博客内容失败: %s: %v", id, err)
 			content = []byte("")
 		}
 
@@ -270,18 +282,18 @@ func migratePosts() error {
 		}
 
 		if result := db.DB.Save(&post); result.Error != nil {
-			log.Printf("Warning: Failed to save post %s: %v", id, result.Error)
+			log.Printf("保存博客失败: %s: %v", id, result.Error)
 		} else {
 			count++
 
 			// 迁移博客的资产文件
 			if err := migratePostAssets(id); err != nil {
-				log.Printf("Warning: Failed to migrate assets for post %s: %v", id, err)
+				log.Printf("迁移博客资产失败: %s: %v", id, err)
 			}
 		}
 	}
 
-	log.Printf("Migrated %d posts", count)
+	log.Printf("迁移 %d 篇博客", count)
 	return nil
 }
 
@@ -300,7 +312,7 @@ func migratePostAssets(postID string) error {
 
 	entries, err := os.ReadDir(assetsDir)
 	if err != nil {
-		return fmt.Errorf("failed to read assets directory: %w", err)
+		return fmt.Errorf("读取资产目录失败: %w", err)
 	}
 
 	count := 0
@@ -315,7 +327,7 @@ func migratePostAssets(postID string) error {
 		// 获取文件信息和扩展名
 		info, err := entry.Info()
 		if err != nil {
-			log.Printf("Warning: Failed to get file info for %s: %v", originalName, err)
+			log.Printf("获取文件信息失败: %s: %v", originalName, err)
 			continue
 		}
 
@@ -324,33 +336,27 @@ func migratePostAssets(postID string) error {
 		// 生成符合规范的文件ID: {timestamp}-{suffix}-{randomid}
 		// suffix 为文件扩展名（不含点）
 		extWithoutDot := strings.TrimPrefix(ext, ".")
-		if extWithoutDot == "" {
-			extWithoutDot = "file" // 无扩展名时使用通用后缀
-		}
 
-		// 生成文件ID
-		fileID := fmt.Sprintf("%d-%s-%d",
-			time.Now().UnixMilli(),
-			extWithoutDot,
-			time.Now().Nanosecond()%1000000)
+		// 生成文件ID {tlid-timestamp}-{random}.{ext}
+		fileID := fmt.Sprintf("%d-%d.%s", time.Now().UnixMilli(), time.Now().Nanosecond()%1000000, extWithoutDot)
 
 		// 目标路径（统一的持久化文件目录）
 		destDir := filepath.Join(storagePath, "files")
 		if err := os.MkdirAll(destDir, 0755); err != nil {
-			return fmt.Errorf("failed to create files directory: %w", err)
+			return fmt.Errorf("创建文件目录失败: %w", err)
 		}
 
 		destPath := filepath.Join(destDir, fileID)
 
 		// 复制文件
 		if err := copyFile(sourcePath, destPath); err != nil {
-			log.Printf("Warning: Failed to copy asset %s: %v", originalName, err)
+			log.Printf("复制资产失败: %s: %v", originalName, err)
 			continue
 		}
 
 		// 检查是否已存在相同的文件资源（通过原始文件名和博客ID）
 		var existing models.FileResource
-		result := db.DB.Where("original_name = ? AND category = ?", originalName, "blog-asset").First(&existing)
+		result := db.DB.Where("original_name = ? AND category = ?", originalName, "blog-asset").Take(&existing)
 
 		if result.Error == nil {
 			// 文件资源已存在，只需创建关联关系
@@ -365,7 +371,7 @@ func migratePostAssets(postID string) error {
 					CreatedAt:    time.Now(),
 				}
 				if err := db.DB.Create(&relation).Error; err != nil {
-					log.Printf("Warning: Failed to create asset relation for %s: %v", originalName, err)
+					log.Printf("创建资产关系失败: %s: %v", originalName, err)
 				}
 			}
 			count++
@@ -386,7 +392,7 @@ func migratePostAssets(postID string) error {
 		}
 
 		if err := db.DB.Create(&fileResource).Error; err != nil {
-			log.Printf("Warning: Failed to save file resource for %s: %v", originalName, err)
+			log.Printf("保存文件资源失败: %s: %v", originalName, err)
 			continue
 		}
 
@@ -400,7 +406,7 @@ func migratePostAssets(postID string) error {
 		}
 
 		if err := db.DB.Create(&relation).Error; err != nil {
-			log.Printf("Warning: Failed to create asset relation for %s: %v", originalName, err)
+			log.Printf("创建资产关系失败: %s: %v", originalName, err)
 			// 清理已创建的文件资源
 			db.DB.Delete(&fileResource)
 			os.Remove(destPath)
@@ -411,7 +417,7 @@ func migratePostAssets(postID string) error {
 	}
 
 	if count > 0 {
-		log.Printf("  Migrated %d assets for post %s", count, postID)
+		log.Printf(" 博客 %s 迁移 %d 个资产", postID, count)
 	}
 
 	return nil
@@ -427,12 +433,12 @@ func migrateNotes() error {
 	indexPath := filepath.Join(notesDir, "index.json")
 	indexData, err := os.ReadFile(indexPath)
 	if err != nil {
-		return fmt.Errorf("failed to read notes index: %w", err)
+		return fmt.Errorf("读取笔记索引失败: %w", err)
 	}
 
 	var noteIndex NoteIndex
 	if err := json.Unmarshal(indexData, &noteIndex); err != nil {
-		return fmt.Errorf("failed to parse notes index: %w", err)
+		return fmt.Errorf("解析笔记索引失败: %w", err)
 	}
 
 	count := 0
@@ -441,13 +447,13 @@ func migrateNotes() error {
 		notePath := filepath.Join(notesDir, filename)
 		noteData, err := os.ReadFile(notePath)
 		if err != nil {
-			log.Printf("Warning: Failed to read note file %s: %v", filename, err)
+			log.Printf("读取笔记文件失败: %s: %v", filename, err)
 			continue
 		}
 
 		var notes []NoteData
 		if err := json.Unmarshal(noteData, &notes); err != nil {
-			log.Printf("Warning: Failed to parse note file %s: %v", filename, err)
+			log.Printf("解析笔记文件失败: %s: %v", filename, err)
 			continue
 		}
 
@@ -466,14 +472,14 @@ func migrateNotes() error {
 			}
 
 			if result := db.DB.Save(&note); result.Error != nil {
-				log.Printf("Warning: Failed to save note %s: %v", noteData.ID, result.Error)
+				log.Printf("保存笔记失败: %s: %v", noteData.ID, result.Error)
 			} else {
 				count++
 			}
 		}
 	}
 
-	log.Printf("Migrated %d notes", count)
+	log.Printf("迁移 %d 篇笔记", count)
 	return nil
 }
 
@@ -502,7 +508,7 @@ func migrateCategoriesAndTags() error {
 		db.DB.Save(&category)
 	}
 
-	log.Printf("Migrated %d categories", len(categoryStats))
+	log.Printf("迁移 %d 个分类", len(categoryStats))
 
 	// 统计标签
 	var tagStats []struct {
@@ -524,7 +530,7 @@ func migrateCategoriesAndTags() error {
 		db.DB.Save(&tag)
 	}
 
-	log.Printf("Migrated %d tags", len(tagStats))
+	log.Printf("迁移 %d 个标签", len(tagStats))
 	return nil
 }
 
@@ -536,13 +542,13 @@ func copyImages() error {
 	imagesDestDir := filepath.Join(storagePath, "files") // 统一存储到 files/ 目录
 
 	if _, err := os.Stat(imagesSourceDir); os.IsNotExist(err) {
-		log.Println("No images directory found, skipping image migration")
+		log.Println("没有找到图片目录, 跳过图片迁移")
 		return nil
 	}
 
 	entries, err := os.ReadDir(imagesSourceDir)
 	if err != nil {
-		return fmt.Errorf("failed to read images directory: %w", err)
+		return fmt.Errorf("读取图片目录失败: %w", err)
 	}
 
 	count := 0
@@ -554,7 +560,7 @@ func copyImages() error {
 		// 获取文件信息
 		info, err := entry.Info()
 		if err != nil {
-			log.Printf("Warning: Failed to get file info for %s: %v", entry.Name(), err)
+			log.Printf("获取文件信息失败: %s: %v", entry.Name(), err)
 			continue
 		}
 
@@ -562,14 +568,14 @@ func copyImages() error {
 		ext := filepath.Ext(entry.Name())
 		extWithoutDot := strings.TrimPrefix(ext, ".")
 
-		// 生成新文件ID（统一命名格式：{timestamp}-{ext}-{random}，无扩展名）
-		fileID := fmt.Sprintf("%d-%s-%d", time.Now().UnixMilli(), extWithoutDot, time.Now().Nanosecond()%1000000)
+		// 生成新文件ID（统一命名格式：{tlid-timestamp}-{random}.{ext}）
+		fileID := fmt.Sprintf("%d-%d.%s", time.Now().UnixMilli(), time.Now().Nanosecond()%1000000, extWithoutDot)
 
 		// 检查是否已存在（通过原始文件名）
 		var existing models.FileResource
-		result := db.DB.Where("original_name = ? AND category = ?", entry.Name(), "image").First(&existing)
+		result := db.DB.Where("original_name = ? AND category = ?", entry.Name(), "image").Take(&existing)
 		if result.Error == nil {
-			log.Printf("File resource already exists for image: %s, skipping", entry.Name())
+			log.Printf("图片资源已存在: %s, 跳过", entry.Name())
 			count++
 			continue
 		}
@@ -579,7 +585,7 @@ func copyImages() error {
 		destPath := filepath.Join(imagesDestDir, fileID)
 
 		if err := copyFile(sourceFilePath, destPath); err != nil {
-			log.Printf("Warning: Failed to copy image %s: %v", entry.Name(), err)
+			log.Printf("复制图片失败: %s: %v", entry.Name(), err)
 			continue
 		}
 
@@ -597,15 +603,15 @@ func copyImages() error {
 		}
 
 		if result := db.DB.Save(&fileResource); result.Error != nil {
-			log.Printf("Warning: Failed to save image record %s: %v", entry.Name(), result.Error)
+			log.Printf("保存图片记录失败: %s: %v", entry.Name(), result.Error)
 			continue
 		}
 
-		log.Printf("Migrated image: %s -> %s", entry.Name(), fileID)
+		log.Printf("迁移图片: %s -> %s", entry.Name(), fileID)
 		count++
 	}
 
-	log.Printf("Copied %d images", count)
+	log.Printf("复制 %d 张图片", count)
 	return nil
 }
 

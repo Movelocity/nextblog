@@ -139,26 +139,12 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 };
 
 /**
- * 获取 API 基础 URL
- * 优先使用环境变量 NEXT_PUBLIC_API_BASE_URL，如果未设置则使用相对路径（Next.js API）
- * @returns API 基础 URL
- */
-const getApiBaseUrl = (): string => {
-  // 如果配置了 Go 后端 URL，使用 Go 后端
-  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
-  }
-  // 否则使用 Next.js 自己的 API 路由（相对路径）
-  return '/api';
-};
-
-/**
  * 构建完整的 API URL
  * @param path API 路径（例如 '/posts' 或 '/api/posts'）
  * @returns 完整的 URL
  */
 const buildApiUrl = (path: string): string => {
-  const baseUrl = getApiBaseUrl();
+  const baseUrl = "/api";
   // 移除路径开头的 /api（如果有），因为 baseUrl 已经包含了
   const cleanPath = path.startsWith('/api') ? path.substring(4) : path;
   // 确保路径以 / 开头

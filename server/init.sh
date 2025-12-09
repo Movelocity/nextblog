@@ -22,13 +22,9 @@ echo ""
 echo "创建目录结构..."
 mkdir -p bin
 mkdir -p data
-mkdir -p data/images
-mkdir -p data/uploads
 mkdir -p data/thumbnails
 
 # 创建 .gitkeep 文件
-touch data/images/.gitkeep
-touch data/uploads/.gitkeep
 touch data/thumbnails/.gitkeep
 
 echo "✓ 目录创建完成"

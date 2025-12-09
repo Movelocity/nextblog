@@ -141,7 +141,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
                     blogId={blogId}
                     onDelete={handleDelete}
                     onCopy={handleCopyUrl}
-                    assetUrl={assetService.getAssetUrl(asset.id)}
+                    assetUrl={asset.url}
                   />
                 ))
               )}

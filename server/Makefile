@@ -60,28 +60,6 @@ test:
 	@echo "Running tests..."
 	@go test -v ./...
 
-## docker-build: 构建 Docker 镜像
-docker-build:
-	@echo "Building Docker image..."
-	@docker build -t $(APP_NAME):latest .
-
-## docker-run: 运行 Docker 容器
-docker-run:
-	@echo "Running Docker container..."
-	@docker run -d \
-		-p 8080:8080 \
-		-v $(PWD)/data:/app/data \
-		-v $(PWD)/storage:/app/storage \
-		--env-file .env \
-		--name $(APP_NAME) \
-		$(APP_NAME):latest
-
-## docker-stop: 停止并删除 Docker 容器
-docker-stop:
-	@echo "Stopping Docker container..."
-	@docker stop $(APP_NAME) || true
-	@docker rm $(APP_NAME) || true
-
 ## dev: 开发模式（使用 air 实现热重载）
 dev:
 	@if ! command -v air > /dev/null; then \

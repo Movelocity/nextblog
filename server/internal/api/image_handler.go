@@ -19,9 +19,9 @@ import (
 )
 
 type ImageHandler struct {
-	storage            storage.FileStorage
-	thumbnailService   *service.ThumbnailService
-	fileResourceRepo   *repository.FileResourceRepository
+	storage          storage.FileStorage
+	thumbnailService *service.ThumbnailService
+	fileResourceRepo *repository.FileResourceRepository
 }
 
 func NewImageHandler(storage storage.FileStorage) *ImageHandler {
@@ -67,17 +67,17 @@ func (h *ImageHandler) UploadImage(c *gin.Context) {
 	}
 	fileID := fmt.Sprintf("%d-%s-%d", time.Now().UnixMilli(), extWithoutDot, time.Now().Nanosecond()%1000000)
 	filename := fileID // 物理文件名不含扩展名
-	
+
 	// 保存文件到统一的持久化文件目录
 	imagePath := filepath.Join(config.AppConfig.StoragePath, "files", filename)
-	
+
 	// 确保目录存在
 	imageDir := filepath.Dir(imagePath)
 	if err := os.MkdirAll(imageDir, 0755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create directory"})
 		return
 	}
-	
+
 	if err := c.SaveUploadedFile(file, imagePath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
 		return
@@ -101,13 +101,13 @@ func (h *ImageHandler) UploadImage(c *gin.Context) {
 	if generateThumbnail == "true" {
 		// 生成缩略图ID（统一命名格式：无扩展名）
 		thumbnailID := fmt.Sprintf("%d-%s-%d", time.Now().UnixMilli(), extWithoutDot, time.Now().Nanosecond()%1000000)
-		
+
 		// 读取图片数据
 		fileReader, err := os.Open(imagePath)
 		if err == nil {
 			fileData, err := io.ReadAll(fileReader)
 			fileReader.Close()
-			
+
 			if err == nil {
 				// 生成并保存缩略图
 				thumbnailData, err := h.thumbnailService.GenerateThumbnail(fileData, ext)
@@ -125,7 +125,7 @@ func (h *ImageHandler) UploadImage(c *gin.Context) {
 							CreatedAt:    time.Now(),
 							UpdatedAt:    time.Now(),
 						}
-						
+
 						if err := h.fileResourceRepo.CreateFileResource(thumbnailResource); err == nil {
 							fileResource.ThumbnailID = thumbnailID
 						}
@@ -146,7 +146,7 @@ func (h *ImageHandler) UploadImage(c *gin.Context) {
 		"url":      fmt.Sprintf("/api/images/%s", fileResource.ID),
 		"size":     file.Size,
 	}
-	
+
 	if fileResource.ThumbnailID != "" {
 		response["thumbnail"] = gin.H{
 			"id":  fileResource.ThumbnailID,
@@ -163,14 +163,14 @@ func (h *ImageHandler) UploadImage(c *gin.Context) {
  */
 func (h *ImageHandler) GetImage(c *gin.Context) {
 	fileID := c.Param("filename") // 参数名保持为filename以兼容前端
-	
+
 	// 从数据库查询文件资源
 	fileResource, err := h.fileResourceRepo.GetFileResource(fileID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
 		return
 	}
-	
+
 	// 使用数据库中的storage_path
 	c.File(fileResource.StoragePath)
 }
@@ -181,34 +181,34 @@ func (h *ImageHandler) GetImage(c *gin.Context) {
  */
 func (h *ImageHandler) GetThumbnail(c *gin.Context) {
 	fileID := c.Param("filename") // 参数名保持为filename以兼容前端
-	
+
 	// 从数据库获取图片记录
 	fileResource, err := h.fileResourceRepo.GetFileResource(fileID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
 		return
 	}
-	
+
 	// 检查是否有缩略图
 	if fileResource.ThumbnailID == "" {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Thumbnail not found"})
 		return
 	}
-	
+
 	// 获取缩略图资源信息
 	thumbnailResource, err := h.fileResourceRepo.GetFileResource(fileResource.ThumbnailID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Thumbnail resource not found"})
 		return
 	}
-	
+
 	// 获取缩略图数据
 	thumbnailData, err := h.storage.Get("thumbnails", fileResource.ThumbnailID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Thumbnail file not found"})
 		return
 	}
-	
+
 	// 返回缩略图
 	c.Header("Content-Type", thumbnailResource.MimeType)
 	c.Data(http.StatusOK, thumbnailResource.MimeType, thumbnailData)
@@ -227,7 +227,7 @@ func (h *ImageHandler) DeleteImage(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
 		return
 	}
-	
+
 	// 删除缩略图（如果存在）
 	if fileResource.ThumbnailID != "" {
 		_ = h.storage.Delete("thumbnails", fileResource.ThumbnailID)
@@ -264,13 +264,13 @@ func (h *ImageHandler) ListImages(c *gin.Context) {
 	var response []map[string]interface{}
 	for _, fr := range fileResources {
 		item := map[string]interface{}{
-			"id":          fr.ID,
-			"filename":    fr.ID + fr.Extension, // 重建完整文件名
+			"id":           fr.ID,
+			"filename":     fr.ID + fr.Extension, // 重建完整文件名
 			"originalName": fr.OriginalName,
-			"size":        fr.Size,
-			"mimeType":    fr.MimeType,
-			"createdAt":   fr.CreatedAt,
-			"url":         fmt.Sprintf("/api/images/%s", fr.ID+fr.Extension),
+			"size":         fr.Size,
+			"mimeType":     fr.MimeType,
+			"createdAt":    fr.CreatedAt,
+			"url":          fmt.Sprintf("/api/images/%s", fr.ID+fr.Extension),
 		}
 		if fr.ThumbnailID != "" {
 			item["thumbnailId"] = fr.ThumbnailID

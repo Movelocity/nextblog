@@ -1,29 +1,19 @@
 import type { Metadata } from "next";
 import { SidePanel } from "@/app/components/layout/SidePanel";
 import "./globals.css";
-import { getSiteConfig } from '@/app/services/system';
+import { ToastProvider } from '@/app/components/layout/ToastHook';
+import { LoginModal } from '@/app/components/Auth/LoginModal';
 
 export const metadata: Metadata = {
   title: "Next Blog",
   description: "A modern blog management system built with Next.js",
 };
 
-import { ToastProvider } from '@/app/components/layout/ToastHook';
-import { LoginModal } from '@/app/components/Auth/LoginModal';
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const siteConfig = await getSiteConfig();
-  
+export default function RootLayout({children}: {children: React.ReactNode;}) {
   return (
     <html lang="zh-CN">
-      <body 
-        className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white"
-        data-icp-info={siteConfig?.icpInfo || ''}
-      >
+      <body className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white">
         <ToastProvider>
           {/* <Navigation /> */}
           <div className="flex flex-row">

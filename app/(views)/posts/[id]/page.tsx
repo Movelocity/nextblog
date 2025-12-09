@@ -1,6 +1,5 @@
 'use client';
 
-
 import { useParams } from 'next/navigation';
 import { Blog } from '@/app/common/types';
 import { getPost } from '@/app/services/posts';
@@ -14,6 +13,7 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { AssetModal } from '@/app/components/Asset/AssetModal';
 import { TableOfContents } from '@/app/components/Posts/TableOfContents';
 import cn from 'classnames';
+import { getSiteConfig } from '@/app/services/system';
 
 export default function PostPage() {
   const params = useParams();
@@ -46,9 +46,13 @@ export default function PostPage() {
   const [icpInfo, setIcpInfo] = useState<string>("");
 
   useEffect(() => {
-    const icpInfo = document.querySelector('body')?.getAttribute('data-icp-info');
-    setIcpInfo(icpInfo || "");
-  }, [])
+    // const icpInfo = document.querySelector('body')?.getAttribute('data-icp-info');
+    const fetchConfig = async () => {
+      const config = await getSiteConfig();
+      setIcpInfo(config.icpInfo || "");
+    };
+    fetchConfig();
+  }, []);
 
   if (loading) {
     return (

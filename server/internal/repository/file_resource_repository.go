@@ -31,7 +31,7 @@ func (r *FileResourceRepository) CreateFileResource(resource *models.FileResourc
  */
 func (r *FileResourceRepository) GetFileResource(fileID string) (*models.FileResource, error) {
 	var resource models.FileResource
-	err := db.DB.Where("id = ?", fileID).First(&resource).Error
+	err := db.DB.Where("id = ? or original_name = ?", fileID, fileID).First(&resource).Error
 	if err != nil {
 		return nil, err
 	}

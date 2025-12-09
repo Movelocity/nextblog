@@ -193,9 +193,7 @@ export const imageAssetService = {
    * @returns 图片URL
    */
   getImageUrl: (id: string): string => {
-    // 如果配置了 Go 后端，返回完整 URL
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-    return `${baseUrl}/images/${id}`;
+    return `api/images/${id}`;
   },
 
   /**
@@ -204,8 +202,7 @@ export const imageAssetService = {
    * @returns 缩略图URL
    */
   getThumbnailUrl: (id: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-    return `${baseUrl}/images/${id}/thumbnail`;
+    return `api/images/${id}/thumbnail`;
   },
 
   /**

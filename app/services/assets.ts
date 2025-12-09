@@ -53,8 +53,7 @@ export const assetService = {
    * Get asset URL
    */
   getAssetUrl: (fileId: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-    return `${baseUrl}/assets/${fileId}`;
+    return `api/assets/${fileId}`;
   }
 };
 
@@ -117,8 +116,7 @@ export const imageAssetService = {
    * @param fileName File name
    */
   getImageUrl: (fileName: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-    return `${baseUrl}/images/${fileName}`;
+    return `api/images/${fileName}`;
   },
 
   /**
@@ -126,8 +124,7 @@ export const imageAssetService = {
    * @param fileName File name (same as original image)
    */
   getThumbnailUrl: (fileName: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-    return `${baseUrl}/images/${fileName}/thumbnail`;
+    return `api/images/${fileName}/thumbnail`;
   },
 
   /**
