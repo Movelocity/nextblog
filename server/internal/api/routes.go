@@ -121,7 +121,6 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 			// 公开路由（查看图片）
 			images.GET("", imageHandler.ListImages)
 			images.GET("/:filename", imageHandler.GetImage)
-			images.GET("/:filename/thumbnail", imageHandler.GetThumbnail)
 
 			// 需要认证的路由（上传和删除）
 			imagesAuth := images.Group("", middleware.AuthMiddleware(db.DB))
@@ -143,10 +142,11 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 		}
 
 		// 系统状态路由（仅管理员）
-		systemHandler := NewSystemHandler()
+		systemHandler := NewSystemHandler(fileStorage)
 		system := api.Group("/system", middleware.AuthMiddleware(db.DB), middleware.RequireRole("admin"))
 		{
 			system.GET("/status", systemHandler.GetSystemStatus)
+			system.POST("/cleanup-thumbnails", systemHandler.CleanupThumbnailCache)
 		}
 	}
 }

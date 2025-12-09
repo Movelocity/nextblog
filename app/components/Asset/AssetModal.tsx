@@ -81,9 +81,9 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
     }
   }, [blogId, loadAssets, showToast]);
 
-  const handleDelete = useCallback(async (fileName: string) => {
+  const handleDelete = useCallback(async (fileId: string) => {
     try {
-      await assetService.deleteAsset(fileName);
+      await assetService.deleteAsset(fileId, blogId);
       showToast('Asset deleted successfully', 'success');
       loadAssets();
     } catch (error) {

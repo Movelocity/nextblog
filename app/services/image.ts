@@ -159,6 +159,32 @@ export const imageEditService = {
 
 // ===== 图片资产服务 =====
 
+/**
+ * 缩略图尺寸选项
+ */
+export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
+
+/**
+ * 缩略图尺寸映射
+ */
+const THUMBNAIL_SIZE_MAP: Record<Exclude<ThumbnailSize, number>, number> = {
+  small: 120,
+  medium: 240,
+  large: 480,
+};
+
+/**
+ * 缩略图选项
+ */
+export interface ThumbnailOptions {
+  /** 缩略图尺寸（预设或自定义像素值） */
+  size?: ThumbnailSize;
+  /** 自定义宽度 */
+  width?: number;
+  /** 自定义高度 */
+  height?: number;
+}
+
 export const imageAssetService = {
   /**
    * 上传图片资产
@@ -199,10 +225,99 @@ export const imageAssetService = {
   /**
    * 获取缩略图URL
    * @param id 图片ID（与原图ID相同）
+   * @param options 缩略图选项
    * @returns 缩略图URL
    */
-  getThumbnailUrl: (id: string): string => {
-    return `api/images/${id}/thumbnail`;
+  getThumbnailUrl: (id: string, options?: ThumbnailOptions): string => {
+    const baseUrl = `/api/images/${id}`;
+    const params = new URLSearchParams({ thumbnail: 'true' });
+
+    if (options?.width && options?.height) {
+      // 自定义宽高
+      params.set('width', options.width.toString());
+      params.set('height', options.height.toString());
+    } else if (options?.size !== undefined) {
+      // 使用预设尺寸或自定义尺寸
+      const size = typeof options.size === 'number' 
+        ? options.size 
+        : THUMBNAIL_SIZE_MAP[options.size];
+      params.set('size', size.toString());
+    }
+    // 如果没有指定任何尺寸，使用默认 180x180
+
+    return `${baseUrl}?${params.toString()}`;
+  },
+
+  /**
+   * 智能转换图片URL为缩略图URL
+   * 支持图片URL格式：
+   * - /api/assets/{id}
+   * - api/assets/{id}
+   * - 完整URL（http://...）
+   * 
+   * @param imageUrl 原始图片URL
+   * @param options 缩略图选项
+   * @returns 缩略图URL
+   * 
+   * @example
+   * ```ts
+   * // 使用默认尺寸 (180x180)
+   * toThumbnail('/api/assets/abc123')
+   * // => '/api/images/abc123?thumbnail=true'
+   * 
+   * // 使用预设小尺寸 (120x120)
+   * toThumbnail('/api/assets/abc123', { size: 'small' })
+   * // => '/api/images/abc123?thumbnail=true&size=120'
+   * 
+   * // 自定义尺寸
+   * toThumbnail('/api/assets/abc123', { size: 300 })
+   * // => '/api/images/abc123?thumbnail=true&size=300'
+   * 
+   * // 自定义宽高
+   * toThumbnail('/api/assets/abc123', { width: 400, height: 300 })
+   * // => '/api/images/abc123?thumbnail=true&width=400&height=300'
+   * ```
+   */
+  toThumbnail: (imageUrl: string, options?: ThumbnailOptions): string => {
+    // 如果已经是缩略图URL，直接返回
+    if (imageUrl.includes('thumbnail=true')) {
+      return imageUrl;
+    }
+
+    try {
+      // 尝试解析URL
+      const url = new URL(imageUrl, window.location.origin);
+      const pathname = url.pathname;
+      
+      // 提取文件ID
+      let fileId: string | null = null;
+      
+      // 只匹配 /api/assets/{id}
+      const assetMatch = pathname.match(/\/api\/assets\/([^\/\?]+)/);
+      if (assetMatch) {
+        fileId = assetMatch[1];
+      }
+
+      if (!fileId) {
+        // 如果无法解析，返回原始URL
+        console.warn('[toThumbnail] Unable to parse image URL:', imageUrl);
+        return imageUrl;
+      }
+
+      // 构建缩略图URL
+      const thumbnailUrl = imageAssetService.getThumbnailUrl(fileId, options);
+      
+      // 如果原始URL是完整URL，保持完整URL格式
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return new URL(thumbnailUrl, window.location.origin).href;
+      }
+      
+      return thumbnailUrl;
+    } catch (error) {
+      // URL解析失败，返回原始URL
+      console.warn('[toThumbnail] Failed to parse URL:', imageUrl, error);
+      return imageUrl;
+    }
   },
 
   /**

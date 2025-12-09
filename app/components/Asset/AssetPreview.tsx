@@ -14,6 +14,7 @@ type AssetPreviewProps = {
   type: string;
   url: string;
   name: string;
+  thumbnailUrl?: string; // Optional thumbnail URL for images
 };
 
 const getIconByType = (type: string) => {
@@ -53,7 +54,7 @@ const getIconByType = (type: string) => {
   return FiPaperclip;
 };
 
-export const AssetPreview: React.FC<AssetPreviewProps> = ({ type, url, name }) => {
+export const AssetPreview: React.FC<AssetPreviewProps> = ({ type, url, name, thumbnailUrl }) => {
   const isImage = type.startsWith('image/');
   const isVideo = type.startsWith('video/');
   const isAudio = type.startsWith('audio/');
@@ -62,7 +63,7 @@ export const AssetPreview: React.FC<AssetPreviewProps> = ({ type, url, name }) =
   if (isImage) {
     return (
       <img
-        src={url}
+        src={thumbnailUrl || url}
         alt={name}
         className="object-cover w-full h-full"
         loading="lazy"

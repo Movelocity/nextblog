@@ -10,6 +10,7 @@ import (
 	"server/internal/config"
 	"server/internal/models"
 	"server/internal/repository"
+	"server/internal/service"
 	"server/internal/storage"
 
 	"strconv"
@@ -24,16 +25,19 @@ type AssetHandler struct {
 	storage          storage.FileStorage
 	fileResourceRepo *repository.FileResourceRepository
 	postAssetRepo    *repository.PostAssetRepository
+	thumbnailService *service.ThumbnailService
 }
 
 /**
  * NewAssetHandler 创建博客资产处理器实例
  */
 func NewAssetHandler(storage storage.FileStorage) *AssetHandler {
+	fileResourceRepo := repository.NewFileResourceRepository()
 	return &AssetHandler{
 		storage:          storage,
-		fileResourceRepo: repository.NewFileResourceRepository(),
+		fileResourceRepo: fileResourceRepo,
 		postAssetRepo:    repository.NewPostAssetRepository(),
+		thumbnailService: service.NewThumbnailService(storage, fileResourceRepo),
 	}
 }
 
@@ -170,12 +174,12 @@ func (h *AssetHandler) UploadAsset(c *gin.Context) {
 	// 获取文件扩展名
 	ext := filepath.Ext(file.Filename)
 
-	// 生成文件ID（时间戳-扩展名（无点）-随机数）
+	// 生成文件ID（时间戳-扩展名（无点）-随机数，带扩展名）
 	extWithoutDot := ext
 	if len(ext) > 0 && ext[0] == '.' {
 		extWithoutDot = ext[1:]
 	}
-	fileID := fmt.Sprintf("%d-%s-%d", time.Now().UnixMilli(), extWithoutDot, time.Now().Nanosecond()%1000000)
+	fileID := fmt.Sprintf("%d-%s-%d%s", time.Now().UnixMilli(), extWithoutDot, time.Now().Nanosecond()%1000000, ext)
 
 	// 读取文件数据
 	fileReader, err := file.Open()
@@ -247,6 +251,10 @@ func (h *AssetHandler) UploadAsset(c *gin.Context) {
 /**
  * GetAsset 获取单个资产
  * GET /api/assets/:fileId
+ * 支持URL参数:
+ * - thumbnail=true: 返回缩略图（仅支持图片格式）
+ * - size=<width>: 指定缩略图宽度（默认180）
+ * - width=<width>&height=<height>: 指定缩略图宽高
  */
 func (h *AssetHandler) GetAsset(c *gin.Context) {
 	fileID := c.Param("fileId")
@@ -255,6 +263,47 @@ func (h *AssetHandler) GetAsset(c *gin.Context) {
 	resource, err := h.fileResourceRepo.GetFileResource(fileID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		return
+	}
+
+	// 检查是否请求缩略图
+	thumbnailParam := c.DefaultQuery("thumbnail", "false")
+	if thumbnailParam == "true" && isImageFile(resource.Extension) {
+		// 获取缩略图尺寸参数
+		width := 180  // 默认宽度
+		height := 180 // 默认高度
+
+		// 支持 size 参数（正方形缩略图）
+		if sizeParam := c.Query("size"); sizeParam != "" {
+			if size, err := strconv.Atoi(sizeParam); err == nil && size > 0 && size <= 2000 {
+				width = size
+				height = size
+			}
+		}
+
+		// 支持独立的 width 和 height 参数
+		if widthParam := c.Query("width"); widthParam != "" {
+			if w, err := strconv.Atoi(widthParam); err == nil && w > 0 && w <= 2000 {
+				width = w
+			}
+		}
+		if heightParam := c.Query("height"); heightParam != "" {
+			if h, err := strconv.Atoi(heightParam); err == nil && h > 0 && h <= 2000 {
+				height = h
+			}
+		}
+
+		// 生成或获取缓存的缩略图
+		thumbnailData, err := h.thumbnailService.GetOrGenerateThumbnail(fileID, resource.Extension, width, height)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate thumbnail"})
+			return
+		}
+
+		// 返回缩略图
+		c.Header("Content-Type", resource.MimeType)
+		c.Header("Cache-Control", "public, max-age=86400") // 缓存1天
+		c.Data(http.StatusOK, resource.MimeType, thumbnailData)
 		return
 	}
 
@@ -300,11 +349,32 @@ func (h *AssetHandler) DeleteAsset(c *gin.Context) {
 		return
 	}
 
-	// 如果没有其他关联，删除文件和记录（从统一的持久化文件目录）
+	// 如果没有其他关联，先删除物理文件，再删除数据库记录（从统一的持久化文件目录）
 	if count == 0 {
-		_ = h.storage.Delete("files", fileID)
-		_ = h.fileResourceRepo.DeleteFileResource(fileID)
+		// 删除物理文件
+		if err := h.storage.Delete("files", fileID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file"})
+			return
+		}
+		// 删除数据库记录
+		if err := h.fileResourceRepo.DeleteFileResource(fileID); err != nil {
+			// 数据库删除失败，但文件已删，记录警告日志
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file resource"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Asset deleted successfully"})
+}
+
+/**
+ * isImageFile 检查文件是否为图片格式
+ */
+func isImageFile(ext string) bool {
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
+		return true
+	default:
+		return false
+	}
 }
