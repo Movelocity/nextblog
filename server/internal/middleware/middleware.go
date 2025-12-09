@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"net/http"
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/service"
+	"server/internal/models"
+	"server/internal/service"
 	"strings"
 
 	"github.com/gin-gonic/gin"

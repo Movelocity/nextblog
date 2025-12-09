@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"nextblog-server/internal/models"
+	"server/internal/models"
 
 	"gorm.io/gorm"
 )

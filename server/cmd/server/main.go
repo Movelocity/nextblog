@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"nextblog-server/internal/api"
-	"nextblog-server/internal/config"
-	"nextblog-server/internal/db"
+	"server/internal/api"
+	"server/internal/config"
+	"server/internal/db"
 
 	"github.com/gin-gonic/gin"
 )

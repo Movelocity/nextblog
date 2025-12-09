@@ -2,9 +2,9 @@ package api
 
 import (
 	"net/http"
-	"nextblog-server/internal/middleware"
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/service"
+	"server/internal/middleware"
+	"server/internal/models"
+	"server/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

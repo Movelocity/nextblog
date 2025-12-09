@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/repository"
+	"server/internal/models"
+	"server/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )

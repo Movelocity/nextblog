@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"nextblog-server/internal/config"
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/repository"
-	"nextblog-server/internal/storage"
+	"server/internal/config"
+	"server/internal/models"
+	"server/internal/repository"
+	"server/internal/storage"
 
 	"strconv"
 

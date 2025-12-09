@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"nextblog-server/internal/repository"
+	"server/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"nextblog-server/internal/db"
-	"nextblog-server/internal/models"
+	"server/internal/db"
+	"server/internal/models"
 )
 
 /**
@@ -71,4 +71,3 @@ func (r *PostAssetRepository) CountRelationsByFileID(fileID string) (int64, erro
 	err := db.DB.Model(&models.PostAssetRelation{}).Where("file_id = ?", fileID).Count(&count).Error
 	return count, err
 }
-

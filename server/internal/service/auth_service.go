@@ -3,9 +3,9 @@ package service
 import (
 	"errors"
 	"fmt"
-	"nextblog-server/internal/config"
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/repository"
+	"server/internal/config"
+	"server/internal/models"
+	"server/internal/repository"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

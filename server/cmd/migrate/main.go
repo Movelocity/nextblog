@@ -13,8 +13,8 @@ import (
 
 	"gorm.io/gorm/logger"
 
-	"nextblog-server/internal/db"
-	"nextblog-server/internal/models"
+	"server/internal/db"
+	"server/internal/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

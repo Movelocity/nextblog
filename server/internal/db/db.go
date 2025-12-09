@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"nextblog-server/internal/models"
+	"server/internal/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

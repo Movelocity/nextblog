@@ -6,22 +6,23 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	
+
+	"server/internal/models"
+	"server/internal/repository"
+	"server/internal/storage"
+
 	"github.com/disintegration/imaging"
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/repository"
-	"nextblog-server/internal/storage"
 )
 
 /**
  * ThumbnailService 缩略图服务
  */
 type ThumbnailService struct {
-	storage            storage.FileStorage
-	fileResourceRepo   *repository.FileResourceRepository
-	thumbnailWidth     int
-	thumbnailHeight    int
-	jpegQuality        int
+	storage          storage.FileStorage
+	fileResourceRepo *repository.FileResourceRepository
+	thumbnailWidth   int
+	thumbnailHeight  int
+	jpegQuality      int
 }
 
 /**
@@ -51,10 +52,10 @@ func (s *ThumbnailService) GenerateThumbnail(originalData []byte, originalExt st
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode image: %w", err)
 	}
-	
+
 	// 生成缩略图（保持宽高比，填充）
 	thumbnail := imaging.Fill(img, s.thumbnailWidth, s.thumbnailHeight, imaging.Center, imaging.Lanczos)
-	
+
 	// 编码缩略图
 	var buf bytes.Buffer
 	switch originalExt {
@@ -64,11 +65,11 @@ func (s *ThumbnailService) GenerateThumbnail(originalData []byte, originalExt st
 		// 默认使用 JPEG
 		err = jpeg.Encode(&buf, thumbnail, &jpeg.Options{Quality: s.jpegQuality})
 	}
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode thumbnail: %w", err)
 	}
-	
+
 	return buf.Bytes(), nil
 }
 
@@ -85,18 +86,18 @@ func (s *ThumbnailService) CreateThumbnailForImage(imageID string, thumbnailID s
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original image: %w", err)
 	}
-	
+
 	// 生成缩略图
 	thumbnailData, err := s.GenerateThumbnail(imageData, originalExt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate thumbnail: %w", err)
 	}
-	
+
 	// 保存缩略图到存储
 	if err := s.storage.Save("thumbnails", thumbnailID, thumbnailData); err != nil {
 		return nil, fmt.Errorf("failed to save thumbnail: %w", err)
 	}
-	
+
 	// 创建缩略图文件资源记录
 	thumbnailResource := &models.FileResource{
 		ID:           thumbnailID,
@@ -107,13 +108,13 @@ func (s *ThumbnailService) CreateThumbnailForImage(imageID string, thumbnailID s
 		Category:     "thumbnail",
 		StoragePath:  s.storage.GetPath("thumbnails", thumbnailID),
 	}
-	
+
 	if err := s.fileResourceRepo.CreateFileResource(thumbnailResource); err != nil {
 		// 清理已保存的缩略图文件
 		_ = s.storage.Delete("thumbnails", thumbnailID)
 		return nil, fmt.Errorf("failed to create thumbnail resource: %w", err)
 	}
-	
+
 	return thumbnailResource, nil
 }
 
@@ -134,4 +135,3 @@ func getMimeType(ext string) string {
 		return "application/octet-stream"
 	}
 }
-

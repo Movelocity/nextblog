@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"nextblog-server/internal/config"
-	"nextblog-server/internal/db"
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/repository"
-	"nextblog-server/internal/service"
-	"nextblog-server/internal/storage"
+	"server/internal/config"
+	"server/internal/db"
+	"server/internal/models"
+	"server/internal/repository"
+	"server/internal/service"
+	"server/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )

@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"server/internal/models"
+	"server/internal/service"
+
 	"github.com/gin-gonic/gin"
-	"nextblog-server/internal/models"
-	"nextblog-server/internal/service"
 )
 
 /**
@@ -32,7 +33,7 @@ func NewImageEditHandler() *ImageEditHandler {
  */
 func (h *ImageEditHandler) GetTasks(c *gin.Context) {
 	taskID := c.Query("task_id")
-	
+
 	if taskID != "" {
 		// 获取单个任务
 		task, err := h.editService.GetTask(taskID)
@@ -61,32 +62,32 @@ func (h *ImageEditHandler) CreateTask(c *gin.Context) {
 		OriginalImage string `json:"original_image" binding:"required"`
 		Prompt        string `json:"prompt" binding:"required"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	// 生成任务ID
 	taskID := fmt.Sprintf("%d-%d", time.Now().UnixMilli(), time.Now().Nanosecond()%1000000)
-	
+
 	task := &models.ImageEditTask{
 		ID:            taskID,
 		OriginalImage: req.OriginalImage,
 		Prompt:        req.Prompt,
 	}
-	
+
 	if err := h.editService.CreateTask(task); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
 		return
 	}
-	
+
 	// 启动任务处理
 	if err := h.editService.StartTaskProcessing(taskID); err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, task)
 }
 
@@ -96,17 +97,17 @@ func (h *ImageEditHandler) CreateTask(c *gin.Context) {
  */
 func (h *ImageEditHandler) StopTask(c *gin.Context) {
 	taskID := c.Query("task_id")
-	
+
 	if taskID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "task_id is required"})
 		return
 	}
-	
+
 	if err := h.editService.StopTask(taskID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{"message": "Task stopped successfully"})
 }
 
@@ -116,23 +117,23 @@ func (h *ImageEditHandler) StopTask(c *gin.Context) {
  */
 func (h *ImageEditHandler) RetryTask(c *gin.Context) {
 	taskID := c.Query("task_id")
-	
+
 	if taskID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "task_id is required"})
 		return
 	}
-	
+
 	var req struct {
 		Prompt *string `json:"prompt"`
 	}
-	
+
 	_ = c.ShouldBindJSON(&req)
-	
+
 	if err := h.editService.RetryTask(taskID, req.Prompt); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{"message": "Task retried successfully"})
 }
 
@@ -142,17 +143,16 @@ func (h *ImageEditHandler) RetryTask(c *gin.Context) {
  */
 func (h *ImageEditHandler) DeleteTask(c *gin.Context) {
 	taskID := c.Query("task_id")
-	
+
 	if taskID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "task_id is required"})
 		return
 	}
-	
+
 	if err := h.editService.DeleteTask(taskID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
 }
-

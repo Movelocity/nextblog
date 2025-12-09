@@ -1,10 +1,10 @@
 package api
 
 import (
-	"nextblog-server/internal/config"
-	"nextblog-server/internal/db"
-	"nextblog-server/internal/middleware"
-	"nextblog-server/internal/storage"
+	"server/internal/config"
+	"server/internal/db"
+	"server/internal/middleware"
+	"server/internal/storage"
 
 	"github.com/gin-gonic/gin"
 )
