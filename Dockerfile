@@ -42,8 +42,8 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 # Set environment variables with default values
-ENV BLOG_ROOT_DIR=blogs
 ENV PORT=3000
+ENV API_BASE_URL=http://localhost:8080/api
 
 EXPOSE 3000
 

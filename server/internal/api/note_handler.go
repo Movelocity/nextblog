@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"server/internal/middleware"
 	"server/internal/models"
 	"server/internal/repository"
 
@@ -39,6 +40,11 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 		if val, err := strconv.ParseBool(isPublicStr); err == nil {
 			isPublic = &val
 		}
+	}
+
+	_, ok := middleware.GetUserID(c)
+	if !ok {
+		isPublic = &[]bool{false}[0]
 	}
 
 	// 参数验证

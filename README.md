@@ -176,10 +176,7 @@ pnpm dev
 
 **环境变量配置**（仅 Next.js 模式）：
 ```env
-BLOG_ROOT_DIR=blogs  # 博客存储目录
-JWT_SECRET=your-super-secret-jwt-key
-ADMIN_EMAIL=nextblog@example.com
-ADMIN_PASSWORD=nextblog123
+API_BASE_URL
 ```
 
 ### Docker 部署

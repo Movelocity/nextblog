@@ -11,17 +11,17 @@ const INDEX_FILE = path.join(SCRIPTS_DIR, 'index.json');
  * Ensures the scripts directory and index file exist
  */
 async function ensureScriptsDir() {
-  try {
-    await fs.access(SCRIPTS_DIR);
-  } catch {
-    await fs.mkdir(SCRIPTS_DIR, { recursive: true });
-  }
+  // try {
+  //   await fs.access(SCRIPTS_DIR);
+  // } catch {
+  //   await fs.mkdir(SCRIPTS_DIR, { recursive: true });
+  // }
 
-  try {
-    await fs.access(INDEX_FILE);
-  } catch {
-    await fs.writeFile(INDEX_FILE, JSON.stringify({ scripts: [] }, null, 2));
-  }
+  // try {
+  //   await fs.access(INDEX_FILE);
+  // } catch {
+  //   await fs.writeFile(INDEX_FILE, JSON.stringify({ scripts: [] }, null, 2));
+  // }
 }
 
 /**

@@ -10,6 +10,8 @@ import (
 	"server/internal/models"
 	"server/internal/repository"
 
+	"server/internal/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,6 +37,11 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 	if publishedStr := c.Query("published"); publishedStr != "" {
 		val := publishedStr == "true"
 		published = &val
+	}
+
+	_, ok := middleware.GetUserID(c)
+	if !ok {
+		published = &[]bool{false}[0]
 	}
 
 	posts, total, err := h.repo.GetAll(page, pageSize, published)

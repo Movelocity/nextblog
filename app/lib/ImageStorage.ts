@@ -27,12 +27,12 @@ export class ImageStorage {
    * 初始化存储目录
    */
   async init(): Promise<void> {
-    try {
-      await fs.mkdir(this.imageDir, { recursive: true });
-      await fs.mkdir(this.thumbnailDir, { recursive: true });
-    } catch (error) {
-      throw new Error(`Failed to initialize image storage: ${error}`);
-    }
+    // try {
+    //   await fs.mkdir(this.imageDir, { recursive: true });
+    //   await fs.mkdir(this.thumbnailDir, { recursive: true });
+    // } catch (error) {
+    //   throw new Error(`Failed to initialize image storage: ${error}`);
+    // }
   }
 
   /**

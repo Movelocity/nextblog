@@ -53,8 +53,8 @@ export class BlogManager {
    * 初始化文件系统和索引。
    */
   private async init(): Promise<void> {
-    await this.fileSystem.init();
-    await this.refreshMetaCache();
+    // await this.fileSystem.init();
+    // await this.refreshMetaCache();
   }
 
   /**
