@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8666/api';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080/api';
+console.log('API_BASE_URL', API_BASE_URL);
 
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
