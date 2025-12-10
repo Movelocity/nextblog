@@ -175,7 +175,7 @@ const TableHeader = ({
     <div className="border-b dark:border-gray-700">
       <div className="px-4 lg:px-6 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         
-        <div className="flex items-center gap-2 w-full lg:w-auto">
+        <div className="flex items-center gap-2 w-full">
           {selectedPosts.length > 0 ? (
             <>
               {onTogglePublish && (
@@ -204,7 +204,7 @@ const TableHeader = ({
               </button>
             </>
           ) : (
-            <>
+            <div className="flex items-center justify-between w-full">
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Posts</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
@@ -219,10 +219,12 @@ const TableHeader = ({
                   )}
                 </p>
               </div>
+              <div>
+
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={classNames(
-                  'inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border rounded-lg transition-colors',
+                  'inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border rounded-lg transition-colors mr-2',
                   hasActiveFilters
                     ? 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                     : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -245,7 +247,8 @@ const TableHeader = ({
                 </svg>
                 New Post
               </Link>
-            </>
+              </div>
+            </div>
           )}
         </div>
       </div>

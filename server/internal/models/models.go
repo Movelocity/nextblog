@@ -41,6 +41,17 @@ type Post struct {
 	Categories  StringArray `json:"categories" gorm:"type:text"`
 }
 
+type PostSummary struct {
+	ID          string      `json:"id" gorm:"primaryKey"`
+	Title       string      `json:"title" gorm:"not null"`
+	Description string      `json:"description" gorm:"type:text"`
+	Published   bool        `json:"published" gorm:"default:false"`
+	CreatedAt   time.Time   `json:"createdAt" gorm:"not null"`
+	UpdatedAt   time.Time   `json:"updatedAt" gorm:"not null"`
+	Tags        StringArray `json:"tags" gorm:"type:text"`
+	Categories  StringArray `json:"categories" gorm:"type:text"`
+}
+
 // Note 笔记模型
 type Note struct {
 	ID        string      `json:"id" gorm:"primaryKey"`
@@ -75,11 +86,11 @@ type SiteConfig struct {
 
 // PostListResponse 文章列表响应
 type PostListResponse struct {
-	Posts      []Post `json:"posts"`
-	Total      int64  `json:"total"`
-	Page       int    `json:"page"`
-	PageSize   int    `json:"pageSize"`
-	TotalPages int    `json:"totalPages"`
+	Posts      []PostSummary `json:"posts"`
+	Total      int64         `json:"total"`
+	Page       int           `json:"page"`
+	PageSize   int           `json:"pageSize"`
+	TotalPages int           `json:"totalPages"`
 }
 
 // NoteListResponse 笔记列表响应

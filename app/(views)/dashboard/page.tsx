@@ -16,6 +16,7 @@ function DashboardContent() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
   const { isAuthenticated, isLoading, openLoginModal } = useAuth();
+  const [loadingPosts, setLoadingPosts] = useState(true);
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
   const [postsCnt, setPostsCnt] = useState(0);
@@ -43,6 +44,7 @@ function DashboardContent() {
 
   const fetchPosts = async () => {
     try {
+      setLoadingPosts(true);
       const { blogs_info, total } = await getPosts({ 
         page: page, 
         limit: BLOG_CONFIG.MAX_POSTS_PER_PAGE,
@@ -53,13 +55,15 @@ function DashboardContent() {
     } catch (error) {
       console.error('Error fetching posts:', error);
       showToast('Error fetching posts', 'error');
-    } 
+    } finally {
+      setLoadingPosts(false);
+    }
   };
 
-  if (isLoading) {
+  if (loadingPosts) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+        {/* <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div> */}
       </div>
     );
   }

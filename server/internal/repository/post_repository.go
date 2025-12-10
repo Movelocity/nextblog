@@ -10,8 +10,8 @@ type PostRepository struct{}
 /**
  * GetAll 获取所有文章
  */
-func (r *PostRepository) GetAll(page, pageSize int, published *bool) ([]models.Post, int64, error) {
-	var posts []models.Post
+func (r *PostRepository) GetAll(page, pageSize int, published *bool) ([]models.PostSummary, int64, error) {
+	var posts []models.PostSummary
 	var total int64
 
 	query := db.DB.Model(&models.Post{})
@@ -69,8 +69,8 @@ func (r *PostRepository) Delete(id string) error {
 /**
  * GetByCategory 根据分类获取文章
  */
-func (r *PostRepository) GetByCategory(category string, page, pageSize int) ([]models.Post, int64, error) {
-	var posts []models.Post
+func (r *PostRepository) GetByCategory(category string, page, pageSize int) ([]models.PostSummary, int64, error) {
+	var posts []models.PostSummary
 	var total int64
 
 	// 使用 JSON 查询
@@ -93,8 +93,8 @@ func (r *PostRepository) GetByCategory(category string, page, pageSize int) ([]m
 /**
  * GetByTag 根据标签获取文章
  */
-func (r *PostRepository) GetByTag(tag string, page, pageSize int) ([]models.Post, int64, error) {
-	var posts []models.Post
+func (r *PostRepository) GetByTag(tag string, page, pageSize int) ([]models.PostSummary, int64, error) {
+	var posts []models.PostSummary
 	var total int64
 
 	query := db.DB.Model(&models.Post{}).
@@ -116,8 +116,8 @@ func (r *PostRepository) GetByTag(tag string, page, pageSize int) ([]models.Post
 /**
  * Search 搜索文章
  */
-func (r *PostRepository) Search(keyword string, page, pageSize int) ([]models.Post, int64, error) {
-	var posts []models.Post
+func (r *PostRepository) Search(keyword string, page, pageSize int) ([]models.PostSummary, int64, error) {
+	var posts []models.PostSummary
 	var total int64
 
 	searchPattern := "%" + keyword + "%"
