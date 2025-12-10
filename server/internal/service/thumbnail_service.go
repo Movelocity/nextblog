@@ -89,6 +89,33 @@ func (s *ThumbnailService) GenerateThumbnailWithSize(originalData []byte, origin
 }
 
 /**
+ * GetCachedThumbnailPath 获取缓存的缩略图路径（用于零拷贝传输）
+ * @param sourceFileID 源文件ID
+ * @param sourceExt 源文件扩展名
+ * @param width 缩略图宽度
+ * @param height 缩略图高度
+ * @return 缩略图路径和是否命中缓存
+ */
+func (s *ThumbnailService) GetCachedThumbnailPath(sourceFileID, sourceExt string, width, height int) (string, bool) {
+	// 检查缓存
+	cache, err := s.cacheRepo.GetCachedThumbnail(sourceFileID, width, height)
+	if err != nil || cache == nil {
+		return "", false
+	}
+
+	// 验证物理文件是否存在
+	exists, _ := s.storage.Exists("thumbnails", cache.ThumbnailID)
+	if !exists {
+		// 缓存记录存在但文件丢失，删除缓存记录
+		_ = s.cacheRepo.DeleteCache(cache.ID)
+		return "", false
+	}
+
+	// 返回文件路径用于零拷贝传输
+	return cache.StoragePath, true
+}
+
+/**
  * GetOrGenerateThumbnail 获取或生成缩略图（带缓存）
  * @param sourceFileID 源文件ID
  * @param sourceExt 源文件扩展名

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiZoomIn, FiZoomOut, FiMaximize2 } from 'react-icons/fi';
 
@@ -10,6 +10,8 @@ interface ImageViewerProps {
   imageUrl: string;
   imageName: string;
 }
+
+const MINIMUM_SCALE = 0.4
 
 export const ImageViewer: React.FC<ImageViewerProps> = ({
   isOpen,
@@ -24,6 +26,8 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hasMoved, setHasMoved] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
+  const rafRef = useRef<number | undefined>(undefined);
+  const lastTouchDistance = useRef<number>(0);
 
   useEffect(() => {
     setMounted(true);
@@ -46,7 +50,14 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       if (isOpen) {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        setScale((prev) => Math.min(Math.max(0.5, prev + delta), 5));
+        
+        // Use RAF for smoother updates
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+        }
+        rafRef.current = requestAnimationFrame(() => {
+          setScale((prev) => Math.min(Math.max(MINIMUM_SCALE, prev + delta), 5));
+        });
       }
     };
 
@@ -59,55 +70,138 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('wheel', handleWheel);
       document.body.style.overflow = 'unset';
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, [isOpen, onClose]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget || e.target === imageRef.current) {
-      e.preventDefault(); // Prevent default browser drag behavior
+      e.preventDefault();
       setIsDragging(true);
       setHasMoved(false);
       setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
     }
-  };
+  }, [position]);
 
-  const handleDragStart = (e: React.DragEvent) => {
-    e.preventDefault(); // Prevent browser's native image drag
+  const handleDragStart = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
     return false;
-  };
+  }, []);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isDragging) {
       setHasMoved(true);
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
+      
+      // Use RAF for smoother dragging
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(() => {
+        setPosition({
+          x: e.clientX - dragStart.x,
+          y: e.clientY - dragStart.y,
+        });
       });
     }
-  };
+  }, [isDragging, dragStart]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
-  const handleZoomIn = () => {
+  // Touch support for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setHasMoved(false);
+      setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
+    } else if (e.touches.length === 2) {
+      // Pinch zoom start
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      lastTouchDistance.current = distance;
+    }
+  }, [position]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    
+    if (e.touches.length === 1 && isDragging) {
+      const touch = e.touches[0];
+      setHasMoved(true);
+      
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(() => {
+        setPosition({
+          x: touch.clientX - dragStart.x,
+          y: touch.clientY - dragStart.y,
+        });
+      });
+    } else if (e.touches.length === 2) {
+      // Pinch zoom
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      
+      if (lastTouchDistance.current > 0) {
+        const delta = (distance - lastTouchDistance.current) * 0.01;
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+        }
+        rafRef.current = requestAnimationFrame(() => {
+          setScale((prev) => Math.min(Math.max(MINIMUM_SCALE, prev + delta), 5));
+        });
+      }
+      
+      lastTouchDistance.current = distance;
+    }
+  }, [isDragging, dragStart]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    lastTouchDistance.current = 0;
+  }, []);
+
+  // Double click/tap to zoom
+  const handleDoubleClick = useCallback(() => {
+    if (scale === 1) {
+      setScale(2);
+    } else {
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [scale]);
+
+  const handleZoomIn = useCallback(() => {
     setScale((prev) => Math.min(prev + 0.25, 5));
-  };
+  }, []);
 
-  const handleZoomOut = () => {
-    setScale((prev) => Math.max(prev - 0.25, 0.5));
-  };
+  const handleZoomOut = useCallback(() => {
+    setScale((prev) => Math.max(prev - 0.25, MINIMUM_SCALE));
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
-  };
+  }, []);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
+  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !hasMoved) {
       onClose();
     }
-  };
+  }, [hasMoved, onClose]);
 
   if (!isOpen || !mounted) return null;
 
@@ -119,7 +213,14 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onClick={handleBackdropClick}
-      style={{ cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'default' }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ 
+        cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'default',
+        touchAction: 'none',
+        overscrollBehavior: 'none',
+      }}
     >
       {/* Top toolbar */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-gradient-to-b from-black/80 to-transparent">
@@ -140,7 +241,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         <button
           onClick={handleZoomOut}
           className="text-white/90 hover:text-white hover:bg-white/10 rounded-full p-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={scale <= 0.5}
+          disabled={scale <= MINIMUM_SCALE}
           aria-label="Zoom out"
         >
           <FiZoomOut size={20} />
@@ -173,22 +274,25 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
         ref={imageRef}
         src={imageUrl}
         alt={imageName}
-        className="select-none pointer-events-none transition-transform duration-100"
+        className="select-none pointer-events-none transition-transform duration-200 ease-out"
         style={{
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+          transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${scale})`,
           maxWidth: '90vw',
           maxHeight: '90vh',
           objectFit: 'contain',
           userSelect: 'none',
           WebkitUserDrag: 'none',
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
         } as React.CSSProperties}
         draggable={false}
         onDragStart={handleDragStart}
+        onDoubleClick={handleDoubleClick}
       />
 
       {/* Helper text */}
       <div className="absolute top-20 left-1/2 -translate-x-1/2 text-white/60 text-sm bg-black/40 px-4 py-2 rounded-full pointer-events-none">
-        Scroll to zoom • Drag to move • ESC to close
+        Scroll/Pinch to zoom • Drag to move • Double click to reset • ESC to close
       </div>
     </div>,
     document.body

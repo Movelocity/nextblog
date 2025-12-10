@@ -293,31 +293,36 @@ func (h *AssetHandler) GetAsset(c *gin.Context) {
 			}
 		}
 
-		// 生成或获取缓存的缩略图
+		// 优先尝试获取缓存的缩略图路径（零拷贝传输）
+		thumbnailPath, isCached := h.thumbnailService.GetCachedThumbnailPath(fileID, resource.Extension, width, height)
+		if isCached {
+			// 缓存命中 - 使用零拷贝传输
+			c.Header("Content-Type", resource.MimeType)
+			c.Header("Cache-Control", "public, max-age=86400") // 缓存1天
+			c.File(thumbnailPath)
+			return
+		}
+
+		// 缓存未命中 - 生成缩略图（必须使用内存数据）
 		thumbnailData, err := h.thumbnailService.GetOrGenerateThumbnail(fileID, resource.Extension, width, height)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate thumbnail"})
 			return
 		}
 
-		// 返回缩略图
+		// 返回生成的缩略图
 		c.Header("Content-Type", resource.MimeType)
 		c.Header("Cache-Control", "public, max-age=86400") // 缓存1天
 		c.Data(http.StatusOK, resource.MimeType, thumbnailData)
 		return
 	}
 
-	// 获取文件数据（从统一的持久化文件目录）
-	fileData, err := h.storage.Get("files", fileID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "File not found in storage"})
-		return
-	}
-
 	// 设置响应头
 	c.Header("Content-Type", resource.MimeType)
 	c.Header("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", resource.OriginalName))
-	c.Data(http.StatusOK, resource.MimeType, fileData)
+
+	// 零拷贝传输文件（使用 sendfile 系统调用）
+	c.File(resource.StoragePath)
 }
 
 /**

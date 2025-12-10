@@ -12,7 +12,7 @@ type AssetCardProps = {
   asset: Asset;
   blogId: string;
   onDelete: (fileName: string) => Promise<void>;
-  onCopy: (fileName: string) => void;
+  onCopy: (fileName: string, url: string) => void;
   assetUrl: string;
 };
 
@@ -71,7 +71,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           </button>
         )}
         <button
-          onClick={() => onCopy(asset.url)}
+          onClick={() => onCopy(asset.filename, asset.url)}
           className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
           aria-label={`Copy URL for ${asset.url}`}
         >

@@ -161,14 +161,24 @@ func (h *ImageHandler) GetImage(c *gin.Context) {
 			}
 		}
 
-		// 生成或获取缓存的缩略图
+		// 优先尝试获取缓存的缩略图路径（零拷贝传输）
+		thumbnailPath, isCached := h.thumbnailService.GetCachedThumbnailPath(fileID, fileResource.Extension, width, height)
+		if isCached {
+			// 缓存命中 - 使用零拷贝传输
+			c.Header("Content-Type", getMimeTypeFromExt(fileResource.Extension))
+			c.Header("Cache-Control", "public, max-age=86400") // 缓存1天
+			c.File(thumbnailPath)
+			return
+		}
+
+		// 缓存未命中 - 生成缩略图（必须使用内存数据）
 		thumbnailData, err := h.thumbnailService.GetOrGenerateThumbnail(fileID, fileResource.Extension, width, height)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate thumbnail"})
 			return
 		}
 
-		// 返回缩略图
+		// 返回生成的缩略图
 		c.Header("Content-Type", getMimeTypeFromExt(fileResource.Extension))
 		c.Header("Cache-Control", "public, max-age=86400") // 缓存1天
 		c.Data(http.StatusOK, getMimeTypeFromExt(fileResource.Extension), thumbnailData)
