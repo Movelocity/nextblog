@@ -2,23 +2,24 @@ version: '3.8'
 
 services:
   nextblog:
-    image: nextblog:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/movelocity/nextblog:1.2.1
+    container_name: nextblog-app
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET:-my-ultra-secret-jwt-key}
-      - ADMIN_EMAIL=${ADMIN_EMAIL:-nextblog@example.com}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-nextblog123}
-      - BLOG_ROOT_DIR=blogs
-    volumes:
-      - ./blogs:/app/blogs
+      - API_BASE_URL=${API_BASE_URL:http://localhost:8080/api}
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+    env_file:
+      - .env  # 明确指定环境文件
+    security_opt:  # 安全配置
+      - no-new-privileges:true
+    read_only: true  # 只读根文件系统
+    healthcheck:  # 健康检查：检查Next.js服务是否响应
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 30s
-      timeout: 10s
-      retries: 3 
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # 用户和权限
+    user: "1001:1001"  # 非root用户
