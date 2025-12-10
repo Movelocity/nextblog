@@ -8,7 +8,6 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - API_BASE_URL=${API_BASE_URL:http://localhost:8080/api}
     restart: unless-stopped
     env_file:
       - .env  # 明确指定环境文件
