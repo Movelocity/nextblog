@@ -58,29 +58,26 @@ func Recovery() gin.HandlerFunc {
 }
 
 /**
- * AuthMiddleware JWT认证中间件
+ * Auth 可选认证中间件（尝试解析token，但不强制要求）
+ * 无论是否登录都会通过，如果有有效token则会将用户信息存储到context中
  */
-func AuthMiddleware(db *gorm.DB) gin.HandlerFunc {
+func Auth(db *gorm.DB) gin.HandlerFunc {
 	authService := service.NewAuthService(db)
 
 	return func(c *gin.Context) {
 		// 获取Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "authorization header is required",
-			})
-			c.Abort()
+			// 没有token，继续执行，但不设置用户信息
+			c.Next()
 			return
 		}
 
 		// 提取Bearer token
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid authorization header format",
-			})
-			c.Abort()
+			// token格式不正确，继续执行，但不设置用户信息
+			c.Next()
 			return
 		}
 
@@ -89,10 +86,8 @@ func AuthMiddleware(db *gorm.DB) gin.HandlerFunc {
 		// 验证token
 		claims, err := authService.ValidateToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid or expired token",
-			})
-			c.Abort()
+			// token无效，继续执行，但不设置用户信息
+			c.Next()
 			return
 		}
 
@@ -101,6 +96,27 @@ func AuthMiddleware(db *gorm.DB) gin.HandlerFunc {
 		c.Set("username", claims.Username)
 		c.Set("email", claims.Email)
 		c.Set("role", claims.Role)
+
+		c.Next()
+	}
+}
+
+/**
+ * MustLogin 强制认证中间件
+ * 检查context中是否已有用户信息，如果没有则返回401
+ * 必须在Auth之后使用
+ */
+func MustLogin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 检查context中是否有用户信息
+		_, exists := c.Get("userID")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
+			})
+			c.Abort()
+			return
+		}
 
 		c.Next()
 	}
@@ -141,42 +157,6 @@ func RequireRole(roles ...string) gin.HandlerFunc {
 			"error": "insufficient permissions",
 		})
 		c.Abort()
-	}
-}
-
-/**
- * OptionalAuth 可选认证中间件（不强制要求认证）
- */
-func OptionalAuth(db *gorm.DB) gin.HandlerFunc {
-	authService := service.NewAuthService(db)
-
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.Next()
-			return
-		}
-
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.Next()
-			return
-		}
-
-		token := parts[1]
-		claims, err := authService.ValidateToken(token)
-		if err != nil {
-			c.Next()
-			return
-		}
-
-		// 将用户信息存储到context中
-		c.Set("userID", claims.UserID)
-		c.Set("username", claims.Username)
-		c.Set("email", claims.Email)
-		c.Set("role", claims.Role)
-
-		c.Next()
 	}
 }
 

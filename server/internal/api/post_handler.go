@@ -39,10 +39,15 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 		published = &val
 	}
 
-	_, ok := middleware.GetUserID(c)
-	if !ok {
-		published = &[]bool{false}[0]
+	// 检查用户是否已登录
+	_, isAuthenticated := middleware.GetUserID(c)
+
+	// 如果用户未登录，强制只返回已发布的文章
+	if !isAuthenticated {
+		trueValue := true
+		published = &trueValue
 	}
+	// 如果用户已登录且没有指定published参数，返回所有文章（published为nil）
 
 	posts, total, err := h.repo.GetAll(page, pageSize, published)
 	if err != nil {

@@ -22,33 +22,37 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 	fileStorage := storage.NewLocalFileStorage(config.AppConfig.StoragePath)
 
 	// API 路由组
-	api := router.Group("/api")
+	// 在所有API路由上应用Auth中间件，尝试解析token但不强制要求
+	api := router.Group("/api", middleware.Auth(db.DB))
 	{
 		// 健康检查
 		configHandler := NewConfigHandler()
 		api.GET("/health", configHandler.GetHealth)
 
-		// 认证路由（无需认证）
+		// 认证路由
 		authHandler := NewAuthHandler(db.DB)
 		auth := api.Group("/auth")
 		{
+			// 公开路由
 			auth.GET("/registration-status", authHandler.GetRegistrationStatus)
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
-			auth.GET("/check", middleware.AuthMiddleware(db.DB), authHandler.CheckAuth)
-			auth.GET("/profile", middleware.AuthMiddleware(db.DB), authHandler.GetProfile)
-			auth.POST("/refresh", middleware.AuthMiddleware(db.DB), authHandler.RefreshToken)
+
+			// 需要认证的路由
+			auth.GET("/check", middleware.MustLogin(), authHandler.CheckAuth)
+			auth.GET("/profile", middleware.MustLogin(), authHandler.GetProfile)
+			auth.POST("/refresh", middleware.MustLogin(), authHandler.RefreshToken)
 		}
 
 		// 站点配置（读取公开，更新需要认证）
 		api.GET("/config", configHandler.GetConfig)
-		api.PUT("/config", middleware.AuthMiddleware(db.DB), middleware.RequireRole("admin"), configHandler.UpdateConfig)
+		api.PUT("/config", middleware.MustLogin(), middleware.RequireRole("admin"), configHandler.UpdateConfig)
 
 		// 文章路由（读取公开，写入需要认证）
 		postHandler := NewPostHandler()
 		posts := api.Group("/posts")
 		{
-			// 公开路由
+			// 公开路由（已通过Auth中间件解析用户信息）
 			posts.GET("", postHandler.GetPosts)
 			posts.GET("/search", postHandler.SearchPosts)
 			posts.GET("/category/:category", postHandler.GetPostsByCategory)
@@ -56,7 +60,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 			posts.GET("/:id", postHandler.GetPost)
 
 			// 需要认证的路由
-			postsAuth := posts.Group("", middleware.AuthMiddleware(db.DB))
+			postsAuth := posts.Group("", middleware.MustLogin())
 			{
 				postsAuth.POST("", postHandler.CreatePost)
 				postsAuth.PUT("/:id", postHandler.UpdatePost)
@@ -65,21 +69,23 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 
 		}
 
-		// 文件资源路由（需要认证）
+		// 文件资源路由
 		assetHandler := NewAssetHandler(fileStorage)
-		assets := api.Group("/assets", middleware.AuthMiddleware(db.DB))
+		assets := api.Group("/assets")
 		{
-			assets.GET("", assetHandler.ListAssets)
-			assets.POST("", assetHandler.UploadAsset)
+			// 公开路由
+			assets.GET("/:fileId", assetHandler.GetAsset)
 
-			assets.DELETE("/:fileId", assetHandler.DeleteAsset)
-		}
-		publicAssets := api.Group("/assets")
-		{
-			publicAssets.GET("/:fileId", assetHandler.GetAsset)
+			// 需要认证的路由
+			assetsAuth := assets.Group("", middleware.MustLogin())
+			{
+				assetsAuth.GET("", assetHandler.ListAssets)
+				assetsAuth.POST("", assetHandler.UploadAsset)
+				assetsAuth.DELETE("/:fileId", assetHandler.DeleteAsset)
+			}
 		}
 
-		// 笔记路由（需要认证）
+		// 笔记路由
 		noteHandler := NewNoteHandler()
 		notes := api.Group("/notes")
 		{
@@ -87,7 +93,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 			notes.GET("/public", noteHandler.GetPublicNotes)
 
 			// 需要认证的路由
-			notesAuth := notes.Group("", middleware.AuthMiddleware(db.DB))
+			notesAuth := notes.Group("", middleware.MustLogin())
 			{
 				notesAuth.GET("", noteHandler.GetNotes)
 				notesAuth.POST("", noteHandler.CreateNote)
@@ -123,7 +129,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 			images.GET("/:filename", imageHandler.GetImage)
 
 			// 需要认证的路由（上传和删除）
-			imagesAuth := images.Group("", middleware.AuthMiddleware(db.DB))
+			imagesAuth := images.Group("", middleware.MustLogin())
 			{
 				imagesAuth.POST("/upload", imageHandler.UploadImage)
 				imagesAuth.DELETE("/:filename", imageHandler.DeleteImage)
@@ -132,7 +138,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 
 		// 图片编辑路由（需要认证）
 		imageEditHandler := NewImageEditHandler()
-		imageEdit := api.Group("/image-edit", middleware.AuthMiddleware(db.DB))
+		imageEdit := api.Group("/image-edit", middleware.MustLogin())
 		{
 			imageEdit.GET("", imageEditHandler.GetTasks)
 			imageEdit.POST("", imageEditHandler.CreateTask)
@@ -143,7 +149,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 
 		// 系统状态路由（仅管理员）
 		systemHandler := NewSystemHandler(fileStorage)
-		system := api.Group("/system", middleware.AuthMiddleware(db.DB), middleware.RequireRole("admin"))
+		system := api.Group("/system", middleware.MustLogin(), middleware.RequireRole("admin"))
 		{
 			system.GET("/status", systemHandler.GetSystemStatus)
 			system.POST("/cleanup-thumbnails", systemHandler.CleanupThumbnailCache)
