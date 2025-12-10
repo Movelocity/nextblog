@@ -20,7 +20,7 @@ const NotesPage = () => {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
-  const [showPublicOnly, setShowPublicOnly] = useState(false);
+  const [showPublicOnly, setShowPublicOnly] = useState<boolean | undefined>(undefined);
   const { showToast } = useToast();
   const isMobile = useIsMobile();
   const pageSize = 10;
@@ -218,7 +218,7 @@ const NotesPage = () => {
       {!isMobile && (
         <NoteSidebar
           selectedTag={selectedTag}
-          showPublicOnly={showPublicOnly}
+          showPublicOnly={showPublicOnly || false}
           onSelectTag={handleSelectTag}
           onTogglePublicFilter={handleTogglePublicFilter}
         />

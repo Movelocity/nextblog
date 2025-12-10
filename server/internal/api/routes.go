@@ -91,11 +91,11 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 		{
 			// 公开路由
 			notes.GET("/public", noteHandler.GetPublicNotes)
+			notes.GET("", noteHandler.GetNotes)
 
 			// 需要认证的路由
 			notesAuth := notes.Group("", middleware.MustLogin())
 			{
-				notesAuth.GET("", noteHandler.GetNotes)
 				notesAuth.POST("", noteHandler.CreateNote)
 				notesAuth.GET("/date/:date", noteHandler.GetNotesByDate)
 				notesAuth.GET("/detail/:id", noteHandler.GetNote)

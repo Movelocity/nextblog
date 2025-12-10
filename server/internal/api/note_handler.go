@@ -44,7 +44,8 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 
 	_, isAuthenticated := middleware.GetUserID(c)
 	if !isAuthenticated {
-		isPublic = &[]bool{false}[0]
+		trueValue := true
+		isPublic = &trueValue
 	}
 
 	// 参数验证
