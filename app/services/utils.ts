@@ -137,19 +137,18 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   // 对于非JSON响应，返回响应对象本身
   return response as unknown as T;
 };
-
+import { API_BASE_URL } from '@/app/utils/globals';
 /**
  * 构建完整的 API URL
  * @param path API 路径（例如 '/posts' 或 '/api/posts'）
  * @returns 完整的 URL
  */
 const buildApiUrl = (path: string): string => {
-  const baseUrl = "/api";
   // 移除路径开头的 /api（如果有），因为 baseUrl 已经包含了
-  const cleanPath = path.startsWith('/api') ? path.substring(4) : path;
+  const cleanPath = path.startsWith('/api/') ? path.substring(4) : path;
   // 确保路径以 / 开头
   const normalizedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-  return `${baseUrl}${normalizedPath}`;
+  return `${API_BASE_URL}${normalizedPath}`;
 };
 
 /**

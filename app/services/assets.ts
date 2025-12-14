@@ -1,6 +1,7 @@
 
 import { Asset } from '@/app/common/types';
 import { get, post, del } from './utils';
+import { API_BASE_URL } from '@/app/utils/globals';
 
 export const assetService = {
   /**
@@ -57,7 +58,7 @@ export const assetService = {
    * Get asset URL
    */
   getAssetUrl: (fileId: string): string => {
-    return `/api/assets/${fileId}`;
+    return `${API_BASE_URL}/assets/${fileId}`;
   },
 
   /**
@@ -66,7 +67,7 @@ export const assetService = {
    * @param size - Thumbnail size (width and height in pixels, default 180)
    */
   getAssetThumbnailUrl: (fileId: string, size: number = 180): string => {
-    return `/api/assets/${fileId}?thumbnail=true&size=${size}`;
+    return `${API_BASE_URL}/assets/${fileId}?thumbnail=true&size=${size}`;
   }
 };
 

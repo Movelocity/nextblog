@@ -93,7 +93,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
 
   const handleCopyUrl = useCallback((fileName: string, assetUrl: string) => {
     // const assetUrl = assetService.getAssetUrl(fileName);
-    const markdownUrl = `![${fileName}](${assetUrl})`;
+    const markdownUrl = `![${fileName}](${assetService.getAssetUrl(fileName)})`;
     copyToClipboard(markdownUrl).then(success => {
       if (success) {
         showToast('URL copied to clipboard', 'success');
@@ -141,7 +141,6 @@ export const AssetModal: React.FC<AssetModalProps> = ({ blogId }) => {
                     blogId={blogId}
                     onDelete={handleDelete}
                     onCopy={handleCopyUrl}
-                    assetUrl={asset.url}
                   />
                 ))
               )}

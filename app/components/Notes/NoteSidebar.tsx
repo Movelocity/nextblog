@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import classNames from 'classnames';
-import { FiTag, FiCalendar, FiFilter } from 'react-icons/fi';
+import { FiTag, FiCalendar, FiFilter, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useAuth } from '@/app/hooks/useAuth';
 import cn from 'classnames';
+import { getStats } from '@/app/services/notes';
 
 interface NoteSidebarProps {
   /** 当前选中的标签 */
@@ -33,6 +34,8 @@ const NoteSidebar = ({
   const [tagStats, setTagStats] = useState<TagStats>({});
   const [dateStats, setDateStats] = useState<DateStats>({});
   const [loading, setLoading] = useState(true);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // 1-12
   const { isAuthenticated } = useAuth(); 
   
 
@@ -42,20 +45,10 @@ const NoteSidebar = ({
   useEffect(() => {
     const loadStats = async () => {
       try {
-        // 获取索引数据
-        const response = await fetch('/api/notes/stats');
-        if (response.ok) {
-          const data = await response.json();
-          setTagStats(data.tagged || {});
-          
-          // 计算日期统计
-          const dates: DateStats = {};
-          Object.keys(data.files || {}).forEach(dateFile => {
-            const date = dateFile.replace('.json', '');
-            dates[date] = data.files[dateFile].length;
-          });
-          setDateStats(dates);
-        }
+        setLoading(true);
+        // 使用新的 API 获取指定月份的统计数据
+        const stats = await getStats(currentYear, currentMonth);
+        setDateStats(stats);
       } catch (error) {
         console.error('Failed to load stats:', error);
       } finally {
@@ -69,15 +62,15 @@ const NoteSidebar = ({
     const interval = setInterval(loadStats, 30000); // 30秒刷新一次
     
     return () => clearInterval(interval);
-  }, []);
+  }, [currentYear, currentMonth]);
 
   /**
    * 获取当前月份的日期列表
    */
   const getCurrentMonthDates = () => {
+    const year = currentYear;
+    const month = currentMonth - 1; // Date 对象中月份是 0-11
     const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
@@ -90,15 +83,48 @@ const NoteSidebar = ({
     
     for (let day = 1; day <= lastDay.getDate(); day++) {
       // 直接构造日期字符串，避免时区转换
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dateStr = `${year}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       dates.push({
         day,
         date: dateStr,
         count: dateStats[dateStr] || 0,
-        isToday: day === now.getDate() && month === now.getMonth() && year === now.getFullYear(),
+        isToday: day === now.getDate() && currentMonth === now.getMonth() + 1 && year === now.getFullYear(),
       });
     }
     return dates;
+  };
+
+  /**
+   * 切换到上个月
+   */
+  const goToPreviousMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentYear(currentYear - 1);
+      setCurrentMonth(12);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  /**
+   * 切换到下个月
+   */
+  const goToNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentYear(currentYear + 1);
+      setCurrentMonth(1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  /**
+   * 跳转到当前月份
+   */
+  const goToCurrentMonth = () => {
+    const now = new Date();
+    setCurrentYear(now.getFullYear());
+    setCurrentMonth(now.getMonth() + 1);
   };
 
   const monthDates = getCurrentMonthDates();
@@ -109,11 +135,36 @@ const NoteSidebar = ({
       <div className="w-full lg:w-[260px] lg:fixed space-y-6 top-10">
         {/* 日历 */}
         <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <FiCalendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })}
-            </h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FiCalendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-white">
+                {currentYear}年{currentMonth}月
+              </h3>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={goToPreviousMonth}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="上个月"
+              >
+                <FiChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </button>
+              <button
+                onClick={goToCurrentMonth}
+                className="px-2 py-1 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-400"
+                title="返回今天"
+              >
+                今
+              </button>
+              <button
+                onClick={goToNextMonth}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="下个月"
+              >
+                <FiChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
           </div>
 
           {loading ? (

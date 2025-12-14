@@ -13,14 +13,12 @@ type AssetCardProps = {
   blogId: string;
   onDelete: (fileName: string) => Promise<void>;
   onCopy: (fileName: string, url: string) => void;
-  assetUrl: string;
 };
 
 export const AssetCard: React.FC<AssetCardProps> = ({
   asset,
   onDelete,
   onCopy,
-  assetUrl,
 }) => {
   const [showPreview, setShowPreview] = useState(false);
   const sizeInKb = (asset.size / 1024).toFixed(1);
@@ -29,8 +27,12 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   
   // Generate thumbnail URL for all images
   const thumbnailUrl = isImage ? assetService.getAssetThumbnailUrl(asset.id, 260) : undefined;
+  const assetUrl = assetService.getAssetUrl(asset.id);
 
   const handleDownload = () => {
+    if (!assetUrl) {
+      return;
+    }
     const link = document.createElement('a');
     link.href = assetUrl;
     link.download = asset.mimeType;
@@ -71,7 +73,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           </button>
         )}
         <button
-          onClick={() => onCopy(asset.filename, asset.url)}
+          onClick={() => onCopy(asset.filename, assetUrl)}
           className="p-1.5 text-gray-600 hover:text-blue-500 bg-white shadow-sm rounded-full"
           aria-label={`Copy URL for ${asset.url}`}
         >

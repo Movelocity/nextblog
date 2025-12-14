@@ -190,3 +190,43 @@ func (h *NoteHandler) GetPublicNotes(c *gin.Context) {
 
 	c.JSON(http.StatusOK, notes)
 }
+
+/**
+ * GetStats 获取统计数据
+ * GET /api/notes/stats?year=2024&month=12
+ * Query params: year (required), month (required)
+ */
+func (h *NoteHandler) GetStats(c *gin.Context) {
+	// 解析年份参数
+	yearStr := c.Query("year")
+	if yearStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "year parameter is required"})
+		return
+	}
+	year, err := strconv.Atoi(yearStr)
+	if err != nil || year < 1900 || year > 2100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid year parameter"})
+		return
+	}
+
+	// 解析月份参数
+	monthStr := c.Query("month")
+	if monthStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "month parameter is required"})
+		return
+	}
+	month, err := strconv.Atoi(monthStr)
+	if err != nil || month < 1 || month > 12 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid month parameter, must be between 1 and 12"})
+		return
+	}
+
+	// 获取统计数据
+	stats, err := h.repo.GetStatsByMonth(year, month)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
+}

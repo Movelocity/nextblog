@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"server/internal/db"
 	"server/internal/models"
 )
@@ -106,4 +107,44 @@ func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPub
 	}
 
 	return notes, total, nil
+}
+
+/** 按月获取每天的笔记数量
+ * GetStatsByMonth 获取指定月份的统计数据
+ * 返回该月每天的笔记数量，格式为 {"2024-01-01": 3, "2024-01-02": 5}
+ */
+func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, error) {
+	stats := make(map[string]int)
+
+	// 构造该月份的起始和结束日期
+	startDate := fmt.Sprintf("%04d-%02d-01", year, month)
+
+	// 计算该月的最后一天
+	var endDate string
+	if month == 12 {
+		endDate = fmt.Sprintf("%04d-01-01", year+1)
+	} else {
+		endDate = fmt.Sprintf("%04d-%02d-01", year, month+1)
+	}
+
+	// 查询该月份范围内的所有笔记，按日期分组统计数量
+	var results []struct {
+		Date  string
+		Count int
+	}
+
+	if err := db.DB.Model(&models.Note{}).
+		Select("date, COUNT(*) as count").
+		Where("date >= ? AND date < ?", startDate, endDate).
+		Group("date").
+		Scan(&results).Error; err != nil {
+		return nil, err
+	}
+
+	// 将结果转换为 map
+	for _, result := range results {
+		stats[result.Date] = result.Count
+	}
+
+	return stats, nil
 }

@@ -88,3 +88,14 @@ export const deleteNote = async (id: string): Promise<{ success: boolean }> => {
   return { success: true };
 }
 
+/** 
+ * 获取统计信息
+ * @param {number} year - 年份
+ * @param {number} month - 月份 (1-12)
+ * @returns {Promise<Record<string, number>>} 返回日期到笔记数量的映射，格式: {"2024-12-01": 3, "2024-12-02": 5}
+ */
+export const getStats = async (year: number, month: number): Promise<Record<string, number>> => {
+  return get<Record<string, number>>('/notes/stats', { 
+    params: { year, month } 
+  });
+}

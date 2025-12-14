@@ -101,6 +101,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 				notesAuth.GET("/detail/:id", noteHandler.GetNote)
 				notesAuth.PUT("/:id", noteHandler.UpdateNote)
 				notesAuth.DELETE("/:id", noteHandler.DeleteNote)
+				notesAuth.GET("/stats", noteHandler.GetStats) // 获取统计数据
 			}
 		}
 
