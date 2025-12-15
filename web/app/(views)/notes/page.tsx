@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchNotes, createNote, updateNote, deleteNote } from '@/app/services/notes';
+import { fetchNotes, createNote, updateNote, deleteNote, archiveNote } from '@/app/services/notes';
 import type { NoteData } from '@/app/common/types.notes';
 import NoteCard from '@/app/components/Notes/NoteCard';
 import {NoteEditor, NoteSidebar} from '@/app/components/Notes';
@@ -21,6 +21,7 @@ const NotesPage = () => {
   const [creating, setCreating] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
   const [showPublicOnly, setShowPublicOnly] = useState<boolean | undefined>(undefined);
+  const [showArchivedOnly, setShowArchivedOnly] = useState(false);
   const { showToast } = useToast();
   const isMobile = useIsMobile();
   const pageSize = 10;
@@ -40,6 +41,7 @@ const NotesPage = () => {
         pageSize,
         tag: selectedTag,
         isPublic: showPublicOnly,
+        isArchived: showArchivedOnly ? true : undefined,
       });
       
       setNotes(prev => append ? [...prev, ...result.notes] : result.notes);
@@ -51,14 +53,14 @@ const NotesPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, selectedTag, showPublicOnly, showToast]);
+  }, [loading, selectedTag, showPublicOnly, showArchivedOnly, showToast]);
 
   /**
    * 初始加载
    */
   useEffect(() => {
     loadNotes(1, false);
-  }, [selectedTag, showPublicOnly]);
+  }, [selectedTag, showPublicOnly, showArchivedOnly]);
 
   /**
    * 加载更多
@@ -139,6 +141,23 @@ const NotesPage = () => {
   }, [showToast]);
 
   /**
+   * 归档/取消归档笔记
+   */
+  const handleArchiveNote = useCallback(async (id: string, isArchived: boolean) => {
+    try {
+      await archiveNote(id, isArchived);
+      showToast(isArchived ? '笔记已归档' : '笔记已取消归档', 'success');
+      
+      // 从当前列表中移除（因为状态改变了）
+      setNotes(prev => prev.filter(note => note.id !== id));
+      setTotal(prev => prev - 1);
+    } catch (error) {
+      showToast(isArchived ? '归档笔记失败' : '取消归档失败', 'error');
+      console.error('Failed to archive note:', error);
+    }
+  }, [showToast]);
+
+  /**
    * 选择标签
    */
   const handleSelectTag = useCallback((tag: string | undefined) => {
@@ -151,6 +170,14 @@ const NotesPage = () => {
    */
   const handleTogglePublicFilter = useCallback(() => {
     setShowPublicOnly(prev => !prev);
+    setPage(1);
+  }, []);
+
+  /**
+   * 切换归档过滤
+   */
+  const handleToggleArchivedFilter = useCallback(() => {
+    setShowArchivedOnly(prev => !prev);
     setPage(1);
   }, []);
 
@@ -189,6 +216,7 @@ const NotesPage = () => {
                 note={note}
                 onUpdate={handleUpdateNote}
                 onDelete={handleDeleteNote}
+                onArchive={handleArchiveNote}
               />
             ))
           )}
@@ -219,8 +247,10 @@ const NotesPage = () => {
         <NoteSidebar
           selectedTag={selectedTag}
           showPublicOnly={showPublicOnly || false}
+          showArchivedOnly={showArchivedOnly}
           onSelectTag={handleSelectTag}
           onTogglePublicFilter={handleTogglePublicFilter}
+          onToggleArchivedFilter={handleToggleArchivedFilter}
         />
       )}
     </div>

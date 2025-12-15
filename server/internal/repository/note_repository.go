@@ -75,8 +75,9 @@ func (r *NoteRepository) GetPublic() ([]models.Note, error) {
 
 /**
  * GetWithPagination 分页获取笔记
+ * @param isArchived: nil=仅未归档, true=仅已归档, false=所有笔记
  */
-func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPublic *bool) ([]models.Note, int64, error) {
+func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPublic *bool, isArchived *bool) ([]models.Note, int64, error) {
 	var notes []models.Note
 	var total int64
 
@@ -91,6 +92,16 @@ func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPub
 	if isPublic != nil {
 		query = query.Where("is_public = ?", *isPublic)
 	}
+
+	// 归档状态过滤：nil=仅未归档，true=仅已归档，false=所有笔记
+	if isArchived == nil {
+		// 默认只显示未归档笔记
+		query = query.Where("is_archived = ?", false)
+	} else if *isArchived {
+		// 仅显示已归档笔记
+		query = query.Where("is_archived = ?", true)
+	}
+	// isArchived == false 时不添加过滤条件，显示所有笔记
 
 	// 计算总数
 	if err := query.Count(&total).Error; err != nil {
@@ -112,6 +123,7 @@ func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPub
 /** 按月获取每天的笔记数量
  * GetStatsByMonth 获取指定月份的统计数据
  * 返回该月每天的笔记数量，格式为 {"2024-01-01": 3, "2024-01-02": 5}
+ * 注意：统计数据排除已归档的笔记
  */
 func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, error) {
 	stats := make(map[string]int)
@@ -127,7 +139,7 @@ func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, e
 		endDate = fmt.Sprintf("%04d-%02d-01", year, month+1)
 	}
 
-	// 查询该月份范围内的所有笔记，按日期分组统计数量
+	// 查询该月份范围内的所有笔记，按日期分组统计数量（排除已归档笔记）
 	var results []struct {
 		Date  string
 		Count int
@@ -135,7 +147,7 @@ func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, e
 
 	if err := db.DB.Model(&models.Note{}).
 		Select("date, COUNT(*) as count").
-		Where("date >= ? AND date < ?", startDate, endDate).
+		Where("date >= ? AND date < ? AND is_archived = ?", startDate, endDate, false).
 		Group("date").
 		Scan(&results).Error; err != nil {
 		return nil, err
@@ -147,4 +159,13 @@ func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, e
 	}
 
 	return stats, nil
+}
+
+/**
+ * SetArchiveStatus 设置笔记归档状态
+ * @param id 笔记ID
+ * @param isArchived 归档状态
+ */
+func (r *NoteRepository) SetArchiveStatus(id string, isArchived bool) error {
+	return db.DB.Model(&models.Note{}).Where("id = ?", id).Update("is_archived", isArchived).Error
 }

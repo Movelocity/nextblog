@@ -88,6 +88,17 @@ export const deleteNote = async (id: string): Promise<{ success: boolean }> => {
   return { success: true };
 }
 
+/**
+ * 归档/取消归档笔记
+ * @param {string} id - 笔记ID
+ * @param {boolean} isArchived - 归档状态
+ * @returns {Promise<NoteData>} 返回更新后的笔记数据
+ * @throws {Error} 请求失败时抛出错误
+ */
+export const archiveNote = async (id: string, isArchived: boolean): Promise<NoteData> => {
+  return put<NoteData>(`/notes/${id}/archive`, { isArchived });
+}
+
 /** 
  * 获取统计信息
  * @param {number} year - 年份

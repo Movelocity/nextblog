@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock, FiChevronDown, FiChevronUp, FiCopy } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiSave, FiX, FiLock, FiUnlock, FiClock, FiChevronDown, FiChevronUp, FiCopy, FiArchive } from 'react-icons/fi';
 import { HiDotsVertical } from "react-icons/hi";
 import { Popover, PopoverTrigger, PopoverContent } from '@/app/components/ui/popover';
 import type { NoteData } from '@/app/common/types.notes';
@@ -16,13 +16,15 @@ interface NoteCardProps {
   onUpdate: (id: string, updates: { data?: string; tags?: string[]; isPublic?: boolean }) => void;
   /** 删除回调 */
   onDelete: (id: string) => void;
+  /** 归档/取消归档回调 */
+  onArchive?: (id: string, isArchived: boolean) => void;
 }
 
 /**
  * 笔记卡片组件
  * 支持查看和编辑笔记
  */
-const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
+const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
   const { isAuthenticated } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState(note.data);
@@ -249,6 +251,20 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
                   >
                     <FiCopy className="w-4 h-4" /> 复制
                   </button>
+
+                  {/* 归档/取消归档按钮 */}
+                  {onArchive && (
+                    <button
+                      onClick={() => onArchive(note.id, !note.isArchived)}
+                      className={cn(
+                        'w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1',
+                        note.isArchived ? 'text-orange-600' : ''
+                      )}
+                      title={note.isArchived ? '取消归档' : '归档'}
+                    >
+                      <FiArchive className="w-4 h-4" /> {note.isArchived ? '取消' : '归档'}
+                    </button>
+                  )}
 
                   {/* 删除按钮 */}
                   <button

@@ -13,7 +13,9 @@ export type NoteData = {
   /** 笔记内容 */
   data: string,
   /** 是否公开 */
-  isPublic: boolean
+  isPublic: boolean,
+  /** 是否已归档 */
+  isArchived: boolean,
   /** 标签列表 */
   tags: string[]
 }
@@ -79,6 +81,8 @@ export type GetNotesParams = {
   /** 标签过滤（可选） */
   tag?: string,
   /** 公开状态过滤（可选） */
-  isPublic?: boolean
+  isPublic?: boolean,
+  /** 归档状态过滤（可选）：true=仅已归档, false=仅未归档(默认), 'all'=所有笔记 */
+  isArchived?: boolean | 'all'
 }
 

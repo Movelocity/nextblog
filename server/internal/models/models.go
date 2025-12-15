@@ -54,13 +54,14 @@ type PostSummary struct {
 
 // Note 笔记模型
 type Note struct {
-	ID        string      `json:"id" gorm:"primaryKey"`
-	Date      string      `json:"date" gorm:"not null;index"` // YYYY-MM-DD format
-	Data      string      `json:"data" gorm:"type:text"`
-	IsPublic  bool        `json:"isPublic" gorm:"default:false"`
-	Tags      StringArray `json:"tags" gorm:"type:text"`
-	CreatedAt time.Time   `json:"createdAt" gorm:"not null"`
-	UpdatedAt time.Time   `json:"updatedAt" gorm:"not null"`
+	ID         string      `json:"id" gorm:"primaryKey"`
+	Date       string      `json:"date" gorm:"not null;index"` // YYYY-MM-DD format
+	Data       string      `json:"data" gorm:"type:text"`
+	IsPublic   bool        `json:"isPublic" gorm:"default:false"`
+	IsArchived bool        `json:"isArchived" gorm:"default:false"` // 归档状态
+	Tags       StringArray `json:"tags" gorm:"type:text"`
+	CreatedAt  time.Time   `json:"createdAt" gorm:"not null"`
+	UpdatedAt  time.Time   `json:"updatedAt" gorm:"not null"`
 }
 
 // Category 分类模型

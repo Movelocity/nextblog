@@ -26,7 +26,8 @@ func NewNoteHandler() *NoteHandler {
 /**
  * GetNotes 获取所有笔记（支持分页）
  * GET /api/notes
- * Query params: page, pageSize, tag, isPublic
+ * Query params: page, pageSize, tag, isPublic, isArchived
+ * isArchived: "true"=仅已归档, "false"=仅未归档(默认), "all"=所有笔记
  */
 func (h *NoteHandler) GetNotes(c *gin.Context) {
 	// 解析分页参数
@@ -48,6 +49,23 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 		isPublic = &trueValue
 	}
 
+	// 解析 isArchived 参数
+	// nil=仅未归档(默认), true=仅已归档, false=所有笔记
+	var isArchived *bool
+	if isArchivedStr := c.Query("isArchived"); isArchivedStr != "" {
+		if isArchivedStr == "all" {
+			// "all" 表示显示所有笔记（包括已归档）
+			falseVal := false
+			isArchived = &falseVal
+		} else if val, err := strconv.ParseBool(isArchivedStr); err == nil {
+			isArchived = &val
+		}
+	}
+	// 未认证用户不能查看已归档笔记
+	if !isAuthenticated && isArchived != nil && *isArchived {
+		isArchived = nil // 重置为默认（仅未归档）
+	}
+
 	// 参数验证
 	if page < 1 {
 		page = 1
@@ -57,7 +75,7 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 	}
 
 	// 分页查询
-	notes, total, err := h.repo.GetWithPagination(page, pageSize, tag, isPublic)
+	notes, total, err := h.repo.GetWithPagination(page, pageSize, tag, isPublic, isArchived)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -175,6 +193,41 @@ func (h *NoteHandler) DeleteNote(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Note deleted successfully"})
+}
+
+/**
+ * ArchiveNote 归档/取消归档笔记
+ * PUT /api/notes/:id/archive
+ * Body: { "isArchived": true/false }
+ */
+func (h *NoteHandler) ArchiveNote(c *gin.Context) {
+	id := c.Param("id")
+
+	// 检查笔记是否存在
+	note, err := h.repo.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
+		return
+	}
+
+	// 解析请求体
+	var req struct {
+		IsArchived bool `json:"isArchived"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 更新归档状态
+	if err := h.repo.SetArchiveStatus(id, req.IsArchived); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 返回更新后的笔记
+	note.IsArchived = req.IsArchived
+	c.JSON(http.StatusOK, note)
 }
 
 /**

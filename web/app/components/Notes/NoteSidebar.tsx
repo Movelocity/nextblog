@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import classNames from 'classnames';
-import { FiTag, FiCalendar, FiFilter, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiTag, FiCalendar, FiFilter, FiChevronLeft, FiChevronRight, FiArchive } from 'react-icons/fi';
 import { useAuth } from '@/app/hooks/useAuth';
 import cn from 'classnames';
 import { getStats } from '@/app/services/notes';
@@ -12,10 +12,14 @@ interface NoteSidebarProps {
   selectedTag?: string;
   /** 是否只显示公开笔记 */
   showPublicOnly: boolean;
+  /** 是否显示已归档笔记 */
+  showArchivedOnly: boolean;
   /** 选择标签回调 */
   onSelectTag: (tag: string | undefined) => void;
   /** 切换公开过滤回调 */
   onTogglePublicFilter: () => void;
+  /** 切换归档过滤回调 */
+  onToggleArchivedFilter: () => void;
 }
 
 type TagStats = Record<string, number>;
@@ -28,8 +32,10 @@ type DateStats = Record<string, number>;
 const NoteSidebar = ({ 
   selectedTag, 
   showPublicOnly,
+  showArchivedOnly,
   onSelectTag, 
-  onTogglePublicFilter 
+  onTogglePublicFilter,
+  onToggleArchivedFilter
 }: NoteSidebarProps) => {
   const [tagStats, setTagStats] = useState<TagStats>({});
   const [dateStats, setDateStats] = useState<DateStats>({});
@@ -233,6 +239,19 @@ const NoteSidebar = ({
             )}
           >
             {showPublicOnly ? '✓ ' : ''}仅显示公开笔记
+          </button>
+
+          <button
+            onClick={onToggleArchivedFilter}
+            className={classNames(
+              'w-full px-3 py-2 rounded-lg text-sm transition-colors text-left border border-gray-200 dark:border-gray-800 flex items-center gap-2',
+              showArchivedOnly
+                ? 'text-orange-600 dark:text-orange-400'
+                : 'text-gray-700 dark:text-gray-300'
+            )}
+          >
+            <FiArchive className="w-4 h-4" />
+            {showArchivedOnly ? '✓ ' : ''}查看已归档笔记
           </button>
 
           <h3 className="font-semibold text-gray-900 dark:text-white">标签</h3>

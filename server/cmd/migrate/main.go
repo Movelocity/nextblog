@@ -281,7 +281,8 @@ func migratePosts() error {
 			Categories:  entry.Categories,
 		}
 
-		if result := db.DB.Save(&post); result.Error != nil {
+		// 使用 SkipHooks 跳过 GORM 自动更新 UpdatedAt 字段
+		if result := db.DB.Session(&gorm.Session{SkipHooks: true}).Save(&post); result.Error != nil {
 			log.Printf("保存博客失败: %s: %v", id, result.Error)
 		} else {
 			count++
@@ -471,7 +472,8 @@ func migrateNotes() error {
 				UpdatedAt: noteData.UpdatedAt,
 			}
 
-			if result := db.DB.Save(&note); result.Error != nil {
+			// 使用 SkipHooks 跳过 GORM 自动更新 UpdatedAt 字段
+			if result := db.DB.Session(&gorm.Session{SkipHooks: true}).Save(&note); result.Error != nil {
 				log.Printf("保存笔记失败: %s: %v", noteData.ID, result.Error)
 			} else {
 				count++
