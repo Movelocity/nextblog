@@ -42,7 +42,7 @@ COPY --from=builder /app/.next/static ./.next/static
 
 # Set environment variables with default values
 ENV PORT=3000
-ENV NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
+ENV API_BASE_URL=http://localhost:8080/api
 
 EXPOSE 3000
 

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { type Metadata } from "next";
 import { SidePanel } from "@/app/components/layout/SidePanel";
 import "./globals.css";
 import { ToastProvider } from '@/app/components/layout/ToastHook';
@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   title: "Next Blog",
   description: "A modern blog management system built with Next.js",
 };
-
 
 export default function RootLayout({children}: {children: React.ReactNode;}) {
   return (
