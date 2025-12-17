@@ -1,3 +1,4 @@
+import globals, { initGlobals } from '@/app/utils/globals';
 
 export const copyToClipboard = async (text: string): Promise<boolean> => {
   // Try using the modern clipboard API first
@@ -137,7 +138,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   // 对于非JSON响应，返回响应对象本身
   return response as unknown as T;
 };
-import globals from '@/app/utils/globals';
+
 /**
  * 构建完整的 API URL
  * @param path API 路径（例如 '/posts' 或 '/api/posts'）
@@ -191,6 +192,9 @@ export const baseFetch = async <T = any>(
   } = options;
 
   // 构建完整URL（自动添加 API 基础 URL）
+  if (!globals.API_BASE_URL) {
+    await initGlobals();
+  }
   let fullUrl = buildApiUrl(url);
   if (params) {
     const searchParams = buildSearchParams(params);

@@ -4,7 +4,7 @@ const globals: {
   API_BASE_URL: "",
 };
 
-const initGlobals = async () => {
+export const initGlobals = async () => {
   try{
     const response = await fetch('/api/server_url');
     const data = await response.json();
