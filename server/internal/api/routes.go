@@ -89,9 +89,10 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 		noteHandler := NewNoteHandler()
 		notes := api.Group("/notes")
 		{
-			// 公开路由
+			// 公开路由（已通过Auth中间件解析用户信息，支持根据登录状态返回不同范围数据）
 			notes.GET("/public", noteHandler.GetPublicNotes)
 			notes.GET("", noteHandler.GetNotes)
+			notes.GET("/search", noteHandler.SearchNotes) // 搜索笔记
 
 			// 需要认证的路由
 			notesAuth := notes.Group("", middleware.MustLogin())

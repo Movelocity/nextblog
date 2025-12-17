@@ -79,6 +79,44 @@ export interface SearchParams {
   page?: number;
   limit?: number;
   pubOnly?: boolean;
+  /** 是否启用高级搜索（返回匹配上下文，仅登录用户可用） */
+  highlight?: boolean;
+  /** 上下文窗口大小（默认 50） */
+  contextSize?: number;
+}
+
+/**
+ * 搜索匹配结果
+ * 用于高级搜索时返回关键词的上下文信息
+ */
+export interface SearchMatch {
+  /** 匹配字段名（title, content, description, data, tags） */
+  field: string;
+  /** 关键词所在的上下文文本 */
+  context: string;
+  /** 关键词在原文中的字符偏移位置 */
+  offset: number;
+}
+
+/**
+ * 文章搜索结果（支持高级搜索）
+ */
+export interface PostSearchResult extends BlogMeta {
+  /** 匹配次数（仅高级搜索时返回） */
+  matchCount?: number;
+  /** 匹配详情（仅高级搜索时返回） */
+  matches?: SearchMatch[];
+}
+
+/**
+ * 文章搜索响应
+ */
+export interface PostSearchResponse {
+  posts: PostSearchResult[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export interface Asset {

@@ -173,7 +173,7 @@ const TableHeader = ({
 
   return (
     <div className="border-b dark:border-gray-700">
-      <div className="px-4 lg:px-6 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="px-4 lg:px-4 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         
         <div className="flex items-center gap-2 w-full">
           {selectedPosts.length > 0 ? (
@@ -205,39 +205,6 @@ const TableHeader = ({
             </>
           ) : (
             <div className="flex items-center justify-between w-full">
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Posts</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                  {filteredCount} {filteredCount === 1 ? 'post' : 'posts'}
-                  {hasActiveFilters && totalCount !== filteredCount && (
-                    <span> (filtered from {totalCount})</span>
-                  )}
-                  {selectedPosts.length > 0 && (
-                    <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium">
-                      · {selectedPosts.length} selected
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div>
-
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={classNames(
-                  'inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border rounded-lg transition-colors mr-2',
-                  hasActiveFilters
-                    ? 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                    : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                )}
-              >
-                <FaFilter className="w-3.5 h-3.5" />
-                Filters
-                {hasActiveFilters && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-600 dark:bg-blue-500 text-white rounded-full">
-                    •
-                  </span>
-                )}
-              </button>
               <Link
                 href="/posts/new"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors shadow-sm"
@@ -247,7 +214,6 @@ const TableHeader = ({
                 </svg>
                 New Post
               </Link>
-              </div>
             </div>
           )}
         </div>
@@ -534,9 +500,9 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setS
                   />
                 </th>
                 {[
-                  { field: 'title' as const, label: 'Title' },
-                  { field: 'published' as const, label: 'Status' },
-                  { field: 'updatedAt' as const, label: 'Updated' }
+                  { field: 'title' as const, label: '标题' },
+                  { field: 'published' as const, label: '状态' },
+                  { field: 'createdAt' as const, label: '创建时间' }
                 ].map(({ field, label }) => (
                   <th
                     key={field}
@@ -551,10 +517,10 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setS
                   </th>
                 ))}
                 <th scope="col" className="px-6 py-4 text-left">
-                  Categories
+                  分类
                 </th>
                 <th scope="col" className="sticky right-0 px-6 py-4 text-right bg-gray-50 dark:bg-gray-800">
-                  Actions
+                  操作
                 </th>
               </tr>
             </thead>

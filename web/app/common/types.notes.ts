@@ -86,3 +86,43 @@ export type GetNotesParams = {
   isArchived?: boolean | 'all'
 }
 
+/** 笔记搜索参数 */
+export type SearchNotesParams = {
+  /** 搜索关键词（必填） */
+  keyword: string,
+  /** 页码（默认 1） */
+  page?: number,
+  /** 每页数量（默认 20） */
+  pageSize?: number,
+  /** 是否启用高级搜索（返回匹配上下文，仅登录用户可用） */
+  highlight?: boolean,
+  /** 上下文窗口大小（默认 50） */
+  contextSize?: number
+}
+
+/** 搜索匹配结果 */
+export type NoteSearchMatch = {
+  /** 匹配字段名（data, tags） */
+  field: string,
+  /** 关键词所在的上下文文本 */
+  context: string,
+  /** 关键词在原文中的字符偏移位置 */
+  offset: number
+}
+
+/** 笔记搜索结果（支持高级搜索） */
+export type NoteSearchResult = NoteData & {
+  /** 匹配次数（仅高级搜索时返回） */
+  matchCount?: number,
+  /** 匹配详情（仅高级搜索时返回） */
+  matches?: NoteSearchMatch[]
+}
+
+/** 笔记搜索响应 */
+export type NoteSearchResponse = {
+  /** 笔记列表 */
+  notes: NoteSearchResult[],
+  /** 总数 */
+  total: number
+}
+

@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
+	"server/internal/middleware"
 	"server/internal/models"
 	"server/internal/repository"
-
-	"server/internal/middleware"
+	"server/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -207,7 +207,18 @@ func (h *PostHandler) GetPostsByTag(c *gin.Context) {
 
 /**
  * SearchPosts 搜索文章
- * GET /api/posts/search?keyword=xxx&page=1&pageSize=10
+ * GET /api/posts/search?keyword=xxx&page=1&pageSize=10&highlight=true&contextSize=50
+ * 
+ * 参数说明：
+ * - keyword: 搜索关键词（必填）
+ * - page: 页码（默认 1）
+ * - pageSize: 每页数量（默认 10）
+ * - highlight: 是否启用高级搜索返回匹配上下文（默认 false，仅登录用户可用）
+ * - contextSize: 上下文窗口大小（默认 50，仅 highlight=true 时有效）
+ * 
+ * 搜索范围：
+ * - 未登录：仅搜索已发布文章
+ * - 已登录：搜索所有文章（包括草稿）
  */
 func (h *PostHandler) SearchPosts(c *gin.Context) {
 	keyword := c.Query("keyword")
@@ -219,19 +230,78 @@ func (h *PostHandler) SearchPosts(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 
-	posts, total, err := h.repo.Search(keyword, page, pageSize)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	// 检查用户是否已登录
+	_, isAuthenticated := middleware.GetUserID(c)
+
+	// 根据登录状态决定搜索范围
+	var published *bool
+	if !isAuthenticated {
+		// 未登录用户只能搜索已发布文章
+		trueValue := true
+		published = &trueValue
+	}
+	// 已登录用户搜索所有文章（published 为 nil）
+
+	// 解析高级搜索参数（仅登录用户可用）
+	highlight := c.Query("highlight") == "true" && isAuthenticated
+	contextSize, _ := strconv.Atoi(c.DefaultQuery("contextSize", "50"))
+	if contextSize <= 0 {
+		contextSize = service.DefaultContextSize
 	}
 
-	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	// 根据是否启用高级搜索选择不同的查询方式
+	if highlight {
+		// 高级搜索：需要完整内容来提取上下文
+		posts, total, err := h.repo.SearchWithContent(keyword, page, pageSize, published)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
-	c.JSON(http.StatusOK, models.PostListResponse{
-		Posts:      posts,
-		Total:      total,
-		Page:       page,
-		PageSize:   pageSize,
-		TotalPages: totalPages,
-	})
+		// 构建带匹配信息的结果
+		results := make([]models.PostSearchResult, len(posts))
+		for i, post := range posts {
+			matches, matchCount := service.ExtractAllPostMatches(post.Title, post.Description, post.Content, keyword, contextSize)
+			results[i] = models.PostSearchResult{
+				PostSummary: models.PostSummary{
+					ID:          post.ID,
+					Title:       post.Title,
+					Description: post.Description,
+					Published:   post.Published,
+					CreatedAt:   post.CreatedAt,
+					UpdatedAt:   post.UpdatedAt,
+					Tags:        post.Tags,
+					Categories:  post.Categories,
+				},
+				MatchCount: matchCount,
+				Matches:    matches,
+			}
+		}
+
+		totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+		c.JSON(http.StatusOK, models.PostSearchResponse{
+			Posts:      results,
+			Total:      total,
+			Page:       page,
+			PageSize:   pageSize,
+			TotalPages: totalPages,
+		})
+	} else {
+		// 普通搜索
+		posts, total, err := h.repo.Search(keyword, page, pageSize, published)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+
+		c.JSON(http.StatusOK, models.PostListResponse{
+			Posts:      posts,
+			Total:      total,
+			Page:       page,
+			PageSize:   pageSize,
+			TotalPages: totalPages,
+		})
+	}
 }

@@ -1,4 +1,4 @@
-import { CreatePostInput, UpdatePostInput, SearchParams, Blog, BlogMeta } from "../common/types"
+import { CreatePostInput, UpdatePostInput, SearchParams, Blog, BlogMeta, PostSearchResult, PostSearchResponse } from "../common/types"
 import { get, post, put, del } from './utils';
 
 /**
@@ -59,28 +59,26 @@ export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info:
 };
 
 /**
- * Fetches a list of posts from the API with optional search parameters.
+ * 搜索文章（普通搜索）
+ * GET /api/posts/search?keyword=xxx&page=1&pageSize=10
  *
- * @param {SearchParams} params - Search parameters including query, categories, tags, pagination, etc.
- * @returns {Promise<{ posts: BlogMeta[]; total: number }>} A promise that resolves to posts and total count
- * @throws {Error} Throws an error if the fetch operation fails
+ * @param {SearchParams} params - 搜索参数，包括关键词、分页等
+ * @returns {Promise<{ blogs_info: BlogMeta[]; total: number }>} 返回文章列表和总数
+ * @throws {Error} 请求失败时抛出错误
  * 
- * /api/posts/search?keyword=xxx&page=1&pageSize=10
+ * 搜索范围会根据后端登录状态自动调整：
+ * - 未登录：仅搜索已发布文章
+ * - 已登录：搜索所有文章（包括草稿）
  */
 export const searchPosts = async (params: SearchParams = {}): Promise<{ blogs_info: BlogMeta[]; total: number }> => {
   console.log("service: ", `/posts with params:`, params);
   
   // 转换参数以匹配 Go 后端的期望格式
-  const goParams: any = {
+  const goParams: Record<string, string | number | boolean | undefined> = {
     keyword: params.query || undefined,
     page: params.page || 1,
     pageSize: params.limit || 10,
   };
-  
-  // 如果有 pubOnly 参数，转换为 published
-  // if (params.pubOnly !== undefined) {
-  //   goParams.published = params.pubOnly;
-  // }
   
   // Go 后端期望的响应格式
   interface GoPostListResponse {
@@ -98,6 +96,31 @@ export const searchPosts = async (params: SearchParams = {}): Promise<{ blogs_in
     blogs_info: response.posts,
     total: response.total
   };
+};
+
+/**
+ * 高级搜索文章（返回匹配上下文）
+ * GET /api/posts/search?keyword=xxx&page=1&pageSize=10&highlight=true&contextSize=50
+ *
+ * @param {SearchParams} params - 搜索参数，包括关键词、分页、上下文窗口大小等
+ * @returns {Promise<PostSearchResponse>} 返回带匹配上下文的文章列表
+ * @throws {Error} 请求失败时抛出错误
+ * 
+ * 注意：高级搜索仅登录用户可用，未登录时 highlight 参数会被忽略
+ */
+export const searchPostsAdvanced = async (params: SearchParams = {}): Promise<PostSearchResponse> => {
+  console.log("service: ", `/posts/search (advanced) with params:`, params);
+  
+  // 转换参数以匹配 Go 后端的期望格式
+  const goParams: Record<string, string | number | boolean | undefined> = {
+    keyword: params.query || undefined,
+    page: params.page || 1,
+    pageSize: params.limit || 10,
+    highlight: true,
+    contextSize: params.contextSize || 50,
+  };
+  
+  return get<PostSearchResponse>('/posts/search', { params: goParams });
 };
 
 

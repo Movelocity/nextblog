@@ -6,14 +6,14 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json pnpm-lock.yaml* ./
+COPY web/package.json web/pnpm-lock.yaml* ./
 RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY web/ .
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -33,8 +33,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create blogs directory and declare as volume
-RUN mkdir -p .next blogs
-VOLUME /app/blogs
+RUN mkdir -p .next
 
 # Copy necessary files
 COPY --from=builder /app/public ./public

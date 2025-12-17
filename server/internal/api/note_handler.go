@@ -9,6 +9,7 @@ import (
 	"server/internal/middleware"
 	"server/internal/models"
 	"server/internal/repository"
+	"server/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -282,4 +283,91 @@ func (h *NoteHandler) GetStats(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, stats)
+}
+
+/**
+ * SearchNotes 搜索笔记
+ * GET /api/notes/search?keyword=xxx&page=1&pageSize=20&highlight=true&contextSize=50
+ *
+ * 参数说明：
+ * - keyword: 搜索关键词（必填）
+ * - page: 页码（默认 1）
+ * - pageSize: 每页数量（默认 20）
+ * - highlight: 是否启用高级搜索返回匹配上下文（默认 false，仅登录用户可用）
+ * - contextSize: 上下文窗口大小（默认 50，仅 highlight=true 时有效）
+ *
+ * 搜索范围：
+ * - 未登录：仅搜索公开且未归档的笔记
+ * - 已登录：搜索所有笔记（包括私有和归档笔记）
+ */
+func (h *NoteHandler) SearchNotes(c *gin.Context) {
+	keyword := c.Query("keyword")
+	if keyword == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "keyword is required"})
+		return
+	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+
+	// 参数验证
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	// 检查用户是否已登录
+	_, isAuthenticated := middleware.GetUserID(c)
+
+	// 根据登录状态决定搜索范围
+	var isPublic *bool
+	includeArchived := false
+	if !isAuthenticated {
+		// 未登录用户只能搜索公开且未归档的笔记
+		trueValue := true
+		isPublic = &trueValue
+	} else {
+		// 已登录用户搜索所有笔记（包括私有和归档）
+		includeArchived = true
+	}
+
+	// 解析高级搜索参数（仅登录用户可用）
+	highlight := c.Query("highlight") == "true" && isAuthenticated
+	contextSize, _ := strconv.Atoi(c.DefaultQuery("contextSize", "50"))
+	if contextSize <= 0 {
+		contextSize = service.DefaultContextSize
+	}
+
+	// 执行搜索
+	notes, total, err := h.repo.Search(keyword, page, pageSize, isPublic, includeArchived)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if highlight {
+		// 高级搜索：返回带匹配信息的结果
+		results := make([]models.NoteSearchResult, len(notes))
+		for i, note := range notes {
+			matches, matchCount := service.ExtractAllNoteMatches(note.Data, note.Tags, keyword, contextSize)
+			results[i] = models.NoteSearchResult{
+				Note:       note,
+				MatchCount: matchCount,
+				Matches:    matches,
+			}
+		}
+
+		c.JSON(http.StatusOK, models.NoteSearchResponse{
+			Notes: results,
+			Total: total,
+		})
+	} else {
+		// 普通搜索
+		c.JSON(http.StatusOK, models.NoteListResponse{
+			Notes: notes,
+			Total: total,
+		})
+	}
 }

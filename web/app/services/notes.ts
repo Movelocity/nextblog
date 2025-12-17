@@ -8,7 +8,9 @@ import type {
   NotesListResponse, 
   CreateNoteParams, 
   UpdateNoteParams, 
-  GetNotesParams 
+  GetNotesParams,
+  SearchNotesParams,
+  NoteSearchResponse
 } from '@/app/common/types.notes'
 import { get, post, put, del } from './utils'
 
@@ -109,4 +111,69 @@ export const getStats = async (year: number, month: number): Promise<Record<stri
   return get<Record<string, number>>('/notes/stats', { 
     params: { year, month } 
   });
+}
+
+/**
+ * 搜索笔记（普通搜索）
+ * GET /api/notes/search?keyword=xxx&page=1&pageSize=20
+ * 
+ * @param {SearchNotesParams} params - 搜索参数
+ * @returns {Promise<NotesListResponse>} 返回笔记列表和总数
+ * @throws {Error} 请求失败时抛出错误
+ * 
+ * 搜索范围会根据后端登录状态自动调整：
+ * - 未登录：仅搜索公开且未归档的笔记
+ * - 已登录：搜索所有笔记（包括私有和归档笔记）
+ */
+export const searchNotes = async (params: SearchNotesParams): Promise<NotesListResponse> => {
+  // Go 后端返回 { notes: Note[], total: number }
+  interface GoNoteListResponse {
+    notes: NoteData[];
+    total: number;
+  }
+  
+  const goParams: Record<string, string | number | boolean | undefined> = {
+    keyword: params.keyword,
+    page: params.page || 1,
+    pageSize: params.pageSize || 20,
+  };
+  
+  const response = await get<GoNoteListResponse>('/notes/search', { params: goParams });
+  
+  // 获取实际使用的参数值
+  const actualPage = params.page || 1;
+  const actualPageSize = params.pageSize || 20;
+  
+  // 适配返回格式
+  return {
+    notes: response.notes.map(note => ({
+      ...note,
+      tags: note.tags || []
+    })),
+    total: response.total,
+    page: actualPage,
+    pageSize: actualPageSize
+  };
+}
+
+/**
+ * 高级搜索笔记（返回匹配上下文）
+ * GET /api/notes/search?keyword=xxx&page=1&pageSize=20&highlight=true&contextSize=50
+ * 
+ * @param {SearchNotesParams} params - 搜索参数，包括关键词、分页、上下文窗口大小等
+ * @returns {Promise<NoteSearchResponse>} 返回带匹配上下文的笔记列表
+ * @throws {Error} 请求失败时抛出错误
+ * 
+ * 注意：高级搜索仅登录用户可用，未登录时 highlight 参数会被忽略
+ */
+export const searchNotesAdvanced = async (params: SearchNotesParams): Promise<NoteSearchResponse> => {
+  const goParams: Record<string, string | number | boolean | undefined> = {
+    keyword: params.keyword,
+    page: params.page || 1,
+    pageSize: params.pageSize || 20,
+    highlight: true,
+    contextSize: params.contextSize || 50,
+  };
+  
+  return get<NoteSearchResponse>('/notes/search', { params: goParams });
 }

@@ -169,3 +169,41 @@ func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, e
 func (r *NoteRepository) SetArchiveStatus(id string, isArchived bool) error {
 	return db.DB.Model(&models.Note{}).Where("id = ?", id).Update("is_archived", isArchived).Error
 }
+
+/**
+ * Search 搜索笔记
+ * @param keyword 搜索关键词
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @param isPublic 公开状态过滤（nil=全部，true=公开，false=私有）
+ * @param includeArchived 是否包含已归档笔记
+ */
+func (r *NoteRepository) Search(keyword string, page, pageSize int, isPublic *bool, includeArchived bool) ([]models.Note, int64, error) {
+	var notes []models.Note
+	var total int64
+
+	searchPattern := "%" + keyword + "%"
+	query := db.DB.Model(&models.Note{}).
+		Where("data LIKE ? OR tags LIKE ?", searchPattern, searchPattern)
+
+	// 根据 isPublic 参数过滤
+	if isPublic != nil {
+		query = query.Where("is_public = ?", *isPublic)
+	}
+
+	// 根据归档状态过滤
+	if !includeArchived {
+		query = query.Where("is_archived = ?", false)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Order("date DESC, updated_at DESC").Offset(offset).Limit(pageSize).Find(&notes).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return notes, total, nil
+}

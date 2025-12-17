@@ -115,15 +115,55 @@ func (r *PostRepository) GetByTag(tag string, page, pageSize int) ([]models.Post
 
 /**
  * Search 搜索文章
+ * @param keyword 搜索关键词
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @param published 发布状态过滤（nil=全部，true=已发布，false=草稿）
  */
-func (r *PostRepository) Search(keyword string, page, pageSize int) ([]models.PostSummary, int64, error) {
+func (r *PostRepository) Search(keyword string, page, pageSize int, published *bool) ([]models.PostSummary, int64, error) {
 	var posts []models.PostSummary
 	var total int64
 
 	searchPattern := "%" + keyword + "%"
 	query := db.DB.Model(&models.Post{}).
-		Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern).
-		Where("published = ?", true)
+		Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
+
+	// 根据 published 参数过滤
+	if published != nil {
+		query = query.Where("published = ?", *published)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Order("updated_at DESC").Offset(offset).Limit(pageSize).Find(&posts).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return posts, total, nil
+}
+
+/**
+ * SearchWithContent 搜索文章并返回完整内容（用于高级搜索提取上下文）
+ * @param keyword 搜索关键词
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @param published 发布状态过滤（nil=全部，true=已发布，false=草稿）
+ */
+func (r *PostRepository) SearchWithContent(keyword string, page, pageSize int, published *bool) ([]models.Post, int64, error) {
+	var posts []models.Post
+	var total int64
+
+	searchPattern := "%" + keyword + "%"
+	query := db.DB.Model(&models.Post{}).
+		Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
+
+	// 根据 published 参数过滤
+	if published != nil {
+		query = query.Where("published = ?", *published)
+	}
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
