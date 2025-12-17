@@ -1,9 +1,20 @@
-const getApiBaseUrl = async () => {
-
-  const response = await fetch('/api/server_url');
-  const data = await response.json();
-  return data.apiBaseUrl;
+const globals: {
+  API_BASE_URL: string;
+} = {
+  API_BASE_URL: "",
 };
 
-export const API_BASE_URL: string = await getApiBaseUrl();
+const initGlobals = async () => {
+  try{
+    const response = await fetch('/api/server_url');
+    const data = await response.json();
+    globals.API_BASE_URL = data.apiBaseUrl;
+    console.log('globals', globals);
+  } catch (error) {
+    // skip build time error. we can't statically define the API_BASE_URL in this file.
+  }
+};
 
+initGlobals();
+
+export default globals;
