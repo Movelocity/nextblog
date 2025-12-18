@@ -35,6 +35,7 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
 	tag := c.Query("tag")
+	order := c.Query("order")
 
 	// 解析 isPublic 参数
 	var isPublic *bool
@@ -76,7 +77,7 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 	}
 
 	// 分页查询
-	notes, total, err := h.repo.GetWithPagination(page, pageSize, tag, isPublic, isArchived)
+	notes, total, err := h.repo.GetWithPagination(page, pageSize, tag, order, isPublic, isArchived)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

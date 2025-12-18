@@ -10,7 +10,7 @@ type PostRepository struct{}
 /**
  * GetAll 获取所有文章
  */
-func (r *PostRepository) GetAll(page, pageSize int, published *bool) ([]models.PostSummary, int64, error) {
+func (r *PostRepository) GetAll(page, pageSize int, order string, published *bool) ([]models.PostSummary, int64, error) {
 	var posts []models.PostSummary
 	var total int64
 
@@ -25,9 +25,14 @@ func (r *PostRepository) GetAll(page, pageSize int, published *bool) ([]models.P
 		return nil, 0, err
 	}
 
+	orderBy := "created_at DESC"
+	if order == "asc" {
+		orderBy = "created_at ASC"
+	}
+
 	// 分页查询
 	offset := (page - 1) * pageSize
-	if err := query.Order("updated_at DESC").Offset(offset).Limit(pageSize).Find(&posts).Error; err != nil {
+	if err := query.Order(orderBy).Offset(offset).Limit(pageSize).Find(&posts).Error; err != nil {
 		return nil, 0, err
 	}
 

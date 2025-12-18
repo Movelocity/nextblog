@@ -77,7 +77,7 @@ func (r *NoteRepository) GetPublic() ([]models.Note, error) {
  * GetWithPagination 分页获取笔记
  * @param isArchived: nil=仅未归档, true=仅已归档, false=所有笔记
  */
-func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPublic *bool, isArchived *bool) ([]models.Note, int64, error) {
+func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, order string, isPublic *bool, isArchived *bool) ([]models.Note, int64, error) {
 	var notes []models.Note
 	var total int64
 
@@ -108,9 +108,14 @@ func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, isPub
 		return nil, 0, err
 	}
 
+	orderBy := "date DESC, created_at DESC"
+	if order == "asc" {
+		orderBy = "date ASC, created_at ASC"
+	}
+
 	// 分页查询
 	offset := (page - 1) * pageSize
-	if err := query.Order("date DESC, updated_at DESC").
+	if err := query.Order(orderBy).
 		Offset(offset).
 		Limit(pageSize).
 		Find(&notes).Error; err != nil {

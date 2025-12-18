@@ -32,6 +32,7 @@ func NewPostHandler() *PostHandler {
 func (h *PostHandler) GetPosts(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	order := c.Query("order")
 
 	var published *bool
 	if publishedStr := c.Query("published"); publishedStr != "" {
@@ -49,7 +50,7 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 	}
 	// 如果用户已登录且没有指定published参数，返回所有文章（published为nil）
 
-	posts, total, err := h.repo.GetAll(page, pageSize, published)
+	posts, total, err := h.repo.GetAll(page, pageSize, order, published)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -208,14 +209,14 @@ func (h *PostHandler) GetPostsByTag(c *gin.Context) {
 /**
  * SearchPosts 搜索文章
  * GET /api/posts/search?keyword=xxx&page=1&pageSize=10&highlight=true&contextSize=50
- * 
+ *
  * 参数说明：
  * - keyword: 搜索关键词（必填）
  * - page: 页码（默认 1）
  * - pageSize: 每页数量（默认 10）
  * - highlight: 是否启用高级搜索返回匹配上下文（默认 false，仅登录用户可用）
  * - contextSize: 上下文窗口大小（默认 50，仅 highlight=true 时有效）
- * 
+ *
  * 搜索范围：
  * - 未登录：仅搜索已发布文章
  * - 已登录：搜索所有文章（包括草稿）

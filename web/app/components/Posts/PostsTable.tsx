@@ -173,7 +173,7 @@ const TableHeader = ({
 
   return (
     <div className="border-b dark:border-gray-700">
-      <div className="px-4 lg:px-4 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="lg:px-4 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         
         <div className="flex items-center gap-2 w-full">
           {selectedPosts.length > 0 ? (
@@ -502,7 +502,7 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setS
                 {[
                   { field: 'title' as const, label: '标题' },
                   { field: 'published' as const, label: '状态' },
-                  { field: 'createdAt' as const, label: '创建时间' }
+                  { field: 'createdAt' as const, label: '创建' }
                 ].map(({ field, label }) => (
                   <th
                     key={field}
@@ -562,10 +562,10 @@ const DesktopView = ({ posts, selectedPosts, setSelectedPosts, searchQuery, setS
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-600 dark:text-gray-300">
-                      {new Date(post.updatedAt).toLocaleDateString()}
+                      {new Date(post.createdAt).toLocaleDateString()}
                     </div>
                     <div className="text-xs text-gray-400 dark:text-gray-500">
-                      {new Date(post.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </td>
                   <td className="px-6 py-4">
