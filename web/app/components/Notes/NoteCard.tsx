@@ -8,6 +8,7 @@ import type { NoteData } from '@/app/common/types.notes';
 import cn from 'classnames';
 import { useAuth } from '@/app/hooks/useAuth';
 import { copyToClipboard } from '@/app/services/utils';
+import { useToast } from '@/app/components/layout/ToastHook'
 
 interface NoteCardProps {
   /** 笔记数据 */
@@ -32,9 +33,11 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
   const [editedIsPublic, setEditedIsPublic] = useState(note.isPublic);
   const [isExpanded, setIsExpanded] = useState(false);
   const [shouldCollapse, setShouldCollapse] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   // const isMobile = useIsMobile();
   const contentRef = useRef<HTMLDivElement>(null);
   const MAX_HEIGHT = 280; // 最大高度阈值（像素）
+  const { showToast } = useToast();
 
   /**
    * 检测内容高度，判断是否需要折叠
@@ -84,6 +87,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
     setEditedData(note.data);
     setEditedTags(note.tags.join(', '));
     setEditedIsPublic(note.isPublic);
+    setIsPopoverOpen(false);
   };
 
   /**
@@ -124,6 +128,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
    */
   const handleTogglePublic = () => {
     onUpdate(note.id, { isPublic: !note.isPublic });
+    setIsPopoverOpen(false);
   };
 
   const [estimatedEditorRows, setEstimatedEditorRows] = useState<number>(16);
@@ -141,6 +146,24 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
       handleSaveEdit();
+    }
+  };
+
+  const handleCopy = () => {
+    copyToClipboard(note.data);
+    setIsPopoverOpen(false);
+    showToast('笔记内容已复制', 'success');
+  };
+
+  const handleDelete = () => {
+    onDelete(note.id);
+    setIsPopoverOpen(false);
+  };
+
+  const handleArchive = () => {
+    if (onArchive) {
+      onArchive(note.id, !note.isArchived);
+      setIsPopoverOpen(false);
     }
   };
 
@@ -216,7 +239,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
             </div>
             
             <div className={cn("flex items-center gap-2", !isAuthenticated && "hidden")}>
-              <Popover>
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                 <PopoverTrigger>
                   <HiDotsVertical className="w-4 h-4" />
                 </PopoverTrigger>
@@ -245,7 +268,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
 
                   {/** 复制内容 */}
                   <button
-                    onClick={() => copyToClipboard(note.data)}
+                    onClick={handleCopy}
                     className="w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1"
                     title="复制"
                   >
@@ -255,7 +278,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
                   {/* 归档/取消归档按钮 */}
                   {onArchive && (
                     <button
-                      onClick={() => onArchive(note.id, !note.isArchived)}
+                      onClick={handleArchive}
                       className={cn(
                         'w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1',
                         note.isArchived ? 'text-orange-600' : ''
@@ -268,7 +291,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
 
                   {/* 删除按钮 */}
                   <button
-                    onClick={() => onDelete(note.id)}
+                    onClick={handleDelete}
                     className="w-20 p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex justify-center items-center gap-1"
                     title="删除"
                   >

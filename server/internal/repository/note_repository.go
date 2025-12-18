@@ -206,7 +206,8 @@ func (r *NoteRepository) Search(keyword string, page, pageSize int, isPublic *bo
 	}
 
 	offset := (page - 1) * pageSize
-	if err := query.Order("date DESC, updated_at DESC").Offset(offset).Limit(pageSize).Find(&notes).Error; err != nil {
+	// 因为 gorm 迁移时把 updated_at 字段搞坏了，全部变成迁移的时刻，所以只好用 created_at 排序
+	if err := query.Order("date DESC, created_at DESC").Offset(offset).Limit(pageSize).Find(&notes).Error; err != nil {
 		return nil, 0, err
 	}
 

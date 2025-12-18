@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode;}) {
   return (
     <html lang="zh-CN">
-      <body className="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white">
+      <body className="bg-gray-50 dark:bg-black text-black dark:text-white">
         <ToastProvider>
           {/* <Navigation /> */}
           <div className="flex flex-row">

@@ -93,9 +93,9 @@ export const AssetPreview: React.FC<AssetPreviewProps> = ({ type, url, name, thu
 
   if (isAudio) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-full bg-gray-50 p-4">
+      <div className="flex flex-col items-center justify-center w-full h-full bg-gray-50 py-4">
         <Icon size={32} className="text-gray-400 mb-2" />
-        <audio controls className="w-full max-w-[150px]" preload="metadata">
+        <audio controls className="w-full max-w-[190px]" preload="metadata">
           <source src={url} type={type} />
         </audio>
       </div>

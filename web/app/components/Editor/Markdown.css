@@ -405,7 +405,7 @@
 .mkd-body ol {
   margin-top: 0;
   margin-bottom: 0;
-  padding-left: 2em;
+  /* padding-left: 2em; */
 }
 
 .mkd-body ol ol,
@@ -1230,5 +1230,3 @@ Touched: 2022
 .mkd-body .inline-code::after {
   content:""
 }
-
-

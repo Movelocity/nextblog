@@ -207,7 +207,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
+      className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
