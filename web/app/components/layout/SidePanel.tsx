@@ -105,7 +105,7 @@ export function SidePanel() {
         {sidePanelOpen && (
           <div 
             className={cn(
-              "flex flex-col flex-1 py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-zinc-900 px-4 h-screen pb-16 gap-1",
+              "flex flex-col flex-1 py-8 text-gray-500 dark:text-gray-300 px-4 h-screen pb-16 gap-1",
               openAtMobile && "drop-shadow-lg"
             )}
           >

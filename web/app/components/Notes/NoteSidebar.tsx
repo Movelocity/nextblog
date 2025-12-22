@@ -65,9 +65,9 @@ const NoteSidebar = ({
     loadStats();
     
     // 定期刷新统计
-    const interval = setInterval(loadStats, 30000); // 30秒刷新一次
+    // const interval = setInterval(loadStats, 30000); // 30秒刷新一次
     
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, [currentYear, currentMonth]);
 
   /**

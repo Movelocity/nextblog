@@ -1,13 +1,18 @@
 import { type Metadata } from "next";
 import { SidePanel } from "@/app/components/layout/SidePanel";
-import "./globals.css";
+import "../globals.css";
 import { ToastProvider } from '@/app/components/layout/ToastHook';
 import { LoginModal } from '@/app/components/Auth/LoginModal';
-
-export const metadata: Metadata = {
-  title: "Next Blog",
-  description: "A modern blog management system built with Next.js",
-};
+ 
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Next Blog",
+    description: "A modern blog management system built with Next.js",
+    other: {
+      "API_BASE_URL": process.env.API_BASE_URL || "http://localhost:3000",
+    }
+  }
+}
 
 export default function RootLayout({children}: {children: React.ReactNode;}) {
   return (

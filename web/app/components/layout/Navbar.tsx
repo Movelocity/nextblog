@@ -48,11 +48,8 @@ export const Navigation = () => {
 
   return (
     <nav className={cn(
-      "fixed top-0 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 transition-transform duration-300", 
-      {
-        'translate-y-0': visible,
-        '-translate-y-full': !visible
-      }
+      "fixed top-0 left-0 right-0 z-40 border-b transition-transform duration-300", 
+      visible ? 'translate-y-0' : '-translate-y-full'
     )}>
       <div className="px-4 flex justify-between items-center w-full h-12">
         <div className="flex items-center gap-4">
