@@ -125,12 +125,15 @@ func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, order
 	return notes, total, nil
 }
 
-/** 按月获取每天的笔记数量
- * GetStatsByMonth 获取指定月份的统计数据
+/**
+ * GetStatsByMonth 按月获取每天的笔记数量
  * 返回该月每天的笔记数量，格式为 {"2024-01-01": 3, "2024-01-02": 5}
+ * @param year 年份
+ * @param month 月份
+ * @param isPublic 公开状态过滤（nil=全部，true=仅公开）
  * 注意：统计数据排除已归档的笔记
  */
-func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, error) {
+func (r *NoteRepository) GetStatsByMonth(year int, month int, isPublic *bool) (map[string]int, error) {
 	stats := make(map[string]int)
 
 	// 构造该月份的起始和结束日期
@@ -150,11 +153,16 @@ func (r *NoteRepository) GetStatsByMonth(year int, month int) (map[string]int, e
 		Count int
 	}
 
-	if err := db.DB.Model(&models.Note{}).
+	query := db.DB.Model(&models.Note{}).
 		Select("date, COUNT(*) as count").
-		Where("date >= ? AND date < ? AND is_archived = ?", startDate, endDate, false).
-		Group("date").
-		Scan(&results).Error; err != nil {
+		Where("date >= ? AND date < ? AND is_archived = ?", startDate, endDate, false)
+
+	// 根据 isPublic 参数过滤
+	if isPublic != nil {
+		query = query.Where("is_public = ?", *isPublic)
+	}
+
+	if err := query.Group("date").Scan(&results).Error; err != nil {
 		return nil, err
 	}
 

@@ -93,6 +93,7 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 			notes.GET("/public", noteHandler.GetPublicNotes)
 			notes.GET("", noteHandler.GetNotes)
 			notes.GET("/search", noteHandler.SearchNotes) // 搜索笔记
+			notes.GET("/stats", noteHandler.GetStats)     // 获取统计数据（已登录看全部，未登录看公开）
 
 			// 需要认证的路由
 			notesAuth := notes.Group("", middleware.MustLogin())
@@ -103,7 +104,6 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 				notesAuth.PUT("/:id", noteHandler.UpdateNote)
 				notesAuth.PUT("/:id/archive", noteHandler.ArchiveNote) // 归档/取消归档笔记
 				notesAuth.DELETE("/:id", noteHandler.DeleteNote)
-				notesAuth.GET("/stats", noteHandler.GetStats) // 获取统计数据
 			}
 		}
 

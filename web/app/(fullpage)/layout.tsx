@@ -2,14 +2,14 @@ import { type Metadata } from "next";
 import "../globals.css";
 import { ToastProvider } from '@/app/components/layout/ToastHook';
 import { LoginModal } from '@/app/components/Auth/LoginModal';
-
+// export const dynamic = 'force-dynamic'; // 禁用静态缓存，强制实时渲染
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Next Blog",
     description: "A modern blog management system built with Next.js",
-    other: {
-      "API_BASE_URL": process.env.API_BASE_URL || "http://localhost:3000",
-    }
+    // other: {
+    //   "API_BASE_URL": process.env.API_BASE_URL || "http://localhost:3000",
+    // }
   }
 }
 

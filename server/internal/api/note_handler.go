@@ -264,6 +264,7 @@ func (h *NoteHandler) GetPublicNotes(c *gin.Context) {
  * GetStats 获取统计数据
  * GET /api/notes/stats?year=2024&month=12
  * Query params: year (required), month (required)
+ * 已登录用户可以看到全部笔记统计，未登录用户只能看到公开笔记统计
  */
 func (h *NoteHandler) GetStats(c *gin.Context) {
 	// 解析年份参数
@@ -290,8 +291,17 @@ func (h *NoteHandler) GetStats(c *gin.Context) {
 		return
 	}
 
+	// 检查用户是否已登录，决定是否只统计公开笔记
+	_, isAuthenticated := middleware.GetUserID(c)
+	var isPublic *bool
+	if !isAuthenticated {
+		// 未登录用户只能看到公开笔记统计
+		trueValue := true
+		isPublic = &trueValue
+	}
+
 	// 获取统计数据
-	stats, err := h.repo.GetStatsByMonth(year, month)
+	stats, err := h.repo.GetStatsByMonth(year, month, isPublic)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
