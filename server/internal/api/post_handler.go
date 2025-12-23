@@ -282,13 +282,12 @@ func (h *PostHandler) GetPostsByTag(c *gin.Context) {
  */
 func (h *PostHandler) SearchPosts(c *gin.Context) {
 	keyword := c.Query("keyword")
-	if keyword == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "keyword is required"})
-		return
-	}
-
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+	// if keyword == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "keyword is required"})
+	// 	return
+	// }
 
 	// 检查用户是否已登录
 	_, isAuthenticated := middleware.GetUserID(c)

@@ -1,9 +1,8 @@
 import { type Metadata } from "next";
-import { SidePanel } from "@/app/components/layout/SidePanel";
 import "../globals.css";
 import { ToastProvider } from '@/app/components/layout/ToastHook';
 import { LoginModal } from '@/app/components/Auth/LoginModal';
- 
+
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Next Blog",
@@ -14,21 +13,22 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default function RootLayout({children}: {children: React.ReactNode;}) {
+/**
+ * 全屏布局 - 无系统侧边栏导航
+ * 用于需要最大化工作区域的功能页面
+ */
+export default function FullpageLayout({children}: {children: React.ReactNode;}) {
   return (
     <html lang="zh-CN" className="dark">
       <body className="bg-gray-50 dark:bg-black text-black dark:text-white">
         <ToastProvider>
-          {/* <Navigation /> */}
-          <div className="flex flex-row">
-            <SidePanel />
-            <main className="auto-container">
-              {children}
-            </main>
-          </div>
+          <main className="w-screen h-screen overflow-hidden">
+            {children}
+          </main>
           <LoginModal />
         </ToastProvider>
       </body>
     </html>
   );
 }
+

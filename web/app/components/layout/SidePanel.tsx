@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import cn from 'classnames';
-import { RiAddFill, RiUserFill, RiLogoutBoxLine, RiMoonFill, RiSunFill } from 'react-icons/ri';
+import { RiAddFill, RiUserFill, RiLogoutBoxLine, RiMoonFill, RiSunFill, RiFileTextLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getTaxonomy } from '@/app/services/posts';
@@ -12,8 +12,7 @@ import { useIsMobile } from '@/app/hooks/useIsMobile';
 import SearchModal from "@/app/components/Searching/SearchModal";
 import { removeAuthToken } from '@/app/services/auth';
 import { useAuth } from '@/app/hooks/useAuth';
-
-type Theme = "light" | "dark";
+import { type Theme } from '@/app/utils/globals';
 
 export function SidePanel() {
   const { isAuthenticated, setIsAuthenticated, checkAuthStatus, openLoginModal } = useAuth(); 
@@ -126,6 +125,7 @@ export function SidePanel() {
                 </Link>
               ))}
             </StyledLink>
+            <StyledLink icon={<RiFileTextLine className="w-4 h-4" />} name="PostsView" tgUrl="/posts-view" currentPath={pathname}></StyledLink>
             
             <StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard" currentPath={pathname}/>
             {isAuthenticated && (<StyledLink icon={<RiServerFill className="w-4 h-4" />} name="System" tgUrl="/system" currentPath={pathname}/>)}

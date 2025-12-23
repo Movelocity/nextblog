@@ -77,7 +77,7 @@ export const searchPosts = async (params: SearchParams = {}): Promise<{ blogs_in
   
   // 转换参数以匹配 Go 后端的期望格式
   const goParams: Record<string, string | number | boolean | undefined> = {
-    keyword: params.query || undefined,
+    keyword: params.query || "1",
     page: params.page || 1,
     pageSize: params.limit || 10,
   };

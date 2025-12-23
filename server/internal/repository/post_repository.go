@@ -151,9 +151,11 @@ func (r *PostRepository) Search(keyword string, page, pageSize int, published *b
 	var posts []models.PostSummary
 	var total int64
 
-	searchPattern := "%" + keyword + "%"
-	query := db.DB.Model(&models.Post{}).
-		Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
+	query := db.DB.Model(&models.Post{})
+	if keyword != "" {
+		searchPattern := "%" + keyword + "%"
+		query = query.Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
+	}
 
 	// 根据 published 参数过滤
 	if published != nil {
@@ -183,9 +185,11 @@ func (r *PostRepository) SearchWithContent(keyword string, page, pageSize int, p
 	var posts []models.Post
 	var total int64
 
-	searchPattern := "%" + keyword + "%"
-	query := db.DB.Model(&models.Post{}).
-		Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
+	query := db.DB.Model(&models.Post{})
+	if keyword != "" {
+		searchPattern := "%" + keyword + "%"
+		query = query.Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
+	}
 
 	// 根据 published 参数过滤
 	if published != nil {

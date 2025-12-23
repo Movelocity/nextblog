@@ -26,3 +26,5 @@ export const initGlobals = async () => {
 initGlobals();
 
 export default globals;
+
+export type Theme = "light" | "dark";
