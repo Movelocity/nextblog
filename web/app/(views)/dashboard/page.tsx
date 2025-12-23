@@ -13,10 +13,6 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
 function DashboardContent() {
-  
-}
-
-export default function DashboardPage() {
   const [blogs_info, setBlogsInfo] = useState<BlogMeta[]>([]);
   const { showToast } = useToast();
   const { isAuthenticated, isLoading, openLoginModal } = useAuth();
@@ -87,11 +83,16 @@ export default function DashboardPage() {
     router.push(`/dashboard?${params.toString()}`);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!id) return;
-    deletePost(id).then(() => {
+    try {
+      await deletePost(id);
+      showToast('Post deleted successfully', 'success');
       fetchPosts();
-    });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      showToast('Failed to delete post', 'error');
+    }
   }
 
   const handleTogglePublish = (id: string, currentStatus: boolean) => {
@@ -105,14 +106,8 @@ export default function DashboardPage() {
     });
             
   }
-
   return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
-      </div>
-    }>
-      <PostsTable 
+    <PostsTable 
         posts={blogs_info} 
         onDelete={handleDelete}
         onTogglePublish={handleTogglePublish}
@@ -124,6 +119,20 @@ export default function DashboardPage() {
           />
         }
       />
+  )
+}
+
+export default function DashboardPage() {
+  
+  //  ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/dashboard". 
+  // Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+      </div>
+    }>
+      <DashboardContent />
     </Suspense>
   );
 }

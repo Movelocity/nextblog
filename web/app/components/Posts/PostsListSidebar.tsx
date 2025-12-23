@@ -14,6 +14,10 @@ interface PostsListSidebarProps {
   selectedId: string | null;
   /** 选中文档时的回调 */
   onSelect: (post: BlogMeta) => void;
+  /** 新建文档时的回调，若提供则不跳转到 /posts/new */
+  onCreate?: () => void;
+  /** 刷新文档列表的回调引用 */
+  onRefreshRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 /** 骨架项预设宽度，避免使用随机值导致 hydration 问题 */
@@ -55,7 +59,7 @@ const PostsListSkeleton = () => (
  * 文档列表侧边栏组件
  * 显示可搜索、可滚动的文档标题列表
  */
-export const PostsListSidebar = ({ selectedId, onSelect }: PostsListSidebarProps) => {
+export const PostsListSidebar = ({ selectedId, onSelect, onCreate, onRefreshRef }: PostsListSidebarProps) => {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -113,6 +117,18 @@ export const PostsListSidebar = ({ selectedId, onSelect }: PostsListSidebarProps
     executeSearch('');
   }, [executeSearch]);
 
+  // 暴露刷新方法给父组件
+  useEffect(() => {
+    if (onRefreshRef) {
+      onRefreshRef.current = () => executeSearch(searchQuery);
+    }
+    return () => {
+      if (onRefreshRef) {
+        onRefreshRef.current = null;
+      }
+    };
+  }, [onRefreshRef, executeSearch, searchQuery]);
+
   // 搜索词变化时触发搜索
   useEffect(() => {
     debouncedSearch(searchQuery);
@@ -140,8 +156,14 @@ export const PostsListSidebar = ({ selectedId, onSelect }: PostsListSidebarProps
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-700">
 
       <div className="p-3 flex items-center justify-between text-gray-500 dark:text-gray-400">
-        <Link href="/"><RiHome3Fill className="w-5 h-5 hover:text-gray-700 dark:hover:text-gray-200" /></Link>
-        <Link href="/posts/new"><RiAddLine className="w-5 h-5 hover:text-gray-700 dark:hover:text-gray-200" /></Link>
+        <Link href="/dashboard"><RiHome3Fill className="w-5 h-5 hover:text-gray-700 dark:hover:text-gray-200" /></Link>
+        {onCreate ? (
+          <button onClick={onCreate} className="hover:text-gray-700 dark:hover:text-gray-200">
+            <RiAddLine className="w-5 h-5" />
+          </button>
+        ) : (
+          <Link href="/posts/new"><RiAddLine className="w-5 h-5 hover:text-gray-700 dark:hover:text-gray-200" /></Link>
+        )}
       </div>
       {/* 搜索框 */}
       <div className="px-3 pb-2">

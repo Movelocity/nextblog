@@ -30,12 +30,14 @@ const DeleteConfirmationModal = ({
       </p>
       <div className="flex justify-end gap-3 p-2">
         <button
+          type="button"
           onClick={onClose}
           className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
           Cancel
         </button>
         <button
+          type="button"
           onClick={onConfirm}
           className="px-4 py-2 text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 rounded-lg transition-colors"
         >
@@ -92,7 +94,12 @@ interface PostsTableProps {
 export default function PostsTable({ posts, onDelete, onTogglePublish, footer }: PostsTableProps) {
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePostId, setDeletePostId] = useState<string | null>(null);
+
+  const deletePost = useMemo(() => 
+    posts.find(p => p.id === deletePostId), 
+    [posts, deletePostId]
+  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
@@ -312,24 +319,13 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
                     </Link>
                     
                     <button
-                      onClick={() => setShowDeleteModal(true)}
+                      onClick={() => setDeletePostId(post.id)}
                       className="inline-flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 border border-transparent hover:border-red-200 dark:hover:border-red-800 rounded-lg transition-all"
                     >
                       {/* <FaTrash className="w-3.5 h-3.5" /> */}
                       <span>删除</span>
                     </button>
                   </div>
-
-                  <DeleteConfirmationModal
-                    isOpen={showDeleteModal}
-                    onClose={() => setShowDeleteModal(false)}
-                    onConfirm={() => {
-                      // onDelete?.(post.id);
-                      onDelete?.(post.id);
-                      setShowDeleteModal(false);
-                    }}
-                    postTitle={post.title}
-                  />
                   </td>
                 </tr>
               ))}
@@ -338,6 +334,18 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
         </div>
       )}
       {footer}
+
+      <DeleteConfirmationModal
+        isOpen={deletePostId !== null}
+        onClose={() => setDeletePostId(null)}
+        onConfirm={() => {
+          if (deletePostId) {
+            onDelete?.(deletePostId);
+          }
+          setDeletePostId(null);
+        }}
+        postTitle={deletePost?.title ?? ''}
+      />
     </div>
   );
 }

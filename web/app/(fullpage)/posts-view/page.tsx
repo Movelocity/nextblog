@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BlogMeta } from '@/app/common/types';
-import { getPost } from '@/app/services/posts';
+import { getPost, createPost } from '@/app/services/posts';
 import { PostsListSidebar } from '@/app/components/Posts/PostsListSidebar';
-import { PostEditor } from '@/app/components/Editor/PostEditor';
+import { PostEditor, PostEditorData } from '@/app/components/Editor/PostEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useToast } from '@/app/components/layout/ToastHook';
 import { useAuth } from '@/app/hooks/useAuth';
@@ -16,10 +16,12 @@ import { RiFileTextLine } from 'react-icons/ri';
  */
 export default function PostsViewPage() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const [loadingPost, setLoadingPost] = useState(false);
-  const { setPost, setLoading, setLastSaved, isDirty } = useEditPostStore();
+  const { setPost, setLoading, setLastSaved, isDirty, setIsDirty } = useEditPostStore();
   const { showToast } = useToast();
   const { isAuthenticated, isLoading: authLoading, openLoginModal } = useAuth();
+  const refreshListRef = useRef<(() => void) | null>(null);
 
   // 检查登录状态
   useEffect(() => {
@@ -58,15 +60,66 @@ export default function PostsViewPage() {
 
   // 处理文档选择
   const handleSelectPost = useCallback((post: BlogMeta) => {
-    // 如果有未保存的更改，提示用户
-    if (isDirty && selectedPostId) {
+    // 如果有未保存的更改，提示用户（包括新建模式）
+    if (isDirty && (selectedPostId || isCreating)) {
       const confirmSwitch = window.confirm('当前文档有未保存的更改，确定要切换吗？');
       if (!confirmSwitch) return;
     }
     
+    setIsCreating(false);
     setSelectedPostId(post.id);
     loadPostContent(post.id);
-  }, [isDirty, selectedPostId, loadPostContent]);
+  }, [isDirty, selectedPostId, isCreating, loadPostContent]);
+
+  /**
+   * 处理新建文档按钮点击
+   * 进入前端新建模式，不调用 API
+   */
+  const handleCreate = useCallback(() => {
+    // 如果有未保存的更改，提示用户
+    if (isDirty && (selectedPostId || isCreating)) {
+      const confirmSwitch = window.confirm('当前文档有未保存的更改，确定要新建吗？');
+      if (!confirmSwitch) return;
+    }
+    
+    // 进入新建模式
+    setSelectedPostId(null);
+    setIsCreating(true);
+    setPost({
+      title: '',
+      content: '',
+      published: false,
+      categories: [],
+      tags: [],
+    });
+    setIsDirty(false);
+    setLastSaved(null);
+    document.title = '新建文档';
+  }, [isDirty, selectedPostId, isCreating, setPost, setIsDirty, setLastSaved]);
+
+  /**
+   * 处理新建文档首次保存
+   * 调用 createPost API，成功后切换为编辑模式
+   */
+  const handleCreateSubmit = useCallback(async (data: PostEditorData) => {
+    try {
+      const newPost = await createPost(data);
+      showToast('文档创建成功', 'success');
+      
+      // 切换为编辑模式
+      setIsCreating(false);
+      setSelectedPostId(newPost.id);
+      setIsDirty(false);
+      setLastSaved(new Date());
+      document.title = newPost.title || '文档编辑';
+      
+      // 刷新文档列表
+      refreshListRef.current?.();
+    } catch (error) {
+      console.error('创建文档失败:', error);
+      showToast('创建文档失败', 'error');
+    }
+  }, [showToast, setIsDirty, setLastSaved]);
 
   // 页面加载时设置标题
   useEffect(() => {
@@ -96,6 +149,8 @@ export default function PostsViewPage() {
         <PostsListSidebar
           selectedId={selectedPostId}
           onSelect={handleSelectPost}
+          onCreate={handleCreate}
+          onRefreshRef={refreshListRef}
         />
       </div>
 
@@ -103,6 +158,8 @@ export default function PostsViewPage() {
       <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-900">
         {loadingPost ? (
           <LoadingState />
+        ) : isCreating ? (
+          <PostEditor onCreate={handleCreateSubmit} />
         ) : selectedPostId ? (
           <PostEditor id={selectedPostId} />
         ) : (
