@@ -5,6 +5,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"server/internal/middleware"
@@ -27,13 +28,37 @@ func NewPostHandler() *PostHandler {
 
 /**
  * GetPosts 获取文章列表
- * GET /api/posts?page=1&pageSize=10&published=true
+ * GET /api/posts?page=1&pageSize=10&published=true&categories=cat1+cat2&tags=tag1+tag2&order=asc
+ *
+ * 参数说明：
+ * - page: 页码（默认 1）
+ * - pageSize: 每页数量（默认 10）
+ * - published: 发布状态过滤（true/false，未指定则根据登录状态决定）
+ * - categories: 分类过滤，多个分类用 + 分隔（需同时匹配所有分类）
+ * - tags: 标签过滤，多个标签用 + 分隔（需同时匹配所有标签）
+ * - order: 排序方式（asc=升序，默认降序）
  */
 func (h *PostHandler) GetPosts(c *gin.Context) {
+	// 解析分页参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+
+	// 解析分类和标签过滤参数
+	_categories := c.Query("categories")
+	_tags := c.Query("tags")
+	var categories []string
+	var tags []string
+	if _categories != "" {
+		categories = strings.Split(_categories, "+")
+	}
+	if _tags != "" {
+		tags = strings.Split(_tags, "+")
+	}
+
+	// 解析排序参数
 	order := c.Query("order")
 
+	// 解析发布状态过滤参数
 	var published *bool
 	if publishedStr := c.Query("published"); publishedStr != "" {
 		val := publishedStr == "true"
@@ -50,12 +75,14 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 	}
 	// 如果用户已登录且没有指定published参数，返回所有文章（published为nil）
 
-	posts, total, err := h.repo.GetAll(page, pageSize, order, published)
+	// 查询文章列表
+	posts, total, err := h.repo.GetAll(page, pageSize, order, published, categories, tags)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// 计算总页数
 	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 
 	c.JSON(http.StatusOK, models.PostListResponse{
@@ -98,6 +125,9 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	post.ID = fmt.Sprintf("%d", time.Now().UnixMilli())
 	post.CreatedAt = time.Now()
 	post.UpdatedAt = time.Now()
+	if post.Description == "" {
+		post.Description = post.Content[:100]
+	}
 
 	if err := h.repo.Create(&post); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -108,8 +138,9 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 }
 
 /**
- * UpdatePost 更新文章
+ * UpdatePost 更新文章（支持局部字段更新）
  * PUT /api/posts/:id
+ * 只更新请求中提供的非零值字段，未提供的字段保持原值
  */
 func (h *PostHandler) UpdatePost(c *gin.Context) {
 	id := c.Param("id")
@@ -121,22 +152,50 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	var post models.Post
-	if err := c.ShouldBindJSON(&post); err != nil {
+	var input models.Post
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	post.ID = id
-	post.CreatedAt = existingPost.CreatedAt
-	post.UpdatedAt = time.Now()
+	// 合并字段：只更新请求中提供的非零值字段
+	if input.Title != "" {
+		existingPost.Title = input.Title
+	}
+	if input.Description != "" {
+		existingPost.Description = input.Description
+	}
+	if input.Content != "" {
+		existingPost.Content = input.Content
+	}
+	// Published 是 bool 类型，需要特殊处理（始终更新）
+	existingPost.Published = input.Published
+	// Tags 和 Categories 是数组，nil 表示未提供，空数组表示清空
+	if input.Tags != nil {
+		existingPost.Tags = input.Tags
+	}
+	if input.Categories != nil {
+		existingPost.Categories = input.Categories
+	}
 
-	if err := h.repo.Update(&post); err != nil {
+	existingPost.UpdatedAt = time.Now()
+
+	// 如果内容更新了但描述为空，自动生成描述
+	if existingPost.Description == "" && existingPost.Content != "" {
+		contentRunes := []rune(existingPost.Content)
+		if len(contentRunes) > 100 {
+			existingPost.Description = string(contentRunes[:100])
+		} else {
+			existingPost.Description = existingPost.Content
+		}
+	}
+
+	if err := h.repo.Update(existingPost); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, post)
+	c.JSON(http.StatusOK, existingPost)
 }
 
 /**

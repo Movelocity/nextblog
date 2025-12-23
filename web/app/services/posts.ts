@@ -38,6 +38,8 @@ export const getPosts = async (params: SearchParams = {}): Promise<{ blogs_info:
   const goParams: any = {
     page: params.page || 1,
     pageSize: params.limit || 10,
+    categories: params.categories? params.categories.join('+') : undefined,
+    tags: params.tags? params.tags.join('+') : undefined,
   };
   
   // Go 后端期望的响应格式

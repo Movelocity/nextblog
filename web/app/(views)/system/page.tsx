@@ -258,7 +258,7 @@ export default function SystemPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* 页面标题和刷新按钮 */}
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           系统管理
         </h1>
@@ -270,11 +270,11 @@ export default function SystemPage() {
           <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           <span>刷新</span>
         </button>
-      </div>
+      </div> */}
 
       {/* 站点配置 */}
-      <InfoCard title="站点配置" icon={FiSettings}>
-        <div className="space-y-4">
+      <InfoCard title="信息配置" icon={FiSettings}>
+        <div className="space-y-4 flex flex-col">
           <div>
             <label htmlFor="siteName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               站点名称
@@ -323,7 +323,7 @@ export default function SystemPage() {
           <button
             onClick={handleSaveSiteConfig}
             disabled={savingSiteConfig}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center self-end gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiSave className={`w-4 h-4 ${savingSiteConfig ? 'animate-pulse' : ''}`} />
             <span>{savingSiteConfig ? '保存中...' : '保存配置'}</span>

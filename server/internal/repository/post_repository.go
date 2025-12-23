@@ -9,15 +9,36 @@ type PostRepository struct{}
 
 /**
  * GetAll 获取所有文章
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @param order 排序方式 (asc/desc)
+ * @param published 发布状态过滤（nil=全部，true=已发布，false=草稿）
+ * @param categories 分类过滤（空数组=全部）
+ * @param tags 标签过滤（空数组=全部）
  */
-func (r *PostRepository) GetAll(page, pageSize int, order string, published *bool) ([]models.PostSummary, int64, error) {
+func (r *PostRepository) GetAll(page, pageSize int, order string, published *bool, categories, tags []string) ([]models.PostSummary, int64, error) {
 	var posts []models.PostSummary
 	var total int64
 
 	query := db.DB.Model(&models.Post{})
 
+	// 过滤发布状态
 	if published != nil {
 		query = query.Where("published = ?", *published)
+	}
+
+	// 过滤分类（任意匹配）
+	if len(categories) > 0 {
+		for _, category := range categories {
+			query = query.Where("json_extract(categories, '$') LIKE ?", "%\""+category+"\"%")
+		}
+	}
+
+	// 过滤标签（任意匹配）
+	if len(tags) > 0 {
+		for _, tag := range tags {
+			query = query.Where("json_extract(tags, '$') LIKE ?", "%\""+tag+"\"%")
+		}
 	}
 
 	// 获取总数
@@ -25,6 +46,7 @@ func (r *PostRepository) GetAll(page, pageSize int, order string, published *boo
 		return nil, 0, err
 	}
 
+	// 确定排序方式
 	orderBy := "created_at DESC"
 	if order == "asc" {
 		orderBy = "created_at ASC"

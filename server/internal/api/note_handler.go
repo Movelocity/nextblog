@@ -151,8 +151,9 @@ func (h *NoteHandler) CreateNote(c *gin.Context) {
 }
 
 /**
- * UpdateNote 更新笔记
+ * UpdateNote 更新笔记（支持局部字段更新）
  * PUT /api/notes/:id
+ * 只更新请求中提供的非零值字段，未提供的字段保持原值
  */
 func (h *NoteHandler) UpdateNote(c *gin.Context) {
 	id := c.Param("id")
@@ -164,22 +165,35 @@ func (h *NoteHandler) UpdateNote(c *gin.Context) {
 		return
 	}
 
-	var note models.Note
-	if err := c.ShouldBindJSON(&note); err != nil {
+	var input models.Note
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	note.ID = id
-	note.CreatedAt = existingNote.CreatedAt
-	note.UpdatedAt = time.Now()
+	// 合并字段：只更新请求中提供的非零值字段
+	if input.Date != "" {
+		existingNote.Date = input.Date
+	}
+	if input.Data != "" {
+		existingNote.Data = input.Data
+	}
+	// IsPublic 和 IsArchived 是 bool 类型，始终更新
+	existingNote.IsPublic = input.IsPublic
+	existingNote.IsArchived = input.IsArchived
+	// Tags 是数组，nil 表示未提供，空数组表示清空
+	if input.Tags != nil {
+		existingNote.Tags = input.Tags
+	}
 
-	if err := h.repo.Update(&note); err != nil {
+	existingNote.UpdatedAt = time.Now()
+
+	if err := h.repo.Update(existingNote); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, note)
+	c.JSON(http.StatusOK, existingNote)
 }
 
 /**

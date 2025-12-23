@@ -187,7 +187,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center flex-wrap mt-4">
-            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center space-x-3 text-sm text-gray-500 dark:text-gray-400 mr-3">
               <span className="flex items-center">
                 {wordCount} words
               </span>
