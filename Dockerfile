@@ -39,11 +39,15 @@ RUN mkdir -p .next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 # Set environment variables with default values
 ENV PORT=3000
 ENV API_BASE_URL=http://localhost:8080/api
+ENV RUNTIME_ENV_VARS=API_BASE_URL
 
 EXPOSE 3000
 
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["node", "server.js"] 

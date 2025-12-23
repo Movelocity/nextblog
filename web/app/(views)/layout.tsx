@@ -1,5 +1,6 @@
 import { type Metadata } from "next";
 import { SidePanel } from "@/app/components/layout/SidePanel";
+import Script from "next/script";
 import "../globals.css";
 import { ToastProvider } from '@/app/components/layout/ToastHook';
 import { LoginModal } from '@/app/components/Auth/LoginModal';
@@ -19,6 +20,7 @@ export default function RootLayout({children}: {children: React.ReactNode;}) {
   return (
     <html lang="zh-CN" className="dark">
       <body className="bg-gray-50 dark:bg-black text-black dark:text-white">
+        <Script src="/runtime-env.js" strategy="beforeInteractive" />
         <ToastProvider>
           {/* <Navigation /> */}
           <div className="flex flex-row">

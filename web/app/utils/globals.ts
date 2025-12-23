@@ -1,29 +1,33 @@
-const globals: {
-  API_BASE_URL: string;
-} = {
-  API_BASE_URL: "",
-};
+type RuntimeConfig = Record<string, string>;
 
-export const initGlobals = async () => {
-  try{
-    if (typeof window !== 'undefined') {
-    //   // read header meta tag <meta name="API_BASE_URL" content="https://blog.hollway.fun/api">
-    //   const metaTag = document.querySelector('meta[name="API_BASE_URL"]');
-    //   if (metaTag) {
-    //     globals.API_BASE_URL = metaTag.getAttribute('content') || "";
-    //   }
-    // } else {
-      const response = await fetch('/api/server_url');
-      const data = await response.json();
-      globals.API_BASE_URL = data.apiBaseUrl;
-      // console.log('globals', globals);
-    }
-  } catch (error) {
-    // skip build time error. we can't statically define the API_BASE_URL in this file.
+declare global {
+  interface Window {
+    __RUNTIME_CONFIG__?: RuntimeConfig;
   }
+}
+
+const globals = {
+  /**
+   * 获取运行时注入的 API_BASE_URL；优先从浏览器 runtime config，其次使用服务器进程环境变量
+   */
+  get API_BASE_URL(): string {
+    if (typeof window !== "undefined") {
+      return window.__RUNTIME_CONFIG__?.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    }
+    return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  },
 };
 
-initGlobals();
+/**
+ * 读取运行时注入的 API_BASE_URL；如缺失则抛错提醒运维配置
+ */
+export const ensureApiBaseUrl = (): string => {
+  const apiBaseUrl = globals.API_BASE_URL;
+  if (!apiBaseUrl) {
+    throw new Error("API_BASE_URL 未配置，请在容器启动时注入环境变量");
+  }
+  return apiBaseUrl;
+};
 
 export default globals;
 

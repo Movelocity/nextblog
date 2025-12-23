@@ -1,5 +1,6 @@
 import { type Metadata } from "next";
 import "../globals.css";
+import Script from "next/script";
 import { ToastProvider } from '@/app/components/layout/ToastHook';
 import { LoginModal } from '@/app/components/Auth/LoginModal';
 // export const dynamic = 'force-dynamic'; // 禁用静态缓存，强制实时渲染
@@ -21,6 +22,7 @@ export default function FullpageLayout({children}: {children: React.ReactNode;})
   return (
     <html lang="zh-CN" className="dark">
       <body className="bg-gray-50 dark:bg-black text-black dark:text-white">
+        <Script src="/runtime-env.js" strategy="beforeInteractive" />
         <ToastProvider>
           <main className="w-screen h-screen overflow-hidden">
             {children}

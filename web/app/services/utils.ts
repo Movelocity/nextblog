@@ -1,4 +1,4 @@
-import globals, { initGlobals } from '@/app/utils/globals';
+import { ensureApiBaseUrl } from '@/app/utils/globals';
 
 export const copyToClipboard = async (text: string): Promise<boolean> => {
   // Try using the modern clipboard API first
@@ -144,12 +144,12 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
  * @param path API 路径（例如 '/posts' 或 '/api/posts'）
  * @returns 完整的 URL
  */
-const buildApiUrl = (path: string): string => {
+const buildApiUrl = (path: string, baseUrl: string): string => {
   // 移除路径开头的 /api（如果有），因为 baseUrl 已经包含了
   const cleanPath = path.startsWith('/api/') ? path.substring(4) : path;
   // 确保路径以 / 开头
   const normalizedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-  return `${globals.API_BASE_URL}${normalizedPath}`;
+  return `${baseUrl}${normalizedPath}`;
 };
 
 /**
@@ -192,10 +192,8 @@ export const baseFetch = async <T = any>(
   } = options;
 
   // 构建完整URL（自动添加 API 基础 URL）
-  if (!globals.API_BASE_URL) {
-    await initGlobals();
-  }
-  let fullUrl = buildApiUrl(url);
+  const apiBaseUrl = ensureApiBaseUrl();
+  let fullUrl = buildApiUrl(url, apiBaseUrl);
   if (params) {
     const searchParams = buildSearchParams(params);
     const separator = fullUrl.includes('?') ? '&' : '?';
