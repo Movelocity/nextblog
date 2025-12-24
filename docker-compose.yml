@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   nextblog:
-    image: ghcr.io/movelocity/nextblog:1.2.11
+    image: nextblog
     container_name: nextblog-app
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -14,6 +14,10 @@ services:
     security_opt:  # 安全配置
       - no-new-privileges:true
     read_only: true  # 只读根文件系统
+    tmpfs:  # 临时文件系统挂载，允许运行时写入
+      - /tmp:mode=1777
+      - /app/public:mode=755,uid=1001,gid=1001  # 允许写入 runtime-env.js
+      - /app/.next/cache:mode=755,uid=1001,gid=1001  # Next.js 缓存目录
     healthcheck:  # 健康检查：检查Next.js服务是否响应
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 30s

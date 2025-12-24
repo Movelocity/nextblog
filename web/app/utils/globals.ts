@@ -12,9 +12,14 @@ const globals = {
    */
   get API_BASE_URL(): string {
     if (typeof window !== "undefined") {
-      return window.__RUNTIME_CONFIG__?.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
+      // 浏览器 runtime config, 由 docker 容器启动时注入
+      const runtimeValue = window.__RUNTIME_CONFIG__?.API_BASE_URL
+      if (runtimeValue && !runtimeValue.startsWith("__PLACEHOLDER_")) {
+        return runtimeValue;
+      }
     }
-    return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    // Next.js 环境变量, 打包时会写死到构建产物中
+    return process.env.NEXT_PUBLIC_API_BASE_URL || "";
   },
 };
 

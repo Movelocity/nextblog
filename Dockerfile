@@ -20,9 +20,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # Build the application
-RUN echo "Installing dependencies..." && \
-    npm install -g pnpm && \
-    pnpm install --prefer-frozen-lockfile && \
+RUN npm install -g pnpm && \
     pnpm run build
 
 # Production image, copy all the files and run next
@@ -32,11 +30,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create blogs directory and declare as volume
+# Create necessary directories
 RUN mkdir -p .next
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
+# Backup public directory for runtime restoration (because tmpfs will overlay it)
+COPY --from=builder /app/public ./.public-backup
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY entrypoint.sh ./entrypoint.sh
