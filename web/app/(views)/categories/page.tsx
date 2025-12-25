@@ -39,7 +39,7 @@ export default function CategoriesPage() {
   // }, [categories, loading, error])
 
   if (loading) {
-    return <div className="text-center p-8">Loading categories...</div>;
+    return <></>;
   }
 
   if (error) {

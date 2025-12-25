@@ -1,7 +1,7 @@
 import { BlogMeta } from '@/app/common/types';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
-import { FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { FaSort, FaSortUp, FaSortDown, FaEye } from 'react-icons/fa';
 import { MdPublish, MdUnpublished } from 'react-icons/md';
 import classNames from 'classnames';
 import Modal from '@/app/components/ui/Modal';
@@ -148,15 +148,19 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
 
   return (
     <div className="w-full bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <div className="px-4 py-2">
-        我的文档
+      <div className="px-10 py-2 flex justify-between items-center text-gray-600 dark:text-gray-300">
+        <span className="text-sm">我的文档</span>
+        <Link href="/posts-view" className="text-sm hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+          新版管理页面
+        </Link>
       </div>
       {selectedPosts.length > 0 && (
         <div className="flex items-center space-x-2 px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-          <div className="mr-6">
+          <div className="mr-2">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+              id="select-all-button"
+              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
               checked={sortedPosts.length > 0 && selectedPosts.length === sortedPosts.length}
               onChange={(e) => setSelectedPosts(e.target.checked ? sortedPosts.map(post => post.id) : [])}
               disabled={sortedPosts.length === 0}
@@ -213,11 +217,12 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
           <table className="min-w-full divide-y dark:divide-gray-700 divide-gray-200 flex-1 min-h-0">
           { selectedPosts.length === 0 && (
             <thead>
-              <tr className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                <th scope="col" className="p-3 text-left w-8">
+              <tr className="group text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <th scope="col" className="py-3 px-2 text-left w-6">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                    id="select-all"
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                     checked={sortedPosts.length > 0 && selectedPosts.length === sortedPosts.length}
                     onChange={(e) => setSelectedPosts(e.target.checked ? sortedPosts.map(post => post.id) : [])}
                     disabled={sortedPosts.length === 0}
@@ -240,7 +245,7 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
                     </div>
                   </th>
                 ))}
-                <th scope="col" className="p-3 text-left">
+                <th scope="col" className="p-3 text-left text-nowrap">
                   分类
                 </th>
                 <th scope="col" className="sticky right-0 py-3 px-6 text-right bg-gray-50 dark:bg-gray-800">
@@ -253,10 +258,11 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
               {sortedPosts.map((post) => (
                 <tr key={post.id} className="group transition-colors">
                   {/* Checkbox */}
-                  <td className="p-3 whitespace-nowrap w-8 group-hover:brightness-95">
+                  <td className="py-3 px-2 whitespace-nowrap w-6 group-hover:brightness-95">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                      id={post.id}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       checked={selectedPosts.includes(post.id)}
                       onChange={() => setSelectedPosts(
                         selectedPosts.includes(post.id)
@@ -265,7 +271,7 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
                       )}
                     />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-3">
                     <Link href={`/posts/${post.id}`}>
                       <div className="max-w-md">
                         <div className="text-sm font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors">

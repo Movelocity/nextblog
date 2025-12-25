@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { getTaxonomy, updatePost } from '@/app/services/posts';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useToast } from '@/app/components/layout/ToastHook';
@@ -11,6 +11,7 @@ import { RiEdit2Line, RiEyeLine } from "react-icons/ri";
 import cn from "classnames"
 import { Markdown } from '@/app/components/Editor/Markdown';
 import { useAuth } from '@/app/hooks/useAuth';
+import { toast } from '@/app/lib/toastEmitter';
 
 export interface PostEditorData {
   title: string;
@@ -32,14 +33,15 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
     setIsDirty, setError, setPostCategories, setPostTags
    } = useEditPostStore();
 
-  const {isAuthenticated, openLoginModal} = useAuth();
-  // const [isSaving, setIsSavingState] = useState(false);
+  const {isAuthenticated, openLoginModal, checkAuthStatus} = useAuth();
 
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const { showToast } = useToast();
-  const handleSubmit = async () => {
+  
+  const handleSubmit = useCallback(async () => {
     if(!isAuthenticated) {
+      toast.info('请先登录');
       openLoginModal({
         onSuccess: () => {
           showToast('登录成功，请重新保存文章', 'info');
@@ -52,24 +54,24 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
     try {
       if (id) {
         setIsSaving(true);
-        console.log("submitting", post);
+        console.log("正在保存文章：", post);
         await updatePost(id as string, post);
         setIsDirty(false);
         setLastSaved(new Date());
         setIsSaving(false);
-        showToast('Post updated successfully', 'success');
+        showToast('文章保存成功', 'success');
       } else if (onCreate) {
         onCreate(post);
-        showToast('Post created successfully', 'success');
+        showToast('文章创建成功', 'success');
       }  
     } catch (error) {
       console.error('Error updating post:', error);
-      setError('Failed to update post. Please try again.');
-      showToast('Failed to update post. Please try again.', 'error');
+      setError('文章保存失败，请重试。');
+      showToast('文章保存失败，请重试。', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, id, post, onCreate, openLoginModal, showToast, setLoading, setIsSaving, setIsDirty, setLastSaved, setError]);
 
   useEffect(()=> {
     if(typeof window == 'undefined') return;
@@ -96,48 +98,37 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
       }
     };
     loadTaxonomy();
-  }, []);
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const [isPreview, setIsPreview] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const wordCount = post.content.trim().match(/[\S]+/g)?.length || 0;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-grow textarea
+  // Auto-grow textarea - 只在挂载和预览切换时设置
   useEffect(() => {
+    if (isPreview) return; // 预览模式下不需要调整
+    
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const adjustHeight = () => {
-      // Store current scroll position and cursor position
-      const scrollPos = window.scrollY;
-      const selectionStart = textarea.selectionStart;
-      const selectionEnd = textarea.selectionEnd;
-
-      // Adjust height
+      // 只调整高度，不操作光标和滚动，避免触发额外的事件
       textarea.style.height = 'auto';
-      textarea.style.height = `${Math.max(500, textarea.scrollHeight+100)}px`;
-
-      // Restore scroll position
-      window.scrollTo(0, scrollPos);
-
-      // Restore cursor position
-      textarea.setSelectionRange(selectionStart, selectionEnd);
+      textarea.style.height = `${Math.max(500, textarea.scrollHeight + 100)}px`;
     };
 
+    // 初始调整
     adjustHeight();
     
-    // Observe textarea content changes
-    const observer = new MutationObserver(adjustHeight);
-    observer.observe(textarea, { 
-      attributes: true, 
-      characterData: true, 
-      childList: true, 
-      subtree: true 
-    });
-
-    return () => observer.disconnect();
-  }, [post.content, isPreview]);
+    // 监听 input 事件而不是使用 MutationObserver
+    // input 事件更轻量，且只在用户输入时触发
+    textarea.addEventListener('input', adjustHeight);
+    return () => {
+      textarea.removeEventListener('input', adjustHeight);
+    };
+  }, [post.content, isPreview]); // 只依赖 isPreview，不依赖 post.content
 
   const handleCategoryChange = (category: string) => {
     const newCategories = post.categories.includes(category)
@@ -180,7 +171,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
               id="title"
               value={post.title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="block w-full px-0 text-4xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              className="block w-full px-0 text-3xl font-bold bg-transparent border-0 outline-none focus:ring-0 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Post title"
               required
             />
@@ -191,8 +182,8 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
               <span className="flex items-center">
                 {wordCount} words
               </span>
-              <span className="italic">
-                {lastSaved ? `Last saved ${lastSaved.toLocaleTimeString()}` : ''}
+              <span>
+                {lastSaved ? `最近保存 ${lastSaved.toLocaleTimeString()}` : ''}
               </span>
             </div>
 
@@ -223,7 +214,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
                   { "opacity-50 cursor-default": loading }
                 )}
               >
-                {'Save'}
+                Save
               </button>
             </div>
           </div>

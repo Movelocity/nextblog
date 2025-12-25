@@ -52,7 +52,7 @@ export default function ToolsPage() {
   };
 
   return (
-    <div>
+    <div className="py-6">
 
       {/* Search and Filters */}
       <div className="mb-8 space-y-4">

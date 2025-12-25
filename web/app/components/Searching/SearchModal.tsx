@@ -7,6 +7,7 @@ import { FaRegFaceGrinBeamSweat } from "react-icons/fa6";
 import Modal from '@/app/components/ui/Modal';
 import SearchPosts from './SearchPosts';
 import Link from 'next/link';
+import IconBtn from '@/app/components/ui/IconBtn';
 
 const getExcerpt = (content: string) => {
   return content.slice(0, 150) + (content.length > 150 ? '...' : '');
@@ -65,17 +66,7 @@ export default function SearchModal() {
 
   return (
     <>
-      {/* <button
-        onClick={() => setIsOpen(true)}
-        className="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 outline-none"
-        aria-label="Search posts"
-      >
-        <RiSearchLine className="h-5 w-5" />
-      </button> */}
-      <div className="flex gap-1 h-10 items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" onClick={() => setIsOpen(true)}>
-        <RiSearchLine className="h-4 w-4" />
-        {/* <span className="text-sm">Search</span> */}
-      </div>
+      <IconBtn icon={<RiSearchLine className="h-4 w-4" />} onClick={() => setIsOpen(true)} />
 
       <Modal isOpen={isOpen} onClose={handleClose} size="lg">
         <div className="relative flex flex-col w-full mx-auto bg-white dark:bg-gray-800/95 rounded-lg">

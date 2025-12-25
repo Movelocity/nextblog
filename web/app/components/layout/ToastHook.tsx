@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import ToastContainer, { ToastType } from './Toast';
+import toastEmitter from '@/app/lib/toastEmitter';
 
 interface Toast {
   id: string;
@@ -15,6 +16,10 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+/**
+ * Toast提供者组件
+ * 提供Context API和全局事件监听两种方式来显示Toast消息
+ */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -26,6 +31,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const handleDismiss = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
+
+  // 监听全局toast事件
+  useEffect(() => {
+    const unsubscribe = toastEmitter.subscribe((event) => {
+      showToast(event.message, event.type);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [showToast]);
 
   return (
     <ToastContext.Provider value={{ showToast }}>

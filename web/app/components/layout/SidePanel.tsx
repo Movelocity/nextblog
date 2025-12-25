@@ -13,6 +13,7 @@ import SearchModal from "@/app/components/Searching/SearchModal";
 import { removeAuthToken } from '@/app/services/auth';
 import { useAuth } from '@/app/hooks/useAuth';
 import { type Theme } from '@/app/utils/globals';
+import IconBtn from '../ui/IconBtn';
 
 export function SidePanel() {
   const { isAuthenticated, setIsAuthenticated, checkAuthStatus, openLoginModal } = useAuth(); 
@@ -104,7 +105,7 @@ export function SidePanel() {
         {sidePanelOpen && (
           <div 
             className={cn(
-              "flex flex-col flex-1 py-8 text-gray-500 dark:text-gray-300 px-4 h-screen pb-16 gap-1",
+              "flex flex-col flex-1 py-8 text-gray-500 dark:text-gray-300 px-4 h-screen pb-16 gap-1 bg-background",
               openAtMobile && "drop-shadow-lg"
             )}
           >
@@ -125,7 +126,7 @@ export function SidePanel() {
                 </Link>
               ))}
             </StyledLink>
-            {isAuthenticated && (<StyledLink icon={<RiFileTextLine className="w-4 h-4" />} name="PostsView" tgUrl="/posts-view" currentPath={pathname}></StyledLink>)}
+            {/* {isAuthenticated && (<StyledLink icon={<RiFileTextLine className="w-4 h-4" />} name="PostsView" tgUrl="/posts-view" currentPath={pathname}></StyledLink>)} */}
             {isAuthenticated && (<StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard" currentPath={pathname}/>)}
             {isAuthenticated && (<StyledLink icon={<RiServerFill className="w-4 h-4" />} name="System" tgUrl="/system" currentPath={pathname}/>)}
             
@@ -133,9 +134,8 @@ export function SidePanel() {
             <div className="flex-1"></div>
 
             <div className="grid grid-cols-3 gap-1">
-              <div 
-                title={isAuthenticated ? "Logout" : "Login"}
-                className="flex gap-1 h-10 items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" 
+              <IconBtn 
+                icon={isAuthenticated ? <RiLogoutBoxLine className="w-4 h-4" /> : <RiUserFill className="w-4 h-4" />} 
                 onClick={() => {
                   if(isAuthenticated) {
                     removeAuthToken();
@@ -143,14 +143,10 @@ export function SidePanel() {
                   } else {
                     openLoginModal();
                   }
-                }}
-              >
-                {isAuthenticated ? <RiLogoutBoxLine className="w-4 h-4" /> : <RiUserFill className="w-4 h-4" />}
-              </div>
+                }} 
+              />
 
-              <div className="flex gap-1 h-10 items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md py-1 px-2" onClick={handleToggle}>
-                {theme === "light" ? <RiMoonFill className="w-4 h-4" /> : <RiSunFill className="w-4 h-4" />}
-              </div>
+              <IconBtn icon={theme === "light" ? <RiMoonFill className="w-4 h-4" /> : <RiSunFill className="w-4 h-4" />} onClick={handleToggle} />
 
               <SearchModal />
             </div>

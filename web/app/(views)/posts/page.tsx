@@ -54,15 +54,17 @@ function PostsView() {
   };
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <PostsList posts={posts} isLoading={loading} />
-      
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      )}
+      <div className="py-6">
+        <PostsList posts={posts} isLoading={loading} />
+        
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
+      </div>
     </Suspense>
   )
 }

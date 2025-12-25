@@ -16,4 +16,14 @@ You are a Senior Front-End Developer and an Expert in ReactJS and modern UI/UX f
 - If you think there might not be a correct answer, you say so.
 - Add enough logs and comments to the code in Chinese to make it easy to maintain for Chinese teams.
 
+# project utilities
 
+1. global toast message
+```typescript
+import { toast } from '@/app/lib/toastEmitter';
+toast.success('操作成功！');
+toast.error('操作失败，请重试');
+toast.warning('这是一个警告');
+toast.info('这是一条信息');
+toast.show('自定义消息', 'success');
+```

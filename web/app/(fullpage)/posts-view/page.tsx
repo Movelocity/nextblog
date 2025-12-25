@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BlogMeta } from '@/app/common/types';
 import { getPost, createPost } from '@/app/services/posts';
 import { PostsListSidebar } from '@/app/components/Posts/PostsListSidebar';
@@ -18,10 +18,10 @@ export default function PostsViewPage() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [loadingPost, setLoadingPost] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { setPost, setLoading, setLastSaved, isDirty, setIsDirty } = useEditPostStore();
   const { showToast } = useToast();
   const { isAuthenticated, isLoading: authLoading, openLoginModal } = useAuth();
-  const refreshListRef = useRef<(() => void) | null>(null);
 
   // 检查登录状态
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function PostsViewPage() {
       document.title = newPost.title || '文档编辑';
       
       // 刷新文档列表
-      refreshListRef.current?.();
+      setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('创建文档失败:', error);
       showToast('创建文档失败', 'error');
@@ -150,12 +150,12 @@ export default function PostsViewPage() {
           selectedId={selectedPostId}
           onSelect={handleSelectPost}
           onCreate={handleCreate}
-          onRefreshRef={refreshListRef}
+          refreshTrigger={refreshTrigger}
         />
       </div>
 
       {/* 右侧编辑区域 */}
-      <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-900">
+      <div className="flex-1 min-w-0 overflow-y-auto bg-white dark:bg-zinc-900 pr-2">
         {loadingPost ? (
           <LoadingState />
         ) : isCreating ? (

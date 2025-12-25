@@ -8,6 +8,8 @@ import cn from 'classnames';
 import debounce from 'lodash/debounce';
 import { type Theme } from '@/app/utils/globals';
 import Link from 'next/link';
+import IconBtn from '@/app/components/ui/IconBtn';
+import { useRouter } from 'next/navigation';
 
 interface PostsListSidebarProps {
   /** 当前选中的文档 ID */
@@ -16,8 +18,8 @@ interface PostsListSidebarProps {
   onSelect: (post: BlogMeta) => void;
   /** 新建文档时的回调，若提供则不跳转到 /posts/new */
   onCreate?: () => void;
-  /** 刷新文档列表的回调引用 */
-  onRefreshRef?: React.MutableRefObject<(() => void) | null>;
+  /** 刷新触发器，当值变化时重新加载列表 */
+  refreshTrigger?: number;
 }
 
 /** 骨架项预设宽度，避免使用随机值导致 hydration 问题 */
@@ -59,22 +61,23 @@ const PostsListSkeleton = () => (
  * 文档列表侧边栏组件
  * 显示可搜索、可滚动的文档标题列表
  */
-export const PostsListSidebar = ({ selectedId, onSelect, onCreate, onRefreshRef }: PostsListSidebarProps) => {
+export const PostsListSidebar = ({ selectedId, onSelect, onCreate, refreshTrigger }: PostsListSidebarProps) => {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
+  const [displayPosts, setDisplayPosts] = useState<BlogMeta[]>([]); // 用于显示的列表，延迟更新
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState(0);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // 初始化主题
-  useEffect(() => {
-    const storedTheme = localStorage.getItem('theme') as Theme || 'light';
-    updateTheme(storedTheme);
-    console.log('useEffect', storedTheme);
-  }, []);
+  const postsLengthRef = useRef(0);
+  const isInitialLoadRef = useRef(true); // 标记是否是初始加载
+  const router = useRouter();
 
   // 切换主题
-  const updateTheme = (newTheme: "light" | "dark") => {
+  const updateTheme = useCallback((newTheme: "light" | "dark") => {
     if(newTheme === "light") {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
@@ -83,54 +86,100 @@ export const PostsListSidebar = ({ selectedId, onSelect, onCreate, onRefreshRef 
       localStorage.setItem("theme", "dark");
     }
     setTheme(newTheme);
-  }
+  }, []);
 
   const handleToggleTheme = () => {
     console.log('handleToggle', theme);
     updateTheme(theme === "light" ? "dark" : "light");
   };
 
+  // 初始化主题
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme') as Theme || 'light';
+    updateTheme(storedTheme);
+    console.log('useEffect', storedTheme);
+  }, [updateTheme]);
+
   // 搜索文档
-  const executeSearch = useCallback(async (query: string) => {
-    setLoading(true);
+  const executeSearch = useCallback(async (query: string, pageNum: number = 1, append: boolean = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      // 不清空 posts，保留旧数据用于显示
+    }
+    
     try {
-      const { blogs_info } = await searchPosts({
+      const { blogs_info, total: totalCount } = await searchPosts({
         query: query.trim() || undefined,
-        limit: 100, // 获取较多文档以便本地筛选
+        page: pageNum,
+        limit: 20, // 每页加载 20 条
       });
-      setPosts(blogs_info);
+      
+      if (append) {
+        setPosts(prev => {
+          const newPosts = [...prev, ...blogs_info];
+          postsLengthRef.current = newPosts.length;
+          setDisplayPosts(newPosts); // 立即更新显示列表
+          return newPosts;
+        });
+      } else {
+        setPosts(blogs_info);
+        setDisplayPosts(blogs_info); // 数据加载完成后再更新显示列表
+        postsLengthRef.current = blogs_info.length;
+      }
+      
+      // 判断是否还有更多数据
+      const totalLoaded = append ? postsLengthRef.current : blogs_info.length;
+      setHasMore(totalLoaded < totalCount);
+      setTotal(totalCount);
+      setPage(pageNum);
     } catch (error) {
       console.error('搜索文档失败:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
-  // 防抖搜索
+  // 加载更多
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      executeSearch(searchQuery, page + 1, true);
+    }
+  }, [searchQuery, page, loadingMore, hasMore, executeSearch]);
+
+  // 防抖搜索（搜索时重置分页）
   const debouncedSearch = useMemo(
-    () => debounce((query: string) => executeSearch(query), 300),
+    () => debounce((query: string) => {
+      setPage(1);
+      setHasMore(true);
+      executeSearch(query, 1, false);
+    }, 300),
     [executeSearch]
   );
 
-  // 初始加载
+  // 初始加载（立即执行，无防抖延迟）
   useEffect(() => {
-    executeSearch('');
-  }, [executeSearch]);
+    executeSearch('', 1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // 暴露刷新方法给父组件
+  // 监听刷新触发器
   useEffect(() => {
-    if (onRefreshRef) {
-      onRefreshRef.current = () => executeSearch(searchQuery);
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      setPage(1);
+      setHasMore(true);
+      executeSearch(searchQuery, 1, false);
     }
-    return () => {
-      if (onRefreshRef) {
-        onRefreshRef.current = null;
-      }
-    };
-  }, [onRefreshRef, executeSearch, searchQuery]);
+  }, [refreshTrigger, executeSearch, searchQuery]);
 
-  // 搜索词变化时触发搜索
+  // 搜索词变化时触发搜索（跳过初始加载，避免重复调用）
   useEffect(() => {
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      return;
+    }
     debouncedSearch(searchQuery);
     return () => debouncedSearch.cancel();
   }, [searchQuery, debouncedSearch]);
@@ -152,18 +201,25 @@ export const PostsListSidebar = ({ selectedId, onSelect, onCreate, onRefreshRef 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // 手动点击加载更多
+  const handleLoadMore = () => {
+    if (hasMore && !loadingMore && !loading) {
+      loadMore();
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-700">
 
-      <div className="p-3 flex items-center justify-between text-gray-500 dark:text-gray-400">
-        <Link href="/dashboard"><RiHome3Fill className="w-5 h-5 hover:text-gray-700 dark:hover:text-gray-200" /></Link>
-        {onCreate ? (
-          <button onClick={onCreate} className="hover:text-gray-700 dark:hover:text-gray-200">
-            <RiAddLine className="w-5 h-5" />
-          </button>
-        ) : (
-          <Link href="/posts/new"><RiAddLine className="w-5 h-5 hover:text-gray-700 dark:hover:text-gray-200" /></Link>
-        )}
+      <div className="px-3 py-2 flex items-center justify-between text-gray-500 dark:text-gray-400">
+        <IconBtn icon={<RiHome3Fill className="w-5 h-5" />} onClick={() => router.push('/dashboard')} />
+        <IconBtn icon={<RiAddLine className="w-5 h-5" />} onClick={() => {
+          if(onCreate) {
+            onCreate();
+          } else {
+            router.push('/posts/new');
+          }
+        }} />
       </div>
       {/* 搜索框 */}
       <div className="px-3 pb-2">
@@ -183,50 +239,79 @@ export const PostsListSidebar = ({ selectedId, onSelect, onCreate, onRefreshRef 
 
       {/* 文档列表 */}
       <div className="flex-1 overflow-y-auto muted-scrollbar">
-        {loading ? (
+        {loading && displayPosts.length === 0 ? (
+          // 仅在首次加载且没有数据时显示骨架
           <PostsListSkeleton />
-        ) : posts.length === 0 ? (
+        ) : displayPosts.length === 0 ? (
           <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
             {searchQuery ? '未找到匹配的文档' : '暂无文档'}
           </div>
         ) : (
-          <ul className="py-2">
-            {posts.map((post) => (
-              <li key={post.id}>
-                <button
-                  onClick={() => onSelect(post)}
-                  className={cn(
-                    'w-full text-left px-4 py-2.5 text-sm transition-colors',
-                    'hover:bg-gray-100 dark:hover:bg-zinc-800',
-                    selectedId === post.id
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-700 dark:text-gray-300'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    {/* 发布状态指示器 */}
-                    <span
-                      className={cn(
-                        'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                        post.published 
-                          ? 'bg-green-500' 
-                          : 'bg-gray-300 dark:bg-gray-600'
-                      )}
-                      title={post.published ? '已发布' : '草稿'}
-                    />
-                    <span className="truncate">{post.title || '无标题'}</span>
+          <>
+            <ul className="py-2">
+              {displayPosts.map((post) => (
+                <li key={post.id}>
+                  <button
+                    onClick={() => onSelect(post)}
+                    className={cn(
+                      'w-full text-left px-4 py-2.5 text-sm transition-colors',
+                      'hover:bg-gray-100 dark:hover:bg-zinc-800',
+                      selectedId === post.id
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300'
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      {/* 发布状态指示器 */}
+                      <span
+                        className={cn(
+                          'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                          post.published 
+                            ? 'bg-green-500' 
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        )}
+                        title={post.published ? '已发布' : '草稿'}
+                      />
+                      <span className="truncate">{post.title || '无标题'}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            
+            {/* 手动加载更多按钮 */}
+            {hasMore && (
+              <div className="text-center pb-4">
+                {loadingMore ? (
+                  <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+                    <div className="w-4 h-4 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+                    <span>加载中...</span>
                   </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+                ) : (
+                  <button
+                    onClick={handleLoadMore}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors"
+                  >
+                    加载更多
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {/* 没有更多数据提示 */}
+            {!hasMore && displayPosts.length > 0 && (
+              <div className="text-center text-gray-400 dark:text-gray-500 text-xs">
+                已加载全部文档
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* 底部操作栏 */}
       <div className="p-3 border-t border-gray-200 dark:border-zinc-700 flex items-center justify-between">
         <span className="text-xs text-gray-500 dark:text-gray-400">
-          {posts.length} 篇文档
+          {displayPosts.length > 0 && total > 0 ? `${displayPosts.length} / ${total}` : `${displayPosts.length}`} 篇文档
         </span>
         <button
           onClick={handleToggleTheme}

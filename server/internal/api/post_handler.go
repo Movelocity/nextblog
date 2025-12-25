@@ -126,7 +126,12 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	post.CreatedAt = time.Now()
 	post.UpdatedAt = time.Now()
 	if post.Description == "" {
-		post.Description = post.Content[:100]
+		runes := []rune(string(post.Content))
+		if len(runes) > 100 {
+			post.Description = string(runes[:100])
+		} else {
+			post.Description = post.Content
+		}
 	}
 
 	if err := h.repo.Create(&post); err != nil {
