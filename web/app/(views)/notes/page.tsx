@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchNotes, createNote, updateNote, deleteNote, archiveNote } from '@/app/services/notes';
+import { fetchNotes, createNote, updateNote, deleteNote, archiveNote, searchNotes, fetchNotesByDate } from '@/app/services/notes';
 import type { NoteData } from '@/app/common/types.notes';
 import NoteCard from '@/app/components/Notes/NoteCard';
 import {NoteEditor, NoteSidebar} from '@/app/components/Notes';
@@ -22,6 +22,8 @@ const NotesPage = () => {
   const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
   const [showPublicOnly, setShowPublicOnly] = useState<boolean | undefined>(undefined);
   const [showArchivedOnly, setShowArchivedOnly] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
   const { showToast } = useToast();
   const isMobile = useIsMobile();
   const pageSize = 10;
@@ -36,13 +38,36 @@ const NotesPage = () => {
     
     setLoading(true);
     try {
-      const result = await fetchNotes({
-        page: pageNum,
-        pageSize,
-        tag: selectedTag,
-        isPublic: showPublicOnly,
-        isArchived: showArchivedOnly ? true : undefined,
-      });
+      let result;
+      
+      // 如果选择了日期，使用日期API
+      if (selectedDate) {
+        const notesByDate = await fetchNotesByDate(selectedDate);
+        result = {
+          notes: notesByDate,
+          total: notesByDate.length,
+          page: 1,
+          pageSize: notesByDate.length
+        };
+      }
+      // 如果有搜索关键词，使用搜索API
+      else if (searchKeyword) {
+        result = await searchNotes({
+          keyword: searchKeyword,
+          page: pageNum,
+          pageSize,
+        });
+      }
+      // 否则使用普通列表API
+      else {
+        result = await fetchNotes({
+          page: pageNum,
+          pageSize,
+          tag: selectedTag,
+          isPublic: showPublicOnly,
+          isArchived: showArchivedOnly ? true : undefined,
+        });
+      }
       
       setNotes(prev => append ? [...prev, ...result.notes] : result.notes);
       setTotal(result.total);
@@ -53,14 +78,14 @@ const NotesPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, selectedTag, showPublicOnly, showArchivedOnly, showToast]);
+  }, [loading, selectedTag, showPublicOnly, showArchivedOnly, searchKeyword, selectedDate, showToast]);
 
   /**
    * 初始加载
    */
   useEffect(() => {
     loadNotes(1, false);
-  }, [selectedTag, showPublicOnly, showArchivedOnly]);
+  }, [selectedTag, showPublicOnly, showArchivedOnly, searchKeyword, selectedDate]);
 
   /**
    * 加载更多
@@ -181,6 +206,30 @@ const NotesPage = () => {
     setPage(1);
   }, []);
 
+  /**
+   * 处理搜索
+   */
+  const handleSearch = useCallback((keyword: string) => {
+    setSearchKeyword(keyword);
+    setPage(1);
+    // 搜索时清除日期选择
+    if (keyword) {
+      setSelectedDate(undefined);
+    }
+  }, []);
+
+  /**
+   * 处理日期选择
+   */
+  const handleSelectDate = useCallback((date: string | undefined) => {
+    setSelectedDate(date);
+    setPage(1);
+    // 选择日期时清除搜索
+    if (date) {
+      setSearchKeyword('');
+    }
+  }, []);
+
   return (
     <div className="w-full flex flex-col lg:flex-row gap-4">
       {/* 主内容区 */}
@@ -206,7 +255,10 @@ const NotesPage = () => {
           ) : notes.length === 0 ? (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
               <p className="text-gray-500 dark:text-gray-400">
-                {selectedTag ? '没有找到相关笔记' : isAuthenticated ? '还没有笔记，开始创建第一条吧！' : '还没有公开笔记可查看'}
+                {searchKeyword ? `没有找到包含"${searchKeyword}"的笔记` : 
+                 selectedDate ? `${selectedDate} 没有笔记` :
+                 selectedTag ? '没有找到相关笔记' : 
+                 isAuthenticated ? '还没有笔记，开始创建第一条吧！' : '还没有公开笔记可查看'}
               </p>
             </div>
           ) : (
@@ -251,6 +303,10 @@ const NotesPage = () => {
           onSelectTag={handleSelectTag}
           onTogglePublicFilter={handleTogglePublicFilter}
           onToggleArchivedFilter={handleToggleArchivedFilter}
+          onSearch={handleSearch}
+          searchKeyword={searchKeyword}
+          onSelectDate={handleSelectDate}
+          selectedDate={selectedDate}
         />
       )}
     </div>

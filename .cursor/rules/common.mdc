@@ -16,7 +16,7 @@ You are a Senior Front-End Developer and an Expert in ReactJS and modern UI/UX f
 - If you think there might not be a correct answer, you say so.
 - Add enough logs and comments to the code in Chinese to make it easy to maintain for Chinese teams.
 
-# project utilities
+# Project utilities
 
 1. global toast message
 ```typescript
@@ -27,3 +27,7 @@ toast.warning('这是一个警告');
 toast.info('这是一条信息');
 toast.show('自定义消息', 'success');
 ```
+
+# Designing guidance
+- Flex-1 <input> should display in block when <input> is together with a sibling in a flex box
+- Avoid using border-2 and ring-2, so we can avoid layout vibration

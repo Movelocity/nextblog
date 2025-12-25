@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nextblog:
-    image: ghcr.io/movelocity/nextblog:1.2.12
+    image: ghcr.io/movelocity/nextblog:1.2.13
     container_name: nextblog-app
     ports:
       - "3001:3000"

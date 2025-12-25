@@ -78,7 +78,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
   const { isAuthenticated } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState(note.data);
-  const [editedTags, setEditedTags] = useState(note.tags.join(', '));
+  const [editedTags, setEditedTags] = useState(note.tags?.join(', '));
   const [editedIsPublic, setEditedIsPublic] = useState(note.isPublic);
   const [isExpanded, setIsExpanded] = useState(false);
   const [shouldCollapse, setShouldCollapse] = useState(false);
@@ -134,7 +134,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
   const handleStartEdit = () => {
     setIsEditing(true);
     setEditedData(note.data);
-    setEditedTags(note.tags.join(', '));
+    setEditedTags(note.tags?.join(', '));
     setEditedIsPublic(note.isPublic);
     setIsPopoverOpen(false);
   };
@@ -145,7 +145,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditedData(note.data);
-    setEditedTags(note.tags.join(', '));
+    setEditedTags(note.tags?.join(', '));
     setEditedIsPublic(note.isPublic);
   };
 
@@ -353,7 +353,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
               className={cn(
                 "prose prose-base dark:prose-invert max-w-none transition-all duration-300 overflow-hidden",
                 shouldCollapse && !isExpanded && "max-h-[280px]",
-                note.tags.length > 0 && "pb-6"
+                note.tags?.length > 0 && "pb-6"
               )}
               style={shouldCollapse && !isExpanded ? {
                 maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
@@ -388,7 +388,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
             )}
 
             {/* 标签 */}
-            {note.tags.length > 0 && (
+            {note.tags?.length > 0 && (
               <div className="absolute bottom-0 left-0 flex flex-wrap gap-2 pointer-events-none">
                 {note.tags.map(tag => (
                   <span

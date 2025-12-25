@@ -177,3 +177,15 @@ export const searchNotesAdvanced = async (params: SearchNotesParams): Promise<No
   
   return get<NoteSearchResponse>('/notes/search', { params: goParams });
 }
+
+/**
+ * 根据日期获取笔记
+ * GET /api/notes/date/:date
+ * 
+ * @param {string} date - 日期字符串，格式：YYYY-MM-DD
+ * @returns {Promise<NoteData[]>} 返回该日期的所有笔记
+ * @throws {Error} 请求失败时抛出错误
+ */
+export const fetchNotesByDate = async (date: string): Promise<NoteData[]> => {
+  return get<NoteData[]>(`/notes/date/${date}`);
+}
