@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { 
   RiUploadLine, 
   RiImageLine, 
@@ -24,6 +24,19 @@ interface ImageState {
 
 type BackgroundType = 'transparent' | 'white' | 'custom';
 type ExportFormat = 'png' | 'jpg' | 'webp' | 'ico';
+type AspectRatioPreset = 'current' | '1:1' | '16:9' | '4:3' | '3:2' | '2:3' | '9:16' | 'custom';
+
+const PRESET_SIZES = [256, 512, 1024];
+const ASPECT_RATIOS: Record<AspectRatioPreset, { label: string; ratio: number | null }> = {
+  'current': { label: '当前比例', ratio: null },
+  '1:1': { label: '1:1 (方形)', ratio: 1 },
+  '16:9': { label: '16:9 (宽屏)', ratio: 16/9 },
+  '4:3': { label: '4:3 (标准)', ratio: 4/3 },
+  '3:2': { label: '3:2 (照片)', ratio: 3/2 },
+  '2:3': { label: '2:3 (竖版)', ratio: 2/3 },
+  '9:16': { label: '9:16 (手机)', ratio: 9/16 },
+  'custom': { label: '自定义', ratio: null },
+};
 
 /**
  * Image Processor Tool - Pure frontend image processing
@@ -43,6 +56,8 @@ export default function ImageProcessorPage() {
   const [cropWidth, setCropWidth] = useState(100);
   const [cropHeight, setCropHeight] = useState(100);
   const [appliedCrop, setAppliedCrop] = useState<{x: number, y: number, width: number, height: number} | null>(null);
+  const [cropLockAspect, setCropLockAspect] = useState(false);
+  const [cropAspectPreset, setCropAspectPreset] = useState<AspectRatioPreset>('current');
   const [borderRadius, setBorderRadius] = useState(0);
   const [padding, setPadding] = useState(0);
   const [backgroundType, setBackgroundType] = useState<BackgroundType>('transparent');
@@ -55,11 +70,14 @@ export default function ImageProcessorPage() {
   const [scaleEnabled, setScaleEnabled] = useState(false);
   const [scaleWidth, setScaleWidth] = useState(0);
   const [scaleHeight, setScaleHeight] = useState(0);
-  const [keepAspectRatio, setKeepAspectRatio] = useState(true);
+  const [scaleLockAspect, setScaleLockAspect] = useState(true);
+  const [scaleAspectPreset, setScaleAspectPreset] = useState<AspectRatioPreset>('current');
   const [scalePercent, setScalePercent] = useState(100);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const exportSizeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastProcessParamsRef = useRef<string>('');
 
   /**
    * Convert file to base64
@@ -178,6 +196,97 @@ export default function ImageProcessorPage() {
   };
 
   /**
+   * Get current processed image dimensions
+   */
+  const getCurrentDimensions = () => {
+    if (!canvasRef.current) return { width: 0, height: 0 };
+    return { width: canvasRef.current.width, height: canvasRef.current.height };
+  };
+
+  /**
+   * Get current crop dimensions in pixels (memoized)
+   */
+  const cropPixelDimensions = useMemo(() => {
+    if (!imageState) return { width: 0, height: 0 };
+    const width = Math.round((cropWidth / 100) * imageState.width);
+    const height = Math.round((cropHeight / 100) * imageState.height);
+    return { width, height };
+  }, [imageState, cropWidth, cropHeight]);
+
+  /**
+   * Get current crop dimensions in pixels
+   */
+  const getCropPixelDimensions = () => cropPixelDimensions;
+
+  /**
+   * Update scale dimensions maintaining aspect ratio if locked
+   */
+  const updateScaleDimensions = (newWidth?: number, newHeight?: number, usePreset: AspectRatioPreset = scaleAspectPreset) => {
+    const current = getCurrentDimensions();
+    if (!current.width || !current.height) return;
+
+    let finalWidth = newWidth ?? scaleWidth;
+    let finalHeight = newHeight ?? scaleHeight;
+    
+    if (usePreset === 'current') {
+      const ratio = current.width / current.height;
+      if (newWidth !== undefined && scaleLockAspect) {
+        finalHeight = Math.round(newWidth / ratio);
+      } else if (newHeight !== undefined && scaleLockAspect) {
+        finalWidth = Math.round(newHeight * ratio);
+      }
+    } else if (usePreset !== 'custom') {
+      const ratio = ASPECT_RATIOS[usePreset].ratio!;
+      if (newWidth !== undefined) {
+        finalHeight = Math.round(newWidth / ratio);
+      } else if (newHeight !== undefined) {
+        finalWidth = Math.round(newHeight * ratio);
+      }
+    }
+
+    setScaleWidth(finalWidth);
+    setScaleHeight(finalHeight);
+    
+    // Update percentage
+    if (current.width > 0) {
+      setScalePercent(Math.round((finalWidth / current.width) * 100));
+    }
+  };
+
+  /**
+   * Update crop dimensions maintaining aspect ratio if locked
+   */
+  const updateCropDimensions = (newWidth?: number, newHeight?: number, usePreset: AspectRatioPreset = cropAspectPreset) => {
+    if (!imageState) return;
+
+    let finalWidthPct = newWidth !== undefined ? (newWidth / imageState.width) * 100 : cropWidth;
+    let finalHeightPct = newHeight !== undefined ? (newHeight / imageState.height) * 100 : cropHeight;
+    
+    if (usePreset === 'current') {
+      const ratio = imageState.width / imageState.height;
+      if (newWidth !== undefined && cropLockAspect) {
+        finalHeightPct = (newWidth / ratio / imageState.height) * 100;
+      } else if (newHeight !== undefined && cropLockAspect) {
+        finalWidthPct = (newHeight * ratio / imageState.width) * 100;
+      }
+    } else if (usePreset !== 'custom') {
+      const ratio = ASPECT_RATIOS[usePreset].ratio!;
+      if (newWidth !== undefined) {
+        finalHeightPct = (newWidth / ratio / imageState.height) * 100;
+      } else if (newHeight !== undefined) {
+        finalWidthPct = (newHeight * ratio / imageState.width) * 100;
+      }
+    }
+
+    // Ensure crop doesn't exceed image bounds
+    finalWidthPct = Math.min(100, Math.max(1, finalWidthPct));
+    finalHeightPct = Math.min(100, Math.max(1, finalHeightPct));
+
+    setCropWidth(finalWidthPct);
+    setCropHeight(finalHeightPct);
+  };
+
+  /**
    * Reset processing parameters
    */
   const resetProcessingParams = () => {
@@ -187,12 +296,15 @@ export default function ImageProcessorPage() {
     setCropWidth(100);
     setCropHeight(100);
     setAppliedCrop(null);
+    setCropLockAspect(false);
+    setCropAspectPreset('current');
     setBorderRadius(0);
     setPadding(0);
     setBackgroundType('transparent');
     setScaleEnabled(false);
     setScalePercent(100);
-    setKeepAspectRatio(true);
+    setScaleLockAspect(true);
+    setScaleAspectPreset('current');
   };
 
   /**
@@ -261,6 +373,21 @@ export default function ImageProcessorPage() {
    */
   const processImage = useCallback(async () => {
     if (!imageState || !canvasRef.current) return;
+
+    // Create a signature of current parameters to avoid duplicate processing
+    const paramsSignature = JSON.stringify({
+      crop: appliedCrop,
+      borderRadius,
+      padding,
+      backgroundType,
+      customBgColor: backgroundType === 'custom' ? customBgColor : null
+    });
+
+    // Skip if parameters haven't changed
+    if (lastProcessParamsRef.current === paramsSignature) {
+      return;
+    }
+    lastProcessParamsRef.current = paramsSignature;
 
     const img = new Image();
     img.onload = () => {
@@ -366,8 +493,8 @@ export default function ImageProcessorPage() {
 
     // Create a new canvas for scaling
     const exportCanvas = document.createElement('canvas');
-    const targetWidth = Math.round((scalePercent / 100) * sourceCanvas.width);
-    const targetHeight = Math.round((scalePercent / 100) * sourceCanvas.height);
+    const targetWidth = scaleWidth;
+    const targetHeight = scaleHeight;
     
     exportCanvas.width = targetWidth;
     exportCanvas.height = targetHeight;
@@ -380,45 +507,53 @@ export default function ImageProcessorPage() {
     ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
     
     return exportCanvas;
-  }, [scaleEnabled, scalePercent]);
+  }, [scaleEnabled, scaleWidth, scaleHeight]);
 
   /**
-   * Calculate export size
+   * Calculate export size (debounced)
    */
-  const calculateExportSize = useCallback(async () => {
+  const calculateExportSize = useCallback(() => {
     if (!imageState || !canvasRef.current) return;
 
-    const canvas = createExportCanvas();
-    if (!canvas) return;
-
-    let mimeType = 'image/png';
-    let quality = 1.0;
-
-    switch (exportFormat) {
-      case 'jpg':
-        mimeType = 'image/jpeg';
-        quality = jpgQuality / 100;
-        break;
-      case 'webp':
-        mimeType = 'image/webp';
-        quality = 0.92;
-        break;
-      case 'ico':
-        // ICO is a special case, we'll use PNG as fallback
-        mimeType = 'image/png';
-        break;
+    // Clear previous timer
+    if (exportSizeTimerRef.current) {
+      clearTimeout(exportSizeTimerRef.current);
     }
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const sizeInKB = (blob.size / 1024).toFixed(2);
-        const dimensions = scaleEnabled 
-          ? `${canvas.width} × ${canvas.height}` 
-          : `${canvasRef.current!.width} × ${canvasRef.current!.height}`;
-        setExportSize(`${dimensions} · ${sizeInKB} KB`);
+    // Debounce the calculation
+    exportSizeTimerRef.current = setTimeout(() => {
+      const canvas = createExportCanvas();
+      if (!canvas) return;
+
+      let mimeType = 'image/png';
+      let quality = 1.0;
+
+      switch (exportFormat) {
+        case 'jpg':
+          mimeType = 'image/jpeg';
+          quality = jpgQuality / 100;
+          break;
+        case 'webp':
+          mimeType = 'image/webp';
+          quality = 0.92;
+          break;
+        case 'ico':
+          // ICO is a special case, we'll use PNG as fallback
+          mimeType = 'image/png';
+          break;
       }
-    }, mimeType, quality);
-  }, [imageState, exportFormat, jpgQuality, createExportCanvas, scaleEnabled]);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const sizeInKB = (blob.size / 1024).toFixed(2);
+          const dimensions = scaleEnabled 
+            ? `${canvas.width} × ${canvas.height}` 
+            : `${canvasRef.current!.width} × ${canvasRef.current!.height}`;
+          setExportSize(`${dimensions} · ${sizeInKB} KB`);
+        }
+      }, mimeType, quality);
+    }, 300); // 300ms debounce
+  }, [imageState, exportFormat, jpgQuality, scaleEnabled, scaleWidth, scaleHeight, createExportCanvas]);
 
   /**
    * Export image
@@ -498,6 +633,7 @@ export default function ImageProcessorPage() {
       processedBase64: prev.originalBase64
     } : null);
     
+    lastProcessParamsRef.current = '';
     resetProcessingParams();
     showToast('已重置为原图', 'success');
   };
@@ -505,26 +641,36 @@ export default function ImageProcessorPage() {
   /**
    * Clear image
    */
-  const handleClear = () => {
-    setImageState(null);
-    setUrlInput('');
-    setExportSize('');
-    resetProcessingParams();
-  };
+  // const handleClear = () => {
+  //   setImageState(null);
+  //   setUrlInput('');
+  //   setExportSize('');
+  //   lastProcessParamsRef.current = '';
+  //   resetProcessingParams();
+  // };
 
   // Process image when parameters change (but not during crop preview)
   useEffect(() => {
     if (imageState && !cropEnabled) {
       processImage();
     }
-  }, [imageState?.originalBase64, cropEnabled, appliedCrop, borderRadius, padding, backgroundType, customBgColor, processImage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageState?.originalBase64, cropEnabled, appliedCrop, borderRadius, padding, backgroundType, customBgColor]);
 
   // Calculate export size when format, quality, or scale changes
   useEffect(() => {
-    if (imageState) {
+    if (imageState && imageState.processedBase64) {
       calculateExportSize();
     }
-  }, [exportFormat, jpgQuality, scaleEnabled, scalePercent, imageState?.processedBase64, calculateExportSize]);
+    
+    // Cleanup on unmount
+    return () => {
+      if (exportSizeTimerRef.current) {
+        clearTimeout(exportSizeTimerRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exportFormat, jpgQuality, scaleEnabled, scaleWidth, scaleHeight, imageState?.processedBase64]);
 
   // Add paste event listener
   useEffect(() => {
@@ -538,10 +684,27 @@ export default function ImageProcessorPage() {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Panel - Image Input */}
+
+          {/* Left Panel - Preview */}
+          <div className="lg:col-span-2">
+            {/* Canvas for processing (hidden) */}
+            <canvas ref={canvasRef} className="hidden" />
+            
+            <ImagePreview
+              imageBase64={cropEnabled ? imageState?.originalBase64 || null : imageState?.processedBase64 || null}
+              cropEnabled={cropEnabled}
+              cropX={cropX}
+              cropY={cropY}
+              cropWidth={cropWidth}
+              cropHeight={cropHeight}
+              onCropChange={handleCropChange}
+            />
+          </div>
+
+          {/* Right Panel - Image Input */}
           <div className="lg:col-span-1 space-y-6">
             {/* Upload Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <RiUploadLine className="text-xl" />
                 图像源
@@ -551,7 +714,7 @@ export default function ImageProcessorPage() {
               <div className="mb-4">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-1.5 px-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <RiImageLine className="text-xl" />
                   选择本地文件
@@ -571,18 +734,20 @@ export default function ImageProcessorPage() {
                   从 URL 加载
                 </label>
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    onKeyDown={(e) => e.key === 'Enter' && handleUrlLoad()}
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onKeyDown={(e) => e.key === 'Enter' && handleUrlLoad()}
+                    />
+                  </div>
                   <button
                     onClick={handleUrlLoad}
                     disabled={isLoadingUrl}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                    className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50 text-nowrap"
                   >
                     {isLoadingUrl ? '加载中...' : '加载'}
                   </button>
@@ -607,7 +772,7 @@ export default function ImageProcessorPage() {
 
             {/* Processing Controls */}
             {imageState && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <RiPaintBrushLine className="text-xl" />
                   图像处理
@@ -619,7 +784,7 @@ export default function ImageProcessorPage() {
                     <div>
                       <button
                         onClick={() => handleToggleCropMode(true)}
-                        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
                         <RiScissorsLine className="text-lg" />
                         {appliedCrop ? '调整裁剪' : '开始裁剪'}
@@ -627,12 +792,141 @@ export default function ImageProcessorPage() {
                       {appliedCrop && (
                         <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900/20 rounded p-2">
                           <RiCheckLine className="inline mr-1 text-green-600" />
-                          已应用裁剪: {appliedCrop.width.toFixed(1)}% × {appliedCrop.height.toFixed(1)}%
+                          已应用裁剪: {getCropPixelDimensions().width} × {getCropPixelDimensions().height} px
                         </div>
                       )}
                     </div>
                   ) : (
                     <div>
+                      {/* Aspect Ratio Presets */}
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          比例预设
+                        </label>
+                        <div className="grid grid-cols-3 gap-1 mb-2">
+                          {(Object.keys(ASPECT_RATIOS) as AspectRatioPreset[]).slice(0, 6).map((preset) => (
+                            <button
+                              key={preset}
+                              onClick={() => {
+                                setCropAspectPreset(preset);
+                                if (preset !== 'custom') {
+                                  setCropLockAspect(true);
+                                  const dims = getCropPixelDimensions();
+                                  updateCropDimensions(dims.width, undefined, preset);
+                                }
+                              }}
+                              className={`py-1 px-2 text-xs rounded border transition-colors ${
+                                cropAspectPreset === preset
+                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                              }`}
+                            >
+                              {ASPECT_RATIOS[preset].label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-1">
+                          {(Object.keys(ASPECT_RATIOS) as AspectRatioPreset[]).slice(6).map((preset) => (
+                            <button
+                              key={preset}
+                              onClick={() => {
+                                setCropAspectPreset(preset);
+                                if (preset !== 'custom') {
+                                  setCropLockAspect(true);
+                                  const dims = getCropPixelDimensions();
+                                  updateCropDimensions(dims.width, undefined, preset);
+                                }
+                              }}
+                              className={`py-1 px-2 text-xs rounded border transition-colors ${
+                                cropAspectPreset === preset
+                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                              }`}
+                            >
+                              {ASPECT_RATIOS[preset].label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Lock Aspect Ratio */}
+                      <label className="flex items-center gap-2 mb-3 text-xs text-gray-700 dark:text-gray-300">
+                        <input
+                          type="checkbox"
+                          checked={cropLockAspect}
+                          onChange={(e) => {
+                            setCropLockAspect(e.target.checked);
+                            if (e.target.checked && cropAspectPreset === 'custom') {
+                              setCropAspectPreset('current');
+                            }
+                          }}
+                          className="w-3.5 h-3.5 text-blue-600 rounded"
+                        />
+                        锁定比例
+                      </label>
+
+                      {/* Size Presets */}
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          尺寸预设
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {PRESET_SIZES.map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => {
+                                const dims = getCropPixelDimensions();
+                                if (dims.width >= dims.height) {
+                                  updateCropDimensions(size, undefined);
+                                } else {
+                                  updateCropDimensions(undefined, size);
+                                }
+                              }}
+                              className="py-1.5 px-2 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                            >
+                              {size}px
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Custom Size Inputs */}
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          自定义尺寸 (像素)
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">宽度</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max={imageState?.width}
+                              value={getCropPixelDimensions().width}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (val > 0) updateCropDimensions(val, undefined);
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">高度</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max={imageState?.height}
+                              value={getCropPixelDimensions().height}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (val > 0) updateCropDimensions(undefined, val);
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="space-y-3 mb-3">
                         <div>
                           <label className="text-xs text-gray-600 dark:text-gray-400">X 偏移: {cropX.toFixed(1)}%</label>
@@ -655,30 +949,6 @@ export default function ImageProcessorPage() {
                             step="0.1"
                             value={cropY}
                             onChange={(e) => setCropY(Number(e.target.value))}
-                            className="w-full"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-600 dark:text-gray-400">宽度: {cropWidth.toFixed(1)}%</label>
-                          <input
-                            type="range"
-                            min="1"
-                            max="100"
-                            step="0.1"
-                            value={cropWidth}
-                            onChange={(e) => setCropWidth(Number(e.target.value))}
-                            className="w-full"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-600 dark:text-gray-400">高度: {cropHeight.toFixed(1)}%</label>
-                          <input
-                            type="range"
-                            min="1"
-                            max="100"
-                            step="0.1"
-                            value={cropHeight}
-                            onChange={(e) => setCropHeight(Number(e.target.value))}
                             className="w-full"
                           />
                         </div>
@@ -785,29 +1055,204 @@ export default function ImageProcessorPage() {
                 <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={handleReset}
-                    className="flex-1 py-2 px-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-1.5 px-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
                     <RiArrowGoBackLine />
                     重置
                   </button>
-                  <button
+                  {/* <button
                     onClick={handleClear}
-                    className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-1.5 px-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
                     <RiDeleteBinLine />
                     清空
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}
 
             {/* Export Controls */}
             {imageState && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <RiDownloadLine className="text-xl" />
                   导出设置
                 </h2>
+
+                {/* Scale Control */}
+                <div className="mb-4">
+                  <label className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={scaleEnabled}
+                      onChange={(e) => {
+                        setScaleEnabled(e.target.checked);
+                        if (e.target.checked) {
+                          const current = getCurrentDimensions();
+                          setScaleWidth(current.width);
+                          setScaleHeight(current.height);
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      启用缩放
+                    </span>
+                  </label>
+                  
+                  {scaleEnabled && (
+                    <div className="space-y-3 mt-3">
+                      {/* Aspect Ratio Presets */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          比例预设
+                        </label>
+                        <div className="grid grid-cols-3 gap-1 mb-2">
+                          {(Object.keys(ASPECT_RATIOS) as AspectRatioPreset[]).slice(0, 6).map((preset) => (
+                            <button
+                              key={preset}
+                              onClick={() => {
+                                setScaleAspectPreset(preset);
+                                if (preset !== 'custom') {
+                                  setScaleLockAspect(true);
+                                  updateScaleDimensions(scaleWidth, undefined, preset);
+                                }
+                              }}
+                              className={`py-1 px-2 text-xs rounded border transition-colors ${
+                                scaleAspectPreset === preset
+                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                              }`}
+                            >
+                              {ASPECT_RATIOS[preset].label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-1">
+                          {(Object.keys(ASPECT_RATIOS) as AspectRatioPreset[]).slice(6).map((preset) => (
+                            <button
+                              key={preset}
+                              onClick={() => {
+                                setScaleAspectPreset(preset);
+                                if (preset !== 'custom') {
+                                  setScaleLockAspect(true);
+                                  updateScaleDimensions(scaleWidth, undefined, preset);
+                                }
+                              }}
+                              className={`py-1 px-2 text-xs rounded border transition-colors ${
+                                scaleAspectPreset === preset
+                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                              }`}
+                            >
+                              {ASPECT_RATIOS[preset].label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Lock Aspect Ratio */}
+                      <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+                        <input
+                          type="checkbox"
+                          checked={scaleLockAspect}
+                          onChange={(e) => {
+                            setScaleLockAspect(e.target.checked);
+                            if (e.target.checked && scaleAspectPreset === 'custom') {
+                              setScaleAspectPreset('current');
+                            }
+                          }}
+                          className="w-3.5 h-3.5 text-blue-600 rounded"
+                        />
+                        锁定比例
+                      </label>
+
+                      {/* Size Presets */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          尺寸预设
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {PRESET_SIZES.map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => {
+                                if (scaleWidth >= scaleHeight) {
+                                  updateScaleDimensions(size, undefined);
+                                } else {
+                                  updateScaleDimensions(undefined, size);
+                                }
+                              }}
+                              className="py-1.5 px-2 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                            >
+                              {size}px
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Custom Size Inputs */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          自定义尺寸 (像素)
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">宽度</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="8192"
+                              value={scaleWidth}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (val > 0) updateScaleDimensions(val, undefined);
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">高度</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="8192"
+                              value={scaleHeight}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (val > 0) updateScaleDimensions(undefined, val);
+                              }}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Percentage Slider */}
+                      <div>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                          缩放比例: {scalePercent}%
+                        </label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="400"
+                          value={scalePercent}
+                          onChange={(e) => {
+                            const percent = Number(e.target.value);
+                            setScalePercent(percent);
+                            const current = getCurrentDimensions();
+                            const newWidth = Math.round((percent / 100) * current.width);
+                            const newHeight = Math.round((percent / 100) * current.height);
+                            setScaleWidth(newWidth);
+                            setScaleHeight(newHeight);
+                          }}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Format Selection */}
                 <div className="mb-4">
@@ -819,7 +1264,7 @@ export default function ImageProcessorPage() {
                       <button
                         key={format}
                         onClick={() => setExportFormat(format)}
-                        className={`py-2 px-4 rounded-lg border-2 transition-all ${
+                        className={`py-1 px-2 rounded-sm border transition-all ${
                           exportFormat === format
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
@@ -848,47 +1293,6 @@ export default function ImageProcessorPage() {
                   </div>
                 )}
 
-                {/* Scale Control */}
-                <div className="mb-4">
-                  <label className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={scaleEnabled}
-                      onChange={(e) => setScaleEnabled(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      启用缩放
-                    </span>
-                  </label>
-                  
-                  {scaleEnabled && (
-                    <div className="space-y-3 ml-6 mt-3">
-                      <div>
-                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                          缩放比例: {scalePercent}%
-                        </label>
-                        <input
-                          type="range"
-                          min="1"
-                          max="400"
-                          value={scalePercent}
-                          onChange={(e) => setScalePercent(Number(e.target.value))}
-                          className="w-full"
-                        />
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 rounded p-2">
-                        {canvasRef.current && (
-                          <>
-                            原始: {canvasRef.current.width} × {canvasRef.current.height}<br/>
-                            缩放后: {Math.round((scalePercent / 100) * canvasRef.current.width)} × {Math.round((scalePercent / 100) * canvasRef.current.height)}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Export Size */}
                 {exportSize && (
                   <div className="mb-4 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
@@ -900,14 +1304,14 @@ export default function ImageProcessorPage() {
                 <div className="space-y-2">
                   <button
                     onClick={handleExport}
-                    className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
+                    className="w-full py-1.5 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
                   >
                     <RiDownloadLine className="text-xl" />
                     下载图片
                   </button>
                   <button
                     onClick={handleCopyToClipboard}
-                    className="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-1.5 px-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
                     <RiFileCopyLine className="text-lg" />
                     复制到剪贴板
@@ -915,22 +1319,6 @@ export default function ImageProcessorPage() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Right Panel - Preview */}
-          <div className="lg:col-span-2">
-            {/* Canvas for processing (hidden) */}
-            <canvas ref={canvasRef} className="hidden" />
-            
-            <ImagePreview
-              imageBase64={cropEnabled ? imageState?.originalBase64 || null : imageState?.processedBase64 || null}
-              cropEnabled={cropEnabled}
-              cropX={cropX}
-              cropY={cropY}
-              cropWidth={cropWidth}
-              cropHeight={cropHeight}
-              onCropChange={handleCropChange}
-            />
           </div>
         </div>
       </div>

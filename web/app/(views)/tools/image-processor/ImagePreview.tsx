@@ -296,9 +296,6 @@ export const ImagePreview = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 sticky top-6">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        预览
-      </h2>
 
       {!imageBase64 ? (
         <div className="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
@@ -310,7 +307,7 @@ export const ImagePreview = ({
       ) : (
         <div 
           ref={containerRef}
-          className="relative bg-gray-100 dark:bg-gray-700 rounded-lg p-8 min-h-[400px] flex items-center justify-center overflow-hidden"
+          className="relative  rounded-lg p-8 min-h-[400px] flex items-center justify-center overflow-hidden"
           style={{ userSelect: 'none' }}
         >
           <img
