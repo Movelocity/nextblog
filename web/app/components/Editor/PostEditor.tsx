@@ -113,22 +113,31 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
+    // 设置初始最小高度
+    textarea.style.minHeight = '500px';
+    textarea.style.height = '500px';
+
     const adjustHeight = () => {
-      // 只调整高度，不操作光标和滚动，避免触发额外的事件
-      textarea.style.height = 'auto';
-      textarea.style.height = `${Math.max(500, textarea.scrollHeight + 100)}px`;
+      // 只在需要增长时才调整高度，避免不必要的重排
+      // 使用 scrollHeight 来判断内容是否超出当前高度
+      const currentHeight = textarea.offsetHeight;
+      const contentHeight = textarea.scrollHeight;
+      
+      // 如果内容高度大于当前高度，则增加高度
+      if (contentHeight > currentHeight) {
+        textarea.style.height = `${contentHeight + 100}px`;
+      }
     };
 
     // 初始调整
     adjustHeight();
     
-    // 监听 input 事件而不是使用 MutationObserver
-    // input 事件更轻量，且只在用户输入时触发
+    // 监听 input 事件
     textarea.addEventListener('input', adjustHeight);
     return () => {
       textarea.removeEventListener('input', adjustHeight);
     };
-  }, [post.content, isPreview]); // 只依赖 isPreview，不依赖 post.content
+  }, [isPreview]); // 只依赖 isPreview，不依赖 post.content
 
   const handleCategoryChange = (category: string) => {
     const newCategories = post.categories.includes(category)
@@ -232,7 +241,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
                 setPostContent(e.target.value);
                 setIsDirty(true);
               }}
-              className="w-full bg-transparent outline-none font-mono resize-none"
+              className="w-full bg-transparent outline-none font-mono resize-none overflow-hidden"
               placeholder="Write your post content here..."
               required
             />

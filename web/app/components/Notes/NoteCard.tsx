@@ -10,6 +10,55 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { copyToClipboard } from '@/app/services/utils';
 import { useToast } from '@/app/components/layout/ToastHook'
 
+/**
+ * 将文本中的URL转换为可点击的链接
+ * @param text 原始文本
+ * @returns 包含链接的React节点数组
+ */
+const parseTextWithLinks = (text: string): React.ReactNode[] => {
+  // URL正则表达式，匹配http/https/ftp协议的链接
+  const urlRegex = /(https?:\/\/[^\s]+|ftp:\/\/[^\s]+)/gi;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+
+  // 重置正则表达式的lastIndex
+  urlRegex.lastIndex = 0;
+
+  while ((match = urlRegex.exec(text)) !== null) {
+    const url = match[0];
+    const index = match.index;
+
+    // 添加URL之前的文本
+    if (index > lastIndex) {
+      parts.push(text.substring(lastIndex, index));
+    }
+
+    // 添加链接
+    parts.push(
+      <a
+        key={`link-${index}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {url}
+      </a>
+    );
+
+    lastIndex = index + url.length;
+  }
+
+  // 添加剩余的文本
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : [text];
+};
+
 interface NoteCardProps {
   /** 笔记数据 */
   note: NoteData;
@@ -230,12 +279,8 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
             <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
               <FiClock className="w-3.5 h-3.5" />
               <span>{formatDate(note.createdAt)}</span>
-              {/* <span className="text-gray-400 dark:text-gray-500">{note.isPublic ? 'public' : 'private'}</span> */}
-              {isAuthenticated && note.updatedAt !== note.createdAt && (
-                <span className="text-gray-400 dark:text-gray-500">· 已编辑</span>
-              )}
               {/** 未登陆状态不需要额外的public提示 */}
-              {isAuthenticated && note.isPublic && <FiUnlock className="w-3 h-3 text-green-600" />} 
+              {isAuthenticated && !note.isPublic && <FiUnlock className="w-3 h-3 text-gray-400 dark:text-gray-500" />} 
             </div>
             
             <div className={cn("flex items-center gap-2", !isAuthenticated && "hidden")}>
@@ -257,13 +302,12 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
                   <button
                     onClick={handleTogglePublic}
                     className={cn(
-                      'w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1 ',
-                      note.isPublic ? 'text-green-600' : ''
+                      'w-20 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-center items-center gap-1 '
                     )}
-                    title={note.isPublic ? '公开' : '私有'}
+                    title={note.isPublic ? '点击切换成私有' : '点击切换成公开'}
                   >
                     {note.isPublic ? <FiUnlock className="w-4 h-4" /> : <FiLock className="w-4 h-4" />} 
-                    {note.isPublic ? '公开' : '私有'}
+                    {note.isPublic ? '私有' : '公开'}
                   </button>
 
                   {/** 复制内容 */}
@@ -317,7 +361,7 @@ const NoteCard = ({ note, onUpdate, onDelete, onArchive }: NoteCardProps) => {
               } : undefined}
             >
               <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
-                {note.data}
+                {parseTextWithLinks(note.data)}
               </p>
             </div>
             

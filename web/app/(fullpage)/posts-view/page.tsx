@@ -55,6 +55,7 @@ export default function PostsViewPage() {
     } finally {
       setLoadingPost(false);
       setLoading(false);
+      setIsDirty(false);
     }
   }, [setPost, setLoading, setLastSaved, showToast]);
 

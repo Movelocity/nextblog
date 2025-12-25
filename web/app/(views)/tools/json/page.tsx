@@ -35,7 +35,7 @@ const STORAGE_VERSION = 1;
  */
 export default function JsonEditorPage() {
   const [boxes, setBoxes] = useState<EditorBoxType[]>([]);
-  const [customScripts, setCustomScripts] = useState<CustomScript[]>([]);
+  // const [customScripts, setCustomScripts] = useState<CustomScript[]>([]);
   const [showScriptModal, setShowScriptModal] = useState(false);
   const [currentScript, setCurrentScript] = useState('');
   const [scriptName, setScriptName] = useState('');
@@ -55,18 +55,18 @@ export default function JsonEditorPage() {
   /**
    * Load scripts from backend API on mount
    */
-  useEffect(() => {
-    const loadScripts = async () => {
-      try {
-        const scripts = await fetchScripts();
-        setCustomScripts(scripts);
-      } catch (error) {
-        console.error('Failed to load scripts:', error);
-        // Silently fail - scripts will be empty
-      }
-    };
-    loadScripts();
-  }, []);
+  // useEffect(() => {
+  //   const loadScripts = async () => {
+  //     try {
+  //       const scripts = await fetchScripts();
+  //       setCustomScripts(scripts);
+  //     } catch (error) {
+  //       console.error('Failed to load scripts:', error);
+  //       // Silently fail - scripts will be empty
+  //     }
+  //   };
+  //   loadScripts();
+  // }, []);
 
   /**
    * Initializes editor boxes from IndexedDB or localStorage migration
@@ -252,40 +252,40 @@ export default function JsonEditorPage() {
   /**
    * Executes a custom script on a box
    */
-  const handleExecuteScript = useCallback(async (boxId: string, scriptId: string) => {
-    const box = boxes.find(b => b.id === boxId);
-    const script = customScripts.find(s => s.id === scriptId);
-    if (!box || !script) return;
+  // const handleExecuteScript = useCallback(async (boxId: string, scriptId: string) => {
+  //   const box = boxes.find(b => b.id === boxId);
+  //   const script = customScripts.find(s => s.id === scriptId);
+  //   if (!box || !script) return;
 
-    const result = await executeUserScript(script.code, box.content);
+  //   const result = await executeUserScript(script.code, box.content);
     
-    if (result.success && result.output) {
-      if (script.outputMode === 'newBlock') {
-        // Check if we can create a new box (max 3)
-        if (boxes.length >= 3) {
-          showToast('已达到编辑框上限（3个），结果已原地替换', 'warning');
-          handleContentChange(boxId, result.output);
-        } else {
-          // Create a new box with the result
-          const newBox: EditorBoxType = {
-            id: generateId(),
-            type: box.type,
-            language: box.language,
-            content: result.output,
-            label: `${box.label || '编辑框'} - 脚本结果`,
-          };
-          setBoxes(prev => [...prev, newBox]);
-          showToast(`脚本已执行，结果已创建新编辑框 (${result.executionTime?.toFixed(0)}ms)`, 'success');
-        }
-      } else {
-        // Replace content in the current box (inplace)
-        handleContentChange(boxId, result.output);
-        showToast(`脚本已执行 (${result.executionTime?.toFixed(0)}ms)`, 'success');
-      }
-    } else {
-      showToast(result.error || '脚本执行失败', 'error');
-    }
-  }, [boxes, customScripts, handleContentChange, showToast]);
+  //   if (result.success && result.output) {
+  //     if (script.outputMode === 'newBlock') {
+  //       // Check if we can create a new box (max 3)
+  //       if (boxes.length >= 3) {
+  //         showToast('已达到编辑框上限（3个），结果已原地替换', 'warning');
+  //         handleContentChange(boxId, result.output);
+  //       } else {
+  //         // Create a new box with the result
+  //         const newBox: EditorBoxType = {
+  //           id: generateId(),
+  //           type: box.type,
+  //           language: box.language,
+  //           content: result.output,
+  //           label: `${box.label || '编辑框'} - 脚本结果`,
+  //         };
+  //         setBoxes(prev => [...prev, newBox]);
+  //         showToast(`脚本已执行，结果已创建新编辑框 (${result.executionTime?.toFixed(0)}ms)`, 'success');
+  //       }
+  //     } else {
+  //       // Replace content in the current box (inplace)
+  //       handleContentChange(boxId, result.output);
+  //       showToast(`脚本已执行 (${result.executionTime?.toFixed(0)}ms)`, 'success');
+  //     }
+  //   } else {
+  //     showToast(result.error || '脚本执行失败', 'error');
+  //   }
+  // }, [boxes, customScripts, handleContentChange, showToast]);
 
   /**
    * Saves or updates a custom script to backend
@@ -315,14 +315,14 @@ export default function JsonEditorPage() {
       if (editingScriptId) {
         // Update existing script
         savedScript = await updateScript(editingScriptId, scriptData);
-        setCustomScripts(prev => 
-          prev.map(s => s.id === editingScriptId ? savedScript : s)
-        );
+        // setCustomScripts(prev => 
+        //   prev.map(s => s.id === editingScriptId ? savedScript : s)
+        // );
         showToast('脚本已更新', 'success');
       } else {
         // Create new script
         savedScript = await createScript(scriptData);
-        setCustomScripts(prev => [...prev, savedScript]);
+        // setCustomScripts(prev => [...prev, savedScript]);
         showToast('脚本已保存', 'success');
       }
 
@@ -371,8 +371,8 @@ export default function JsonEditorPage() {
     }
 
     try {
-      await deleteScript(scriptId);
-      setCustomScripts(prev => prev.filter(s => s.id !== scriptId));
+      // await deleteScript(scriptId);
+      // setCustomScripts(prev => prev.filter(s => s.id !== scriptId));
       showToast('脚本已删除', 'success');
     } catch (error) {
       showToast((error as Error).message, 'error');
@@ -395,7 +395,11 @@ export default function JsonEditorPage() {
    * Exports current state as JSON
    */
   const handleExport = useCallback(() => {
-    const state: PersistedState = { version: STORAGE_VERSION, boxes, customScripts };
+    const state: PersistedState = { 
+      version: STORAGE_VERSION, 
+      boxes, 
+      customScripts: [] 
+    };
     const dataStr = JSON.stringify(state, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
@@ -405,7 +409,7 @@ export default function JsonEditorPage() {
     link.click();
     URL.revokeObjectURL(url);
     showToast('状态已导出', 'success');
-  }, [boxes, customScripts, showToast]);
+  }, [boxes, showToast]);  // customScripts
 
   /**
    * Imports state from JSON file
@@ -424,7 +428,7 @@ export default function JsonEditorPage() {
           const imported = JSON.parse(event.target?.result as string) as PersistedState;
           if (imported.boxes && Array.isArray(imported.boxes)) {
             setBoxes(imported.boxes);
-            setCustomScripts(imported.customScripts || []);
+            // setCustomScripts(imported.customScripts || []);
             showToast('状态已导入', 'success');
           } else {
             throw new Error('无效的文件格式');
@@ -553,9 +557,9 @@ export default function JsonEditorPage() {
               </button>
             </div>
             
-            <div className="text-xs text-muted-foreground">
+            {/* <div className="text-xs text-muted-foreground">
               {customScripts.length} 个脚本
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -584,8 +588,8 @@ export default function JsonEditorPage() {
               onDelete={handleDeleteBox}
               onApplyOperation={handleApplyOperation}
               onSizeChange={handleSizeChange}
-              customScripts={customScripts}
-              onExecuteScript={handleExecuteScript}
+              // customScripts={customScripts}
+              // onExecuteScript={handleExecuteScript}
             />
           ))}
         </div>
@@ -686,7 +690,7 @@ export default function JsonEditorPage() {
                 </div>
 
                 {/* Saved Scripts List */}
-                {customScripts.length > 0 && !editingScriptId && (
+                {/* {customScripts.length > 0 && !editingScriptId && (
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       已保存的脚本 ({customScripts.length})
@@ -725,7 +729,7 @@ export default function JsonEditorPage() {
                       ))}
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
 
               <div className="border-t border-border px-6 py-4 flex justify-end gap-2">

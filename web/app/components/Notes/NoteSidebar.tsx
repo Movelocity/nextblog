@@ -196,8 +196,8 @@ const NoteSidebar = ({
                   className={classNames(
                     'aspect-square flex items-center justify-center text-xs rounded cursor-default',
                     dateInfo ? 'relative' : '',
-                    dateInfo?.isToday && 'bg-blue-100 dark:bg-blue-900/30 font-bold',
-                    (dateInfo?.count ?? 0) > 0 && !dateInfo?.isToday && 'bg-green-100 dark:bg-green-900/30',
+                    dateInfo?.isToday && 'bg-blue-100 dark:bg-blue-900/60 font-bold',
+                    (dateInfo?.count ?? 0) > 0 && !dateInfo?.isToday && 'bg-green-100 dark:bg-green-900/60',
                     !dateInfo && 'text-transparent'
                   )}
                   title={dateInfo ? `${dateInfo.date}: ${dateInfo.count ?? 0} 条笔记` : ''}

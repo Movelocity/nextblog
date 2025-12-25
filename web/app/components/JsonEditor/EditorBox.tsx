@@ -41,8 +41,8 @@ const EditorBox = ({
   onDelete,
   onApplyOperation,
   onSizeChange,
-  customScripts = [],
-  onExecuteScript
+  // customScripts = [],
+  // onExecuteScript
 }: EditorBoxProps) => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
@@ -302,7 +302,7 @@ const EditorBox = ({
           </select>
           
           {/* Script Selector */}
-          {customScripts.length > 0 ? (
+          {/* {customScripts.length > 0 ? (
             <select
               onChange={(e) => {
                 if (e.target.value && onExecuteScript) {
@@ -324,7 +324,7 @@ const EditorBox = ({
             <div className="flex-1 text-xs text-muted-foreground text-center px-2 py-1">
               暂无脚本
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
