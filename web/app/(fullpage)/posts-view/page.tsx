@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BlogMeta } from '@/app/common/types';
 import { getPost, createPost } from '@/app/services/posts';
-import { PostsListSidebar } from '@/app/components/Posts/PostsListSidebar';
+import { PostsListSidebar } from './LeftPanel';
 import { PostEditor, PostEditorData } from '@/app/components/Editor/PostEditor';
 import { useEditPostStore } from '@/app/stores/EditPostStore';
 import { useToast } from '@/app/components/layout/ToastHook';
 import { useAuth } from '@/app/hooks/useAuth';
-import { RiFileTextLine } from 'react-icons/ri';
+import { RiAddLine, RiFileTextLine, RiMenuUnfoldLine } from 'react-icons/ri';
+import cn from 'classnames';
+import IconBtn from '@/app/components/ui/IconBtn';
 
 /**
  * 全屏文档编辑视图页面
@@ -19,7 +21,7 @@ export default function PostsViewPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [loadingPost, setLoadingPost] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const { setPost, setLoading, setLastSaved, isDirty, setIsDirty } = useEditPostStore();
+  const { post, setPost, setLoading, setLastSaved, isDirty, setIsDirty } = useEditPostStore();
   const { showToast } = useToast();
   const { isAuthenticated, isLoading: authLoading, openLoginModal } = useAuth();
 
@@ -143,29 +145,44 @@ export default function PostsViewPage() {
     </div>
   );
 
+  const [sideBarCollapsed, setSideBarCollapsed] = useState(false);
+
   return (
     <div className="flex h-full">
       {/* 左侧文档列表侧边栏 */}
-      <div className="w-64 flex-shrink-0">
+      <div className={cn("w-64 flex-shrink-0 transition-all duration-300", sideBarCollapsed ? "w-0" : "")}>
         <PostsListSidebar
+          collapsed={sideBarCollapsed}
+          onCollapse={setSideBarCollapsed}
           selectedId={selectedPostId}
           onSelect={handleSelectPost}
-          onCreate={handleCreate}
+          // onCreate={handleCreate}
           refreshTrigger={refreshTrigger}
         />
       </div>
 
       {/* 右侧编辑区域 */}
-      <div className="flex-1 min-w-0 overflow-y-auto bg-white dark:bg-zinc-900 pr-2">
-        {loadingPost ? (
-          <LoadingState />
-        ) : isCreating ? (
-          <PostEditor onCreate={handleCreateSubmit} />
-        ) : selectedPostId ? (
-          <PostEditor id={selectedPostId} />
-        ) : (
-          <EmptyState />
-        )}
+      <div className="flex-1 min-w-0 bg-white dark:bg-zinc-900 flex-col">
+        <div className="w-full flex py-1 px-2 items-center gap-1 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-700">
+          {sideBarCollapsed && <IconBtn icon={<RiMenuUnfoldLine className="w-5 h-5" />} onClick={() => setSideBarCollapsed(false)} />}
+          <span className="text-sm p-1.5">{post.title || '无标题'}</span>
+
+          <div className="ml-auto">
+            <IconBtn icon={<RiAddLine className="w-5 h-5" />} onClick={handleCreate} />
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 h-screen overflow-y-auto muted-scrollbar">
+          {loadingPost ? (
+            <LoadingState />
+          ) : isCreating ? (
+            <PostEditor onCreate={handleCreateSubmit} />
+          ) : selectedPostId ? (
+            <PostEditor id={selectedPostId} />
+          ) : (
+            <EmptyState />
+          )}
+        </div>
       </div>
     </div>
   );

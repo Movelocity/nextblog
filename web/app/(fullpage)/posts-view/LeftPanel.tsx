@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { BlogMeta } from '@/app/common/types';
 import { searchPosts } from '@/app/services/posts';
-import { RiSearchLine, RiMoonFill, RiSunFill, RiHome3Fill, RiAddLine } from 'react-icons/ri';
+import { RiSearchLine, RiMoonFill, RiSunFill, RiHome3Fill, RiAddLine, RiMenuFoldLine } from 'react-icons/ri';
 import cn from 'classnames';
 import debounce from 'lodash/debounce';
 import { type Theme } from '@/app/utils/globals';
@@ -20,6 +20,10 @@ interface PostsListSidebarProps {
   onCreate?: () => void;
   /** 刷新触发器，当值变化时重新加载列表 */
   refreshTrigger?: number;
+  /** 是否折叠 */
+  collapsed: boolean;
+  /** 折叠回调 */
+  onCollapse: (collapsed: boolean) => void;
 }
 
 /** 骨架项预设宽度，避免使用随机值导致 hydration 问题 */
@@ -61,7 +65,7 @@ const PostsListSkeleton = () => (
  * 文档列表侧边栏组件
  * 显示可搜索、可滚动的文档标题列表
  */
-export const PostsListSidebar = ({ selectedId, onSelect, onCreate, refreshTrigger }: PostsListSidebarProps) => {
+export const PostsListSidebar = ({ collapsed, onCollapse, selectedId, onSelect, refreshTrigger }: PostsListSidebarProps) => {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [displayPosts, setDisplayPosts] = useState<BlogMeta[]>([]); // 用于显示的列表，延迟更新
   const [searchQuery, setSearchQuery] = useState('');
@@ -210,23 +214,19 @@ export const PostsListSidebar = ({ selectedId, onSelect, onCreate, refreshTrigge
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-700">
-
-      <div className="px-3 py-2 flex items-center justify-between text-gray-500 dark:text-gray-400">
-        <IconBtn icon={<RiHome3Fill className="w-5 h-5" />} onClick={() => router.push('/dashboard')} />
-        <IconBtn icon={<RiAddLine className="w-5 h-5" />} onClick={() => {
-          if(onCreate) {
-            onCreate();
-          } else {
-            router.push('/posts/new');
-          }
-        }} />
+      <div className="px-3 py-1 flex items-center justify-between text-gray-500 dark:text-gray-400">
+        <IconBtn icon={<RiMenuFoldLine className="w-5 h-5" />} onClick={() => onCollapse(true)} />
+        <div className="flex items-center gap-1">
+          <IconBtn icon={<RiHome3Fill className="w-5 h-5" />} onClick={() => router.push('/dashboard')} />
+        </div>
       </div>
       {/* 搜索框 */}
       <div className="px-3 pb-2">
-        <div className="relative">
+        <div className={cn("relative", collapsed ? "hidden" : "")}>
           <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
           <input
             ref={inputRef}
+            id="posts-search-input"
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}

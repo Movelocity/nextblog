@@ -265,7 +265,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
         <button
           type="button"
           onClick={() => setIsPreview(!isPreview)}
-          className="flex items-center justify-center p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
+          className="flex items-center justify-center opacity-80 p-2 lg:p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105"
           aria-label={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
           title={isPreview ? 'Switch to edit mode' : 'Switch to preview mode'}
         >

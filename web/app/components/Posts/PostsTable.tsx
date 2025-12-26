@@ -147,7 +147,7 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
   };
 
   return (
-    <div className="w-full bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <div className="w-full bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[90%] flex flex-col">
       <div className="px-10 py-2 flex justify-between items-center text-gray-600 dark:text-gray-300">
         <span className="text-sm">我的文档</span>
         <Link href="/posts-view" className="text-sm hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
@@ -339,7 +339,7 @@ export default function PostsTable({ posts, onDelete, onTogglePublish, footer }:
           </table>
         </div>
       )}
-      {footer}
+      <div className="h-10 mt-auto">{footer}</div>
 
       <DeleteConfirmationModal
         isOpen={deletePostId !== null}
