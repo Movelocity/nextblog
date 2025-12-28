@@ -24,6 +24,10 @@ interface PostsListSidebarProps {
   collapsed: boolean;
   /** 折叠回调 */
   onCollapse: (collapsed: boolean) => void;
+  /** 主题 */
+  theme: Theme;
+  /** 切换主题回调 */
+  onThemeChange: (theme: Theme) => void;
 }
 
 /** 骨架项预设宽度，避免使用随机值导致 hydration 问题 */
@@ -65,7 +69,9 @@ const PostsListSkeleton = () => (
  * 文档列表侧边栏组件
  * 显示可搜索、可滚动的文档标题列表
  */
-export const PostsListSidebar = ({ collapsed, onCollapse, selectedId, onSelect, refreshTrigger }: PostsListSidebarProps) => {
+export const PostsListSidebar = ({ 
+  collapsed, onCollapse, selectedId, onSelect, refreshTrigger, theme, onThemeChange
+}: PostsListSidebarProps) => {
   const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [displayPosts, setDisplayPosts] = useState<BlogMeta[]>([]); // 用于显示的列表，延迟更新
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,35 +80,10 @@ export const PostsListSidebar = ({ collapsed, onCollapse, selectedId, onSelect, 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const inputRef = useRef<HTMLInputElement>(null);
   const postsLengthRef = useRef(0);
   const isInitialLoadRef = useRef(true); // 标记是否是初始加载
   const router = useRouter();
-
-  // 切换主题
-  const updateTheme = useCallback((newTheme: "light" | "dark") => {
-    if(newTheme === "light") {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    }
-    setTheme(newTheme);
-  }, []);
-
-  const handleToggleTheme = () => {
-    console.log('handleToggle', theme);
-    updateTheme(theme === "light" ? "dark" : "light");
-  };
-
-  // 初始化主题
-  useEffect(() => {
-    const storedTheme = localStorage.getItem('theme') as Theme || 'light';
-    updateTheme(storedTheme);
-    console.log('useEffect', storedTheme);
-  }, [updateTheme]);
 
   // 搜索文档
   const executeSearch = useCallback(async (query: string, pageNum: number = 1, append: boolean = false) => {
@@ -314,7 +295,7 @@ export const PostsListSidebar = ({ collapsed, onCollapse, selectedId, onSelect, 
           {displayPosts.length > 0 && total > 0 ? `${displayPosts.length} / ${total}` : `${displayPosts.length}`} 篇文档
         </span>
         <button
-          onClick={handleToggleTheme}
+          onClick={() => onThemeChange(theme === "light" ? "dark" : "light")}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 transition-colors"
           aria-label={theme === 'light' ? '切换至暗色模式' : '切换至亮色模式'}
           title={theme === 'light' ? '切换至暗色模式' : '切换至亮色模式'}

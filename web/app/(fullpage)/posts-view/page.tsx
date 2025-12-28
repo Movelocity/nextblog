@@ -11,6 +11,8 @@ import { useAuth } from '@/app/hooks/useAuth';
 import { RiAddLine, RiFileTextLine, RiMenuUnfoldLine } from 'react-icons/ri';
 import cn from 'classnames';
 import IconBtn from '@/app/components/ui/IconBtn';
+import { useIsMobile } from '@/app/hooks/useIsMobile';
+import { type Theme } from '@/app/utils/globals';
 
 /**
  * 全屏文档编辑视图页面
@@ -18,12 +20,30 @@ import IconBtn from '@/app/components/ui/IconBtn';
  */
 export default function PostsViewPage() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   const [isCreating, setIsCreating] = useState(false);
   const [loadingPost, setLoadingPost] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { post, setPost, setLoading, setLastSaved, isDirty, setIsDirty } = useEditPostStore();
   const { showToast } = useToast();
   const { isAuthenticated, isLoading: authLoading, openLoginModal } = useAuth();
+  const [theme, setTheme] = useState<Theme>("light");
+
+  const updateTheme = (newTheme: Theme) => {
+    if(newTheme === "light") {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+    setTheme(newTheme);
+  }
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme") as Theme || "light";
+    updateTheme(storedTheme);
+  }, []);
 
   // 检查登录状态
   useEffect(() => {
@@ -150,7 +170,11 @@ export default function PostsViewPage() {
   return (
     <div className="flex h-full">
       {/* 左侧文档列表侧边栏 */}
-      <div className={cn("w-64 flex-shrink-0 transition-all duration-300", sideBarCollapsed ? "w-0" : "")}>
+      <div className={cn(
+        "w-64 flex-shrink-0 h-full ", 
+        isMobile ? "bg-white dark:bg-zinc-900 fixed left-0 top-0 h-full": "transition-all duration-300",
+        sideBarCollapsed && (isMobile ? "hidden" : "w-0")
+      )}>
         <PostsListSidebar
           collapsed={sideBarCollapsed}
           onCollapse={setSideBarCollapsed}
@@ -158,6 +182,8 @@ export default function PostsViewPage() {
           onSelect={handleSelectPost}
           // onCreate={handleCreate}
           refreshTrigger={refreshTrigger}
+          theme={theme}
+          onThemeChange={updateTheme}
         />
       </div>
 
