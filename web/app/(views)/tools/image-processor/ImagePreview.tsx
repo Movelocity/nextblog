@@ -2,16 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { RiImageLine } from 'react-icons/ri';
-
-interface ImagePreviewProps {
-  imageBase64: string | null;
-  cropEnabled: boolean;
-  cropX: number;
-  cropY: number;
-  cropWidth: number;
-  cropHeight: number;
-  onCropChange: (x: number, y: number, width: number, height: number) => void;
-}
+import { useImageProcessorStore } from '@/app/stores/ImageProcessorStore';
+import { useCoordinateTransformer } from './hooks/useCoordinateTransformer';
 
 type ResizeHandle = 
   | 'nw' | 'n' | 'ne' 
@@ -23,89 +15,108 @@ type ResizeHandle =
 /**
  * Image Preview Component with Interactive Cropping
  */
-export const ImagePreview = ({
-  imageBase64,
-  cropEnabled,
-  cropX,
-  cropY,
-  cropWidth,
-  cropHeight,
-  onCropChange
-}: ImagePreviewProps) => {
+export const ImagePreview = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [activeHandle, setActiveHandle] = useState<ResizeHandle>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [cropStart, setCropStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
-  /**
-   * Convert pixel position to percentage relative to container
-   */
-  const pixelToPercent = useCallback((x: number, y: number, width: number, height: number) => {
-    if (!containerRef.current) return { x: 0, y: 0, width: 100, height: 100 };
+  // 从 store 获取状态
+  const {
+    imageState,
+    cropEnabled,
+    cropDraft,
+    setCropDraft,
+  } = useImageProcessorStore();
 
-    const container = containerRef.current;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+  // 初始化坐标转换器
+  const coordinateTransformer = useCoordinateTransformer(
+    containerRef,
+    imgRef,
+    imageState?.width,
+    imageState?.height
+  );
+
+  const imageBase64 = cropEnabled ? imageState?.originalBase64 : imageState?.processedBase64;
+  const cropX = cropDraft.x;
+  const cropY = cropDraft.y;
+  const cropWidth = cropDraft.width;
+  const cropHeight = cropDraft.height;
+
+  /**
+   * 将图片坐标（百分比）转换为显示坐标（像素）用于渲染裁剪框
+   */
+  const getCropDisplayStyle = useCallback(() => {
+    if (!coordinateTransformer) {
+      return { left: 0, top: 0, width: 0, height: 0 };
+    }
+
+    // 将图片坐标（百分比）转换为显示坐标（像素）
+    const displayCrop = coordinateTransformer.imagePercentToDisplay(cropDraft);
+    
+    // 转换为容器坐标（用于 CSS 定位）
+    const containerPos = coordinateTransformer.displayToContainer(displayCrop.x, displayCrop.y);
 
     return {
-      x: Math.max(0, Math.min(100, (x / containerWidth) * 100)),
-      y: Math.max(0, Math.min(100, (y / containerHeight) * 100)),
-      width: Math.max(1, Math.min(100, (width / containerWidth) * 100)),
-      height: Math.max(1, Math.min(100, (height / containerHeight) * 100))
+      left: containerPos.x,
+      top: containerPos.y,
+      width: displayCrop.width,
+      height: displayCrop.height,
     };
-  }, []);
-
-  /**
-   * Convert percentage to pixel position relative to container
-   */
-  const percentToPixel = useCallback((x: number, y: number, width: number, height: number) => {
-    if (!containerRef.current) return { x: 0, y: 0, width: 0, height: 0 };
-
-    const container = containerRef.current;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-
-    return {
-      x: (x / 100) * containerWidth,
-      y: (y / 100) * containerHeight,
-      width: (width / 100) * containerWidth,
-      height: (height / 100) * containerHeight
-    };
-  }, []);
+  }, [coordinateTransformer, cropDraft]);
 
   /**
    * Handle mouse down on crop box
    */
   const handleMouseDown = useCallback((e: React.MouseEvent, handle: ResizeHandle) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !coordinateTransformer) return;
 
     e.preventDefault();
     e.stopPropagation();
 
+    const containerRect = containerRef.current.getBoundingClientRect();
+    
+    // 获取鼠标相对容器的位置
+    const mouseContainerX = e.clientX - containerRect.left;
+    const mouseContainerY = e.clientY - containerRect.top;
+
+    // 转换为显示坐标
+    const mouseDisplay = coordinateTransformer.containerToDisplay(mouseContainerX, mouseContainerY);
+
+    // 获取当前裁剪框的显示坐标
+    const currentDisplayCrop = coordinateTransformer.imagePercentToDisplay(cropDraft);
+
     setIsDragging(true);
     setActiveHandle(handle);
-    setDragStart({ x: e.clientX, y: e.clientY });
-    setCropStart({ x: cropX, y: cropY, width: cropWidth, height: cropHeight });
-  }, [cropX, cropY, cropWidth, cropHeight]);
+    setDragStart({ x: mouseDisplay.x, y: mouseDisplay.y });
+    setCropStart({ 
+      x: currentDisplayCrop.x, 
+      y: currentDisplayCrop.y, 
+      width: currentDisplayCrop.width, 
+      height: currentDisplayCrop.height 
+    });
+  }, [coordinateTransformer, cropDraft]);
 
   /**
    * Handle mouse move for dragging/resizing
    */
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !activeHandle || !containerRef.current) return;
+    if (!isDragging || !activeHandle || !containerRef.current || !coordinateTransformer) return;
 
-    const container = containerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    const containerHeight = containerRect.height;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    
+    // 获取鼠标相对容器的位置
+    const mouseContainerX = e.clientX - containerRect.left;
+    const mouseContainerY = e.clientY - containerRect.top;
 
-    const deltaX = e.clientX - dragStart.x;
-    const deltaY = e.clientY - dragStart.y;
+    // 转换为显示坐标
+    const mouseDisplay = coordinateTransformer.containerToDisplay(mouseContainerX, mouseContainerY);
 
-    // Convert delta to percentage
-    const deltaXPercent = (deltaX / containerWidth) * 100;
-    const deltaYPercent = (deltaY / containerHeight) * 100;
+    // 计算鼠标移动的增量（显示坐标空间）
+    const deltaX = mouseDisplay.x - dragStart.x;
+    const deltaY = mouseDisplay.y - dragStart.y;
 
     let newX = cropStart.x;
     let newY = cropStart.y;
@@ -114,57 +125,44 @@ export const ImagePreview = ({
 
     if (activeHandle === 'move') {
       // Move the entire crop box
-      newX = cropStart.x + deltaXPercent;
-      newY = cropStart.y + deltaYPercent;
-
-      // Constrain within bounds
-      newX = Math.max(0, Math.min(100 - cropStart.width, newX));
-      newY = Math.max(0, Math.min(100 - cropStart.height, newY));
+      newX = cropStart.x + deltaX;
+      newY = cropStart.y + deltaY;
     } else {
       // Resize based on handle
       if (activeHandle.includes('n')) {
-        newY = cropStart.y + deltaYPercent;
-        newHeight = cropStart.height - deltaYPercent;
+        newY = cropStart.y + deltaY;
+        newHeight = cropStart.height - deltaY;
       }
       if (activeHandle.includes('s')) {
-        newHeight = cropStart.height + deltaYPercent;
+        newHeight = cropStart.height + deltaY;
       }
       if (activeHandle.includes('w')) {
-        newX = cropStart.x + deltaXPercent;
-        newWidth = cropStart.width - deltaXPercent;
+        newX = cropStart.x + deltaX;
+        newWidth = cropStart.width - deltaX;
       }
       if (activeHandle.includes('e')) {
-        newWidth = cropStart.width + deltaXPercent;
+        newWidth = cropStart.width + deltaX;
       }
-
-      // Constrain minimum size
-      if (newWidth < 5) {
-        newWidth = 5;
-        if (activeHandle.includes('w')) {
-          newX = cropStart.x + cropStart.width - 5;
-        }
-      }
-      if (newHeight < 5) {
-        newHeight = 5;
-        if (activeHandle.includes('n')) {
-          newY = cropStart.y + cropStart.height - 5;
-        }
-      }
-
-      // Constrain within bounds
-      newX = Math.max(0, Math.min(100 - newWidth, newX));
-      newY = Math.max(0, Math.min(100 - newHeight, newY));
-      newWidth = Math.min(100 - newX, newWidth);
-      newHeight = Math.min(100 - newY, newHeight);
     }
 
-    onCropChange(
-      Math.round(newX * 10) / 10,
-      Math.round(newY * 10) / 10,
-      Math.round(newWidth * 10) / 10,
-      Math.round(newHeight * 10) / 10
-    );
-  }, [isDragging, activeHandle, dragStart, cropStart, onCropChange]);
+    // 约束裁剪框在有效范围内
+    const constrainedCrop = coordinateTransformer.constrainDisplayCrop({
+      x: newX,
+      y: newY,
+      width: newWidth,
+      height: newHeight,
+    });
+
+    // 转换为图片坐标（百分比）并保存
+    const imageCrop = coordinateTransformer.displayToImagePercent(constrainedCrop);
+
+    setCropDraft({
+      x: Math.round(imageCrop.x * 10) / 10,
+      y: Math.round(imageCrop.y * 10) / 10,
+      width: Math.round(imageCrop.width * 10) / 10,
+      height: Math.round(imageCrop.height * 10) / 10,
+    });
+  }, [isDragging, activeHandle, dragStart, cropStart, coordinateTransformer, setCropDraft]);
 
   /**
    * Handle mouse up
@@ -190,13 +188,16 @@ export const ImagePreview = ({
    * Render crop overlay
    */
   const renderCropOverlay = () => {
-    if (!cropEnabled || !imageBase64) return null;
+    if (!cropEnabled || !imageBase64 || !coordinateTransformer) return null;
+
+    // 获取裁剪框的显示样式（容器坐标，用于 CSS 定位）
+    const cropDisplayStyle = getCropDisplayStyle();
 
     const cropStyle = {
-      left: `${cropX}%`,
-      top: `${cropY}%`,
-      width: `${cropWidth}%`,
-      height: `${cropHeight}%`
+      left: `${cropDisplayStyle.left}px`,
+      top: `${cropDisplayStyle.top}px`,
+      width: `${cropDisplayStyle.width}px`,
+      height: `${cropDisplayStyle.height}px`
     };
 
     return (
@@ -206,31 +207,37 @@ export const ImagePreview = ({
           {/* Top */}
           <div 
             className="absolute left-0 right-0 bg-black/50"
-            style={{ top: 0, height: `${cropY}%` }}
+            style={{ 
+              top: 0, 
+              height: `${cropDisplayStyle.top}px` 
+            }}
           />
           {/* Bottom */}
           <div 
             className="absolute left-0 right-0 bg-black/50"
-            style={{ top: `${cropY + cropHeight}%`, bottom: 0 }}
+            style={{ 
+              top: `${cropDisplayStyle.top + cropDisplayStyle.height}px`, 
+              bottom: 0 
+            }}
           />
           {/* Left */}
           <div 
             className="absolute bg-black/50"
             style={{ 
-              top: `${cropY}%`, 
+              top: `${cropDisplayStyle.top}px`, 
               left: 0, 
-              width: `${cropX}%`, 
-              height: `${cropHeight}%` 
+              width: `${cropDisplayStyle.left}px`, 
+              height: `${cropDisplayStyle.height}px` 
             }}
           />
           {/* Right */}
           <div 
             className="absolute bg-black/50"
             style={{ 
-              top: `${cropY}%`, 
-              left: `${cropX + cropWidth}%`, 
+              top: `${cropDisplayStyle.top}px`, 
+              left: `${cropDisplayStyle.left + cropDisplayStyle.width}px`, 
               right: 0, 
-              height: `${cropHeight}%` 
+              height: `${cropDisplayStyle.height}px` 
             }}
           />
         </div>
@@ -311,6 +318,7 @@ export const ImagePreview = ({
           style={{ userSelect: 'none' }}
         >
           <img
+            ref={imgRef}
             src={imageBase64}
             alt="Preview"
             className="max-w-full max-h-[600px] object-contain pointer-events-none"

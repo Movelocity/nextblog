@@ -13,3 +13,5 @@ Follow these rules when you write react code:
 - Do not use middleware in nextjs, implement wrappers instead.
 - Use only react-icons for icons.
 - Each new class or method should have document inside comment /** */
+- DO NOT write tests or documentation unless requested!
+
