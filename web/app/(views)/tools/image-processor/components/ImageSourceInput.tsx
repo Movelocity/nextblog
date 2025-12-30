@@ -149,7 +149,7 @@ export const ImageSourceInput = () => {
           从 URL 加载
         </label>
         <div className="flex gap-2">
-          <div className="flex-1">
+          <div className="flex-1" title="可直接使用 Ctrl/Cmd+V 粘贴图片">
             <input
               type="text"
               value={urlInput}
@@ -170,10 +170,10 @@ export const ImageSourceInput = () => {
       </div>
 
       {/* 粘贴提示 */}
-      <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+      {/* <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
         <RiFileCopyLine className="inline text-lg mr-1" />
         提示：可直接使用 Ctrl/Cmd+V 粘贴图片
-      </div>
+      </div> */}
 
       {/* 图片信息 */}
       {imageState && (

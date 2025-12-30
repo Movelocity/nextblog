@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { CoordinateTransformer, createCoordinateTransformer } from '../utils/coordinateTransformer';
 
 /**
@@ -17,26 +17,26 @@ export const useCoordinateTransformer = (
   imgRef: React.RefObject<HTMLImageElement | null>,
   imageWidth: number | undefined,
   imageHeight: number | undefined
-): CoordinateTransformer | null => {
-  const transformerRef = useRef<CoordinateTransformer | null>(null);
+): { transformer: CoordinateTransformer | null; updateTransformer: () => void } => {
+  const [transformer, setTransformer] = useState<CoordinateTransformer | null>(null);
 
   /**
    * 更新坐标转换器
    */
   const updateTransformer = useCallback(() => {
     if (!containerRef.current || !imgRef.current || !imageWidth || !imageHeight) {
-      transformerRef.current = null;
+      setTransformer(null);
       return;
     }
 
-    const transformer = createCoordinateTransformer(
+    const newTransformer = createCoordinateTransformer(
       containerRef.current,
       imgRef.current,
       imageWidth,
       imageHeight
     );
 
-    transformerRef.current = transformer;
+    setTransformer(newTransformer);
   }, [containerRef, imgRef, imageWidth, imageHeight]);
 
   // 初始化和更新转换器
@@ -67,6 +67,6 @@ export const useCoordinateTransformer = (
     };
   }, [containerRef, imgRef, updateTransformer]);
 
-  return transformerRef.current;
+  return { transformer, updateTransformer };
 };
 

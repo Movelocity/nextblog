@@ -32,7 +32,7 @@ export const ImagePreview = () => {
   } = useImageProcessorStore();
 
   // 初始化坐标转换器
-  const coordinateTransformer = useCoordinateTransformer(
+  const { transformer: coordinateTransformer, updateTransformer } = useCoordinateTransformer(
     containerRef,
     imgRef,
     imageState?.width,
@@ -44,6 +44,17 @@ export const ImagePreview = () => {
   const cropY = cropDraft.y;
   const cropWidth = cropDraft.width;
   const cropHeight = cropDraft.height;
+
+  /**
+   * 处理图片加载完成 - 确保坐标转换器正确初始化
+   */
+  const handleImageLoad = useCallback(() => {
+    // 图片加载完成后，强制更新坐标转换器
+    // 使用 requestAnimationFrame 确保在下一帧更新，此时图片已完全渲染
+    requestAnimationFrame(() => {
+      updateTransformer();
+    });
+  }, [updateTransformer]);
 
   /**
    * 将图片坐标（百分比）转换为显示坐标（像素）用于渲染裁剪框
@@ -183,6 +194,17 @@ export const ImagePreview = () => {
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  // 当切换到裁剪模式时，确保坐标转换器更新
+  useEffect(() => {
+    if (cropEnabled && imageState) {
+      // 使用 setTimeout 确保图片已经渲染
+      const timer = setTimeout(() => {
+        updateTransformer();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [cropEnabled, imageState, updateTransformer]);
 
   /**
    * Render crop overlay
@@ -326,21 +348,12 @@ export const ImagePreview = () => {
               imageRendering: 'crisp-edges'
             }}
             draggable={false}
+            onLoad={handleImageLoad}
           />
           {renderCropOverlay()}
         </div>
       )}
 
-      {cropEnabled && imageBase64 && (
-        <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-          <div className="font-medium mb-1">裁剪模式已启用</div>
-          <div className="text-xs space-y-0.5">
-            <div>• 拖动裁剪框移动位置</div>
-            <div>• 拖动边角/边缘调整大小</div>
-            <div>• 使用左侧滑块精确调整</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
