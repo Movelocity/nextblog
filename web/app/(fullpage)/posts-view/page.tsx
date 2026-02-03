@@ -171,16 +171,15 @@ export default function PostsViewPage() {
     <div className="flex h-full">
       {/* 左侧文档列表侧边栏 */}
       <div className={cn(
-        "w-64 flex-shrink-0 h-full ", 
+        "flex-shrink-0 h-full ", 
         isMobile ? "bg-white dark:bg-zinc-900 fixed left-0 top-0 h-full": "transition-all duration-300",
-        sideBarCollapsed && (isMobile ? "hidden" : "w-0")
+        sideBarCollapsed ? (isMobile ? "hidden" : "w-0") : "w-64",
       )}>
         <PostsListSidebar
           collapsed={sideBarCollapsed}
           onCollapse={setSideBarCollapsed}
           selectedId={selectedPostId}
           onSelect={handleSelectPost}
-          // onCreate={handleCreate}
           refreshTrigger={refreshTrigger}
           theme={theme}
           onThemeChange={updateTheme}
@@ -198,7 +197,7 @@ export default function PostsViewPage() {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 h-screen overflow-y-auto muted-scrollbar">
+        <div className="flex-1 min-h-0 h-[calc(100vh-56px)] overflow-y-auto muted-scrollbar">
           {loadingPost ? (
             <LoadingState />
           ) : isCreating ? (

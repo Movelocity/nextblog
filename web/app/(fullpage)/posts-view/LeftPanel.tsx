@@ -273,7 +273,7 @@ export const PostsListSidebar = ({
                     onClick={handleLoadMore}
                     className="text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors"
                   >
-                    加载更多
+                    加载更多 {displayPosts.length > 0 && total > 0 ? `(${displayPosts.length}/${total})` : `(${displayPosts.length})`}
                   </button>
                 )}
               </div>
@@ -291,9 +291,7 @@ export const PostsListSidebar = ({
 
       {/* 底部操作栏 */}
       <div className="p-3 border-t border-gray-200 dark:border-zinc-700 flex items-center justify-between">
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          {displayPosts.length > 0 && total > 0 ? `${displayPosts.length} / ${total}` : `${displayPosts.length}`} 篇文档
-        </span>
+        
         <button
           onClick={() => onThemeChange(theme === "light" ? "dark" : "light")}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 transition-colors"

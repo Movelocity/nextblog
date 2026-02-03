@@ -29,16 +29,27 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   const thumbnailUrl = isImage ? assetService.getAssetThumbnailUrl(asset.id, 260) : undefined;
   const assetUrl = assetService.getAssetUrl(asset.id);
 
-  const handleDownload = () => {
+  /**
+   * Download asset file using fetch + blob to force download instead of navigation
+   */
+  const handleDownload = async () => {
     if (!assetUrl) {
       return;
     }
-    const link = document.createElement('a');
-    link.href = assetUrl;
-    link.download = asset.mimeType;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(assetUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = asset.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   return (
