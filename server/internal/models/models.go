@@ -31,6 +31,7 @@ func (a StringArray) Value() (driver.Value, error) {
 // Post 博客文章模型
 type Post struct {
 	ID          string      `json:"id" gorm:"primaryKey"`
+	UserID      uint        `json:"userId" gorm:"index;default:0"`
 	Title       string      `json:"title" gorm:"not null"`
 	Description string      `json:"description" gorm:"type:text"`
 	Content     string      `json:"content" gorm:"type:text"`
@@ -55,6 +56,7 @@ type PostSummary struct {
 // Note 笔记模型
 type Note struct {
 	ID         string      `json:"id" gorm:"primaryKey"`
+	UserID     uint        `json:"userId" gorm:"index;default:0"`
 	Date       string      `json:"date" gorm:"not null;index"` // YYYY-MM-DD format
 	Data       string      `json:"data" gorm:"type:text"`
 	IsPublic   bool        `json:"isPublic" gorm:"default:false"`

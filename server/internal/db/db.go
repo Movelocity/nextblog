@@ -51,6 +51,38 @@ func InitDB(dbPath string) error {
 
 	DB = db
 	log.Println("Database initialized successfully")
+
+	if os.Getenv("BACKFILL_USER_ID") == "true" {
+		if err := backfillUserID(db); err != nil {
+			log.Printf("Warning: failed to backfill user_id: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// backfillUserID assigns the first user's ID to all posts, notes, and file_resources
+// that have user_id = 0 or NULL. Intended as a one-time migration helper;
+// enable by setting BACKFILL_USER_ID=true in the environment.
+func backfillUserID(db *gorm.DB) error {
+	var firstUser models.User
+	if err := db.Order("id ASC").First(&firstUser).Error; err != nil {
+		log.Println("Backfill skipped: no users found in database")
+		return nil
+	}
+
+	uid := firstUser.ID
+	tables := []string{"posts", "notes", "file_resources"}
+	for _, table := range tables {
+		result := db.Exec(
+			"UPDATE "+table+" SET user_id = ? WHERE user_id = 0 OR user_id IS NULL",
+			uid,
+		)
+		if result.Error != nil {
+			return fmt.Errorf("backfill %s: %w", table, result.Error)
+		}
+		log.Printf("Backfill %s: %d rows updated with user_id=%d", table, result.RowsAffected, uid)
+	}
 	return nil
 }
 

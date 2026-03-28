@@ -8,6 +8,7 @@ import "time"
  */
 type FileResource struct {
 	ID           string    `json:"id" gorm:"primaryKey"`          // 文件ID（与物理文件名一致，带扩展名）
+	UserID       uint      `json:"user_id" gorm:"index;default:0"` // 上传者用户ID
 	OriginalName string    `json:"original_name" gorm:"not null"` // 原始文件名
 	Extension    string    `json:"extension" gorm:"not null"`     // 文件扩展名（含点，如 ".jpg"）
 	MimeType     string    `json:"mime_type" gorm:"not null"`     // MIME类型
