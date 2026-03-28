@@ -50,7 +50,23 @@ program
   .description('Authenticate with the server and save the JWT token')
   .option('-e, --email <email>', 'Email address')
   .option('-p, --password <pass>', 'Password')
-  .action(async (opts: { email?: string; password?: string }) => {
+  .option('-t, --token <short-token>', 'Short access token issued by an admin')
+  .action(async (opts: { email?: string; password?: string; token?: string }) => {
+    // ── short-token path ──────────────────────────────────────────────────────
+    if (opts.token) {
+      const spin = ora('Exchanging token…').start();
+      try {
+        const data = await api.tokenExchange(opts.token);
+        setConfig('token', data.token);
+        spin.succeed(`Logged in as ${chalk.bold(data.user?.username ?? 'unknown')}`);
+      } catch (e) {
+        spin.fail(`Token exchange failed: ${(e as Error).message}`);
+        process.exit(1);
+      }
+      return;
+    }
+
+    // ── email/password path ───────────────────────────────────────────────────
     const answers = await prompts([
       { type: opts.email ? null : 'text',        name: 'email',    message: 'Email',    initial: opts.email },
       { type: opts.password ? null : 'password', name: 'password', message: 'Password' },
@@ -260,6 +276,128 @@ assets
       spin.fail((e as Error).message); process.exit(1);
     }
   });
+
+// ─── admin ────────────────────────────────────────────────────────────────────
+
+// const admin = program.command('admin').description('Admin-only user and token management');
+
+// admin
+//   .command('create-user')
+//   .description('Create a new user account')
+//   .option('-u, --username <name>', 'Username')
+//   .option('-e, --email <email>',   'Email address')
+//   .option('-p, --password <pass>', 'Password')
+//   .option('-r, --role <role>',     'Role: admin | editor | user  (default: user)')
+//   .action(async (opts: { username?: string; email?: string; password?: string; role?: string }) => {
+//     const answers = await prompts([
+//       { type: opts.username ? null : 'text',     name: 'username', message: 'Username' },
+//       { type: opts.email    ? null : 'text',     name: 'email',    message: 'Email' },
+//       { type: opts.password ? null : 'password', name: 'password', message: 'Password' },
+//       { type: opts.role     ? null : 'select',   name: 'role',     message: 'Role',
+//         choices: [
+//           { title: 'user   – read + own content', value: 'user' },
+//           { title: 'editor – create/edit posts',  value: 'editor' },
+//           { title: 'admin  – full access',        value: 'admin' },
+//         ],
+//       },
+//     ]);
+//     const username = opts.username ?? answers.username as string | undefined;
+//     const email    = opts.email    ?? answers.email    as string | undefined;
+//     const password = opts.password ?? answers.password as string | undefined;
+//     const role     = opts.role     ?? answers.role     as string | undefined ?? 'user';
+//     if (!username || !email || !password) { console.error('Cancelled'); process.exit(1); }
+
+//     const spin = ora('Creating user…').start();
+//     try {
+//       const user = await api.adminCreateUser(username, email, password, role);
+//       spin.succeed(`Created user ${chalk.bold(user.username)} ${chalk.gray(`<${user.email}>`)} [${chalk.blue(user.role)}]  id=${user.id}`);
+//     } catch (e) {
+//       spin.fail((e as Error).message); process.exit(1);
+//     }
+//   });
+
+// admin
+//   .command('list-users')
+//   .description('List all users')
+//   .option('-p, --page <n>',     'Page number',    '1')
+//   .option('-l, --pageSize <n>', 'Items per page', '20')
+//   .action(async (opts: { page: string; pageSize: string }) => {
+//     const spin = ora('Fetching users…').start();
+//     try {
+//       const data = await api.adminListUsers({ page: Number(opts.page), pageSize: Number(opts.pageSize) });
+//       spin.stop();
+//       if (!data.users.length) { console.log(chalk.gray('No users found.')); return; }
+//       for (const u of data.users) {
+//         const active = u.active ? chalk.green('active') : chalk.red('inactive');
+//         console.log(
+//           chalk.bold(String(u.id).padStart(4)),
+//           chalk.bold(u.username.padEnd(20)),
+//           chalk.gray(u.email.padEnd(30)),
+//           chalk.blue(`[${u.role}]`),
+//           active,
+//         );
+//       }
+//       console.log(chalk.gray(`\nTotal: ${data.total}`));
+//     } catch (e) {
+//       spin.fail((e as Error).message); process.exit(1);
+//     }
+//   });
+
+// admin
+//   .command('create-token <userId>')
+//   .description('Issue a short login token for a user (for dispatching to AI agents)')
+//   .option('-l, --label <label>',       'Human-readable label')
+//   .option('-x, --expires-in <dur>',    'Expiry duration, Go format (default: 168h = 7 days)')
+//   .action(async (userId: string, opts: { label?: string; expiresIn?: string }) => {
+//     const spin = ora(`Minting token for user ${userId}…`).start();
+//     try {
+//       const t = await api.adminCreateToken(Number(userId), opts.label, opts.expiresIn);
+//       spin.stop();
+//       console.log('');
+//       console.log(chalk.bold('Short token:'));
+//       console.log(chalk.yellow(t.token));
+//       console.log('');
+//       console.log(chalk.gray('Expires :'), new Date(t.expiresAt).toLocaleString());
+//       if (t.label) console.log(chalk.gray('Label   :'), t.label);
+//       console.log('');
+//       console.log(chalk.bold('One-liner for the agent:'));
+//       console.log(chalk.cyan(`nblog login --token ${t.token}`));
+//     } catch (e) {
+//       spin.fail((e as Error).message); process.exit(1);
+//     }
+//   });
+
+// admin
+//   .command('list-tokens <userId>')
+//   .description('List all tokens issued for a user')
+//   .action(async (userId: string) => {
+//     const spin = ora('Fetching tokens…').start();
+//     try {
+//       const { tokens } = await api.adminListTokens(Number(userId));
+//       spin.stop();
+//       if (!tokens.length) { console.log(chalk.gray('No tokens.')); return; }
+//       for (const t of tokens as AccessToken[]) {
+//         const status = t.used ? chalk.red('used') : new Date(t.expiresAt) < new Date() ? chalk.yellow('expired') : chalk.green('valid');
+//         const label = t.label ? chalk.gray(` (${t.label})`) : '';
+//         console.log(`${status}  ${chalk.bold(t.token.slice(0, 16))}…  exp ${new Date(t.expiresAt).toLocaleDateString()}${label}`);
+//       }
+//     } catch (e) {
+//       spin.fail((e as Error).message); process.exit(1);
+//     }
+//   });
+
+// admin
+//   .command('revoke-token <token>')
+//   .description('Revoke / delete a short access token')
+//   .action(async (token: string) => {
+//     const spin = ora('Revoking token…').start();
+//     try {
+//       await api.adminRevokeToken(token);
+//       spin.succeed('Token revoked');
+//     } catch (e) {
+//       spin.fail((e as Error).message); process.exit(1);
+//     }
+//   });
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import cn from 'classnames';
-import { RiAddFill, RiUserFill, RiLogoutBoxLine, RiMoonFill, RiSunFill, RiFileTextLine, RiFolderImageLine } from 'react-icons/ri';
+import { RiAddFill, RiUserFill, RiLogoutBoxLine, RiMoonFill, RiSunFill, RiFileTextLine, RiFolderImageLine, RiTeamFill } from 'react-icons/ri';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getTaxonomy } from '@/app/services/posts';
@@ -130,6 +130,7 @@ export function SidePanel() {
             {isAuthenticated && (<StyledLink icon={<RiDashboardFill className="w-4 h-4" />} name="Dashboard" tgUrl="/dashboard" currentPath={pathname}/>)}
             {isAuthenticated && (<StyledLink icon={<RiFolderImageLine className="w-4 h-4" />} name="Files" tgUrl="/files" currentPath={pathname}/>)}
             {isAuthenticated && (<StyledLink icon={<RiServerFill className="w-4 h-4" />} name="System" tgUrl="/system" currentPath={pathname}/>)}
+            {isAuthenticated && (<StyledLink icon={<RiTeamFill className="w-4 h-4" />} name="Users" tgUrl="/users" currentPath={pathname}/>)}
             
             <StyledLink icon={<RiAddFill className="w-4 h-4" />} name="New Post" tgUrl="/posts/new" currentPath={pathname}/>
             <div className="flex-1"></div>

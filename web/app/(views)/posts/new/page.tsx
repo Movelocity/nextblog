@@ -28,6 +28,6 @@ export default function NewPostPage() {
   };
 
   return (
-    <PostEditor onCreate={handleSubmit}/>
+    <PostEditor onCreate={handleSubmit} defaultMode='edit'/>
   );
 } 

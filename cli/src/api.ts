@@ -1,11 +1,16 @@
 import { createWriteStream } from 'fs';
+import { Readable } from 'stream';
+import type { ReadableStream as NodeWebReadableStream } from 'node:stream/web';
 import { pipeline } from 'stream/promises';
 import { requireServer, getToken } from './config.js';
 
 export interface User {
+  id?: number;
   username: string;
   email: string;
   role: string;
+  active?: boolean;
+  createdAt?: string;
 }
 
 export interface LoginResponse {
@@ -162,10 +167,53 @@ export async function downloadAsset(fileId: string, destPath: string): Promise<s
 
   const res = await fetch(`${server}/api/assets/${fileId}`, { headers });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.body) throw new Error('No response body');
 
   const out = createWriteStream(destPath);
-  await pipeline(res.body as NodeJS.ReadableStream, out);
+  await pipeline(Readable.fromWeb(res.body as unknown as NodeWebReadableStream), out);
   return res.headers.get('content-type');
+}
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
+
+// export interface AccessToken {
+//   token: string;
+//   userId: number;
+//   createdBy: number;
+//   label?: string;
+//   expiresAt: string;
+//   used: boolean;
+//   createdAt: string;
+// }
+
+// export async function adminCreateUser(
+//   username: string, email: string, password: string, role = 'user'
+// ): Promise<User> {
+//   return apiFetch('/admin/users', { method: 'POST', auth: true, body: { username, email, password, role } });
+// }
+
+// export async function adminListUsers({ page = 1, pageSize = 20 } = {}): Promise<{ users: User[]; total: number }> {
+//   return apiFetch('/admin/users', { auth: true, query: { page, pageSize } });
+// }
+
+// export async function adminCreateToken(
+//   userId: number, label?: string, expiresIn?: string
+// ): Promise<AccessToken> {
+//   return apiFetch(`/admin/users/${userId}/tokens`, {
+//     method: 'POST', auth: true, body: { label: label ?? '', expiresIn: expiresIn ?? '' },
+//   });
+// }
+
+// export async function adminListTokens(userId: number): Promise<{ tokens: AccessToken[] }> {
+//   return apiFetch(`/admin/users/${userId}/tokens`, { auth: true });
+// }
+
+// export async function adminRevokeToken(token: string): Promise<void> {
+//   await apiFetch(`/admin/tokens/${token}`, { method: 'DELETE', auth: true });
+// }
+
+export async function tokenExchange(shortToken: string): Promise<LoginResponse> {
+  return apiFetch('/auth/token-exchange', { method: 'POST', body: { token: shortToken } });
 }
 
 export async function uploadAsset(formData: FormData): Promise<{ id?: string; fileId?: string; [key: string]: unknown }> {

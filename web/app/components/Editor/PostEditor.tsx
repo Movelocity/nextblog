@@ -23,10 +23,11 @@ export interface PostEditorData {
 
 interface PostEditorProps {
   id?: string;
+  defaultMode: "view" | "edit"
   onCreate?: (data: PostEditorData) => void;
 }
 
-export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
+export const PostEditor = ({ id, defaultMode, onCreate }: PostEditorProps) => {
   const { 
     post, lastSaved, loading,
     setIsSaving, setLastSaved, setLoading, setPostPublished, setPostTitle, setPostContent,
@@ -101,7 +102,7 @@ export const PostEditor = ({ id, onCreate }: PostEditorProps) => {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
-  const [isPreview, setIsPreview] = useState(false);
+  const [isPreview, setIsPreview] = useState(defaultMode == 'view');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const wordCount = post.content.trim().match(/[\S]+/g)?.length || 0;
   const textareaRef = useRef<HTMLTextAreaElement>(null);

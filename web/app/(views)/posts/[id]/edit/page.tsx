@@ -65,6 +65,6 @@ export default function EditPostPage() {
   }, [error, showToast]);
 
   return (
-    <PostEditor id={params.id as string}/>
+    <PostEditor id={params.id as string} defaultMode='edit'/>
   );
 } 

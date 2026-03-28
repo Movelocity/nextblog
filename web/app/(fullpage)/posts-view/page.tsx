@@ -201,9 +201,9 @@ export default function PostsViewPage() {
           {loadingPost ? (
             <LoadingState />
           ) : isCreating ? (
-            <PostEditor onCreate={handleCreateSubmit} />
+            <PostEditor onCreate={handleCreateSubmit} defaultMode='edit' />
           ) : selectedPostId ? (
-            <PostEditor id={selectedPostId} />
+            <PostEditor id={selectedPostId} defaultMode='view' />
           ) : (
             <EmptyState />
           )}

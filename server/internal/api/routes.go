@@ -31,17 +31,31 @@ func SetupRoutes(router *gin.Engine, allowedOrigins []string) {
 
 		// 认证路由
 		authHandler := NewAuthHandler(db.DB)
+		adminHandler := NewAdminHandler(db.DB)
 		auth := api.Group("/auth")
 		{
 			// 公开路由
 			auth.GET("/registration-status", authHandler.GetRegistrationStatus)
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
+			auth.POST("/token-exchange", adminHandler.TokenExchange)
 
 			// 需要认证的路由
 			auth.GET("/check", middleware.MustLogin(), authHandler.CheckAuth)
 			auth.GET("/profile", middleware.MustLogin(), authHandler.GetProfile)
 			auth.POST("/refresh", middleware.MustLogin(), authHandler.RefreshToken)
+		}
+
+		// 管理员路由（admin only）
+		admin := api.Group("/admin", middleware.MustLogin(), middleware.RequireRole("admin"))
+		{
+			admin.POST("/users", adminHandler.CreateUser)
+			admin.GET("/users", adminHandler.ListUsers)
+			admin.GET("/users/:id", adminHandler.GetUser)
+			admin.PUT("/users/:id", adminHandler.UpdateUser)
+			admin.POST("/users/:id/tokens", adminHandler.CreateAccessToken)
+			admin.GET("/users/:id/tokens", adminHandler.ListAccessTokens)
+			admin.DELETE("/tokens/:token", adminHandler.RevokeAccessToken)
 		}
 
 		// 站点配置（读取公开，更新需要认证）
