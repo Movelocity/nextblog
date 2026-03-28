@@ -65,18 +65,13 @@ func (h *PostHandler) GetPosts(c *gin.Context) {
 		published = &val
 	}
 
-	// 检查用户是否已登录
-	_, isAuthenticated := middleware.GetUserID(c)
-
-	// 如果用户未登录，强制只返回已发布的文章
-	if !isAuthenticated {
-		trueValue := true
-		published = &trueValue
+	userID, isAuthenticated := middleware.GetUserID(c)
+	var userIDPtr *uint
+	if isAuthenticated {
+		userIDPtr = &userID
 	}
-	// 如果用户已登录且没有指定published参数，返回所有文章（published为nil）
 
-	// 查询文章列表
-	posts, total, err := h.repo.GetAll(page, pageSize, order, published, categories, tags)
+	posts, total, err := h.repo.GetAll(page, pageSize, order, published, categories, tags, userIDPtr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -107,6 +102,14 @@ func (h *PostHandler) GetPost(c *gin.Context) {
 		return
 	}
 
+	if !post.Published {
+		userID, isAuthenticated := middleware.GetUserID(c)
+		if !isAuthenticated || post.UserID != userID {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, post)
 }
 
@@ -121,7 +124,8 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		return
 	}
 
-	// 生成 ID（使用时间戳）
+	userID, _ := middleware.GetUserID(c)
+	post.UserID = userID
 	post.ID = fmt.Sprintf("%d", time.Now().UnixMilli())
 	post.CreatedAt = time.Now()
 	post.UpdatedAt = time.Now()
@@ -150,10 +154,15 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 func (h *PostHandler) UpdatePost(c *gin.Context) {
 	id := c.Param("id")
 
-	// 检查文章是否存在
 	existingPost, err := h.repo.GetByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	userID, _ := middleware.GetUserID(c)
+	if existingPost.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
@@ -209,6 +218,18 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
  */
 func (h *PostHandler) DeletePost(c *gin.Context) {
 	id := c.Param("id")
+
+	existingPost, err := h.repo.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		return
+	}
+
+	userID, _ := middleware.GetUserID(c)
+	if existingPost.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
 
 	if err := h.repo.Delete(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -294,17 +315,11 @@ func (h *PostHandler) SearchPosts(c *gin.Context) {
 	// 	return
 	// }
 
-	// 检查用户是否已登录
-	_, isAuthenticated := middleware.GetUserID(c)
-
-	// 根据登录状态决定搜索范围
-	var published *bool
-	if !isAuthenticated {
-		// 未登录用户只能搜索已发布文章
-		trueValue := true
-		published = &trueValue
+	userID, isAuthenticated := middleware.GetUserID(c)
+	var userIDPtr *uint
+	if isAuthenticated {
+		userIDPtr = &userID
 	}
-	// 已登录用户搜索所有文章（published 为 nil）
 
 	// 解析高级搜索参数（仅登录用户可用）
 	highlight := c.Query("highlight") == "true" && isAuthenticated
@@ -313,10 +328,8 @@ func (h *PostHandler) SearchPosts(c *gin.Context) {
 		contextSize = service.DefaultContextSize
 	}
 
-	// 根据是否启用高级搜索选择不同的查询方式
 	if highlight {
-		// 高级搜索：需要完整内容来提取上下文
-		posts, total, err := h.repo.SearchWithContent(keyword, page, pageSize, published)
+		posts, total, err := h.repo.SearchWithContent(keyword, page, pageSize, nil, userIDPtr)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -351,8 +364,7 @@ func (h *PostHandler) SearchPosts(c *gin.Context) {
 			TotalPages: totalPages,
 		})
 	} else {
-		// 普通搜索
-		posts, total, err := h.repo.Search(keyword, page, pageSize, published)
+		posts, total, err := h.repo.Search(keyword, page, pageSize, nil, userIDPtr)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

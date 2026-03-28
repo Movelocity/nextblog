@@ -77,7 +77,7 @@ func (r *NoteRepository) GetPublic() ([]models.Note, error) {
  * GetWithPagination 分页获取笔记
  * @param isArchived: nil=仅未归档, true=仅已归档, false=所有笔记
  */
-func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, order string, isPublic *bool, isArchived *bool) ([]models.Note, int64, error) {
+func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, order string, isPublic *bool, isArchived *bool, userID *uint) ([]models.Note, int64, error) {
 	var notes []models.Note
 	var total int64
 
@@ -88,8 +88,15 @@ func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, order
 		query = query.Where("tags LIKE ?", "%\""+tag+"\"%")
 	}
 
-	// 公开状态过滤
-	if isPublic != nil {
+	// 可见性过滤
+	if userID != nil {
+		query = query.Where("is_public = ? OR user_id = ?", true, *userID)
+	} else {
+		query = query.Where("is_public = ?", true)
+	}
+
+	// 二次公开状态过滤（仅对已登录用户生效）
+	if isPublic != nil && userID != nil {
 		query = query.Where("is_public = ?", *isPublic)
 	}
 
@@ -133,7 +140,7 @@ func (r *NoteRepository) GetWithPagination(page, pageSize int, tag string, order
  * @param isPublic 公开状态过滤（nil=全部，true=仅公开）
  * 注意：统计数据排除已归档的笔记
  */
-func (r *NoteRepository) GetStatsByMonth(year int, month int, isPublic *bool) (map[string]int, error) {
+func (r *NoteRepository) GetStatsByMonth(year int, month int, isPublic *bool, userID *uint) (map[string]int, error) {
 	stats := make(map[string]int)
 
 	// 构造该月份的起始和结束日期
@@ -157,8 +164,12 @@ func (r *NoteRepository) GetStatsByMonth(year int, month int, isPublic *bool) (m
 		Select("date, COUNT(*) as count").
 		Where("date >= ? AND date < ? AND is_archived = ?", startDate, endDate, false)
 
-	// 根据 isPublic 参数过滤
-	if isPublic != nil {
+	if userID != nil {
+		query = query.Where("is_public = ? OR user_id = ?", true, *userID)
+	} else {
+		query = query.Where("is_public = ?", true)
+	}
+	if isPublic != nil && userID != nil {
 		query = query.Where("is_public = ?", *isPublic)
 	}
 
@@ -191,7 +202,7 @@ func (r *NoteRepository) SetArchiveStatus(id string, isArchived bool) error {
  * @param isPublic 公开状态过滤（nil=全部，true=公开，false=私有）
  * @param includeArchived 是否包含已归档笔记
  */
-func (r *NoteRepository) Search(keyword string, page, pageSize int, isPublic *bool, includeArchived bool) ([]models.Note, int64, error) {
+func (r *NoteRepository) Search(keyword string, page, pageSize int, isPublic *bool, includeArchived bool, userID *uint) ([]models.Note, int64, error) {
 	var notes []models.Note
 	var total int64
 
@@ -199,8 +210,12 @@ func (r *NoteRepository) Search(keyword string, page, pageSize int, isPublic *bo
 	query := db.DB.Model(&models.Note{}).
 		Where("data LIKE ? OR tags LIKE ?", searchPattern, searchPattern)
 
-	// 根据 isPublic 参数过滤
-	if isPublic != nil {
+	if userID != nil {
+		query = query.Where("is_public = ? OR user_id = ?", true, *userID)
+	} else {
+		query = query.Where("is_public = ?", true)
+	}
+	if isPublic != nil && userID != nil {
 		query = query.Where("is_public = ?", *isPublic)
 	}
 

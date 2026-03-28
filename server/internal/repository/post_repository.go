@@ -16,14 +16,21 @@ type PostRepository struct{}
  * @param categories 分类过滤（空数组=全部）
  * @param tags 标签过滤（空数组=全部）
  */
-func (r *PostRepository) GetAll(page, pageSize int, order string, published *bool, categories, tags []string) ([]models.PostSummary, int64, error) {
+func (r *PostRepository) GetAll(page, pageSize int, order string, published *bool, categories, tags []string, userID *uint) ([]models.PostSummary, int64, error) {
 	var posts []models.PostSummary
 	var total int64
 
 	query := db.DB.Model(&models.Post{})
 
-	// 过滤发布状态
-	if published != nil {
+	// 可见性过滤：已登录用户可见公开文章及自己的私有文章，未登录用户只见已发布文章
+	if userID != nil {
+		query = query.Where("published = ? OR user_id = ?", true, *userID)
+	} else {
+		query = query.Where("published = ?", true)
+	}
+
+	// 二次过滤发布状态（仅对已登录用户生效）
+	if published != nil && userID != nil {
 		query = query.Where("published = ?", *published)
 	}
 
@@ -147,7 +154,7 @@ func (r *PostRepository) GetByTag(tag string, page, pageSize int) ([]models.Post
  * @param pageSize 每页数量
  * @param published 发布状态过滤（nil=全部，true=已发布，false=草稿）
  */
-func (r *PostRepository) Search(keyword string, page, pageSize int, published *bool) ([]models.PostSummary, int64, error) {
+func (r *PostRepository) Search(keyword string, page, pageSize int, published *bool, userID *uint) ([]models.PostSummary, int64, error) {
 	var posts []models.PostSummary
 	var total int64
 
@@ -157,8 +164,12 @@ func (r *PostRepository) Search(keyword string, page, pageSize int, published *b
 		query = query.Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
 	}
 
-	// 根据 published 参数过滤
-	if published != nil {
+	if userID != nil {
+		query = query.Where("published = ? OR user_id = ?", true, *userID)
+	} else {
+		query = query.Where("published = ?", true)
+	}
+	if published != nil && userID != nil {
 		query = query.Where("published = ?", *published)
 	}
 
@@ -181,7 +192,7 @@ func (r *PostRepository) Search(keyword string, page, pageSize int, published *b
  * @param pageSize 每页数量
  * @param published 发布状态过滤（nil=全部，true=已发布，false=草稿）
  */
-func (r *PostRepository) SearchWithContent(keyword string, page, pageSize int, published *bool) ([]models.Post, int64, error) {
+func (r *PostRepository) SearchWithContent(keyword string, page, pageSize int, published *bool, userID *uint) ([]models.Post, int64, error) {
 	var posts []models.Post
 	var total int64
 
@@ -191,8 +202,12 @@ func (r *PostRepository) SearchWithContent(keyword string, page, pageSize int, p
 		query = query.Where("title LIKE ? OR description LIKE ? OR content LIKE ?", searchPattern, searchPattern, searchPattern)
 	}
 
-	// 根据 published 参数过滤
-	if published != nil {
+	if userID != nil {
+		query = query.Where("published = ? OR user_id = ?", true, *userID)
+	} else {
+		query = query.Where("published = ?", true)
+	}
+	if published != nil && userID != nil {
 		query = query.Where("published = ?", *published)
 	}
 

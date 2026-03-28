@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"server/internal/config"
+	"server/internal/middleware"
 	"server/internal/models"
 	"server/internal/repository"
 	"server/internal/service"
@@ -116,16 +117,16 @@ func (h *AssetHandler) ListAssets(c *gin.Context) {
 		}
 
 	} else {
-		// 查询所有文件资源
-		// 统计总数
-		total, err = h.fileResourceRepo.CountAllFileResources()
+		userID, _ := middleware.GetUserID(c)
+		userIDPtr := &userID
+
+		total, err = h.fileResourceRepo.CountAllFileResources(userIDPtr)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		// 获取所有文件资源（带分页）
-		resources, err = h.fileResourceRepo.GetAllFileResourcesWithPagination(offset, limitInt)
+		resources, err = h.fileResourceRepo.GetAllFileResourcesWithPagination(offset, limitInt, userIDPtr)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -201,9 +202,10 @@ func (h *AssetHandler) UploadAsset(c *gin.Context) {
 		return
 	}
 
-	// 创建文件资源记录
+	userID, _ := middleware.GetUserID(c)
 	resource := &models.FileResource{
 		ID:           fileID,
+		UserID:       userID,
 		OriginalName: file.Filename,
 		Extension:    ext,
 		MimeType:     file.Header.Get("Content-Type"),
@@ -330,11 +332,22 @@ func (h *AssetHandler) GetAsset(c *gin.Context) {
  * DELETE /api/assets?postID=xxx&fileID=xxx
  */
 func (h *AssetHandler) DeleteAsset(c *gin.Context) {
-
 	fileID := c.Query("fileID")
 
 	if fileID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "fileID is required"})
+		return
+	}
+
+	resource, err := h.fileResourceRepo.GetFileResource(fileID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		return
+	}
+
+	userID, _ := middleware.GetUserID(c)
+	if resource.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 

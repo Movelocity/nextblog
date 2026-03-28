@@ -5,6 +5,36 @@ import globals from '@/app/utils/globals';
 
 export const assetService = {
   /**
+   * List all files with pagination (no postID filter)
+   */
+  listAllAssets: async (page: number, limit: number): Promise<{ data: Asset[]; total: number }> => {
+    interface AssetsResponse {
+      data: Asset[];
+      total: number;
+      page: number;
+      limit: number;
+    }
+    const response = await get<AssetsResponse>(`/assets?page=${page}&limit=${limit}`);
+    return { data: response.data || [], total: response.total || 0 };
+  },
+
+  /**
+   * Upload a standalone file (no post association)
+   */
+  uploadFile: async (file: File): Promise<{ id: string; url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    interface UploadResponse {
+      id: string;
+      filename: string;
+      url: string;
+      size: number;
+    }
+    const response = await post<UploadResponse>('/assets', formData);
+    return { id: response.id, url: response.url };
+  },
+
+  /**
    * List all assets for a blog
    */
   listAssets: async (blogId: string): Promise<Asset[]> => {

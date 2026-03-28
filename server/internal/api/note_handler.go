@@ -45,10 +45,10 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 		}
 	}
 
-	_, isAuthenticated := middleware.GetUserID(c)
-	if !isAuthenticated {
-		trueValue := true
-		isPublic = &trueValue
+	userID, isAuthenticated := middleware.GetUserID(c)
+	var userIDPtr *uint
+	if isAuthenticated {
+		userIDPtr = &userID
 	}
 
 	// 解析 isArchived 参数
@@ -56,7 +56,6 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 	var isArchived *bool
 	if isArchivedStr := c.Query("isArchived"); isArchivedStr != "" {
 		if isArchivedStr == "all" {
-			// "all" 表示显示所有笔记（包括已归档）
 			falseVal := false
 			isArchived = &falseVal
 		} else if val, err := strconv.ParseBool(isArchivedStr); err == nil {
@@ -65,10 +64,9 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 	}
 	// 未认证用户不能查看已归档笔记
 	if !isAuthenticated && isArchived != nil && *isArchived {
-		isArchived = nil // 重置为默认（仅未归档）
+		isArchived = nil
 	}
 
-	// 参数验证
 	if page < 1 {
 		page = 1
 	}
@@ -76,8 +74,7 @@ func (h *NoteHandler) GetNotes(c *gin.Context) {
 		pageSize = 20
 	}
 
-	// 分页查询
-	notes, total, err := h.repo.GetWithPagination(page, pageSize, tag, order, isPublic, isArchived)
+	notes, total, err := h.repo.GetWithPagination(page, pageSize, tag, order, isPublic, isArchived, userIDPtr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -118,6 +115,14 @@ func (h *NoteHandler) GetNote(c *gin.Context) {
 		return
 	}
 
+	if !note.IsPublic {
+		userID, _ := middleware.GetUserID(c)
+		if note.UserID != userID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, note)
 }
 
@@ -132,7 +137,8 @@ func (h *NoteHandler) CreateNote(c *gin.Context) {
 		return
 	}
 
-	// 生成 ID（使用时间戳）
+	userID, _ := middleware.GetUserID(c)
+	note.UserID = userID
 	note.ID = fmt.Sprintf("%d", time.Now().UnixMilli())
 	note.CreatedAt = time.Now()
 	note.UpdatedAt = time.Now()
@@ -158,10 +164,15 @@ func (h *NoteHandler) CreateNote(c *gin.Context) {
 func (h *NoteHandler) UpdateNote(c *gin.Context) {
 	id := c.Param("id")
 
-	// 检查笔记是否存在
 	existingNote, err := h.repo.GetByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
+		return
+	}
+
+	userID, _ := middleware.GetUserID(c)
+	if existingNote.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
@@ -203,6 +214,18 @@ func (h *NoteHandler) UpdateNote(c *gin.Context) {
 func (h *NoteHandler) DeleteNote(c *gin.Context) {
 	id := c.Param("id")
 
+	existingNote, err := h.repo.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
+		return
+	}
+
+	userID, _ := middleware.GetUserID(c)
+	if existingNote.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
 	if err := h.repo.Delete(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -219,10 +242,15 @@ func (h *NoteHandler) DeleteNote(c *gin.Context) {
 func (h *NoteHandler) ArchiveNote(c *gin.Context) {
 	id := c.Param("id")
 
-	// 检查笔记是否存在
 	note, err := h.repo.GetByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Note not found"})
+		return
+	}
+
+	userID, _ := middleware.GetUserID(c)
+	if note.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
@@ -291,17 +319,13 @@ func (h *NoteHandler) GetStats(c *gin.Context) {
 		return
 	}
 
-	// 检查用户是否已登录，决定是否只统计公开笔记
-	_, isAuthenticated := middleware.GetUserID(c)
-	var isPublic *bool
-	if !isAuthenticated {
-		// 未登录用户只能看到公开笔记统计
-		trueValue := true
-		isPublic = &trueValue
+	userID, isAuthenticated := middleware.GetUserID(c)
+	var userIDPtr *uint
+	if isAuthenticated {
+		userIDPtr = &userID
 	}
 
-	// 获取统计数据
-	stats, err := h.repo.GetStatsByMonth(year, month, isPublic)
+	stats, err := h.repo.GetStatsByMonth(year, month, nil, userIDPtr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -343,30 +367,21 @@ func (h *NoteHandler) SearchNotes(c *gin.Context) {
 		pageSize = 20
 	}
 
-	// 检查用户是否已登录
-	_, isAuthenticated := middleware.GetUserID(c)
-
-	// 根据登录状态决定搜索范围
-	var isPublic *bool
+	userID, isAuthenticated := middleware.GetUserID(c)
+	var userIDPtr *uint
 	includeArchived := false
-	if !isAuthenticated {
-		// 未登录用户只能搜索公开且未归档的笔记
-		trueValue := true
-		isPublic = &trueValue
-	} else {
-		// 已登录用户搜索所有笔记（包括私有和归档）
+	if isAuthenticated {
+		userIDPtr = &userID
 		includeArchived = true
 	}
 
-	// 解析高级搜索参数（仅登录用户可用）
 	highlight := c.Query("highlight") == "true" && isAuthenticated
 	contextSize, _ := strconv.Atoi(c.DefaultQuery("contextSize", "50"))
 	if contextSize <= 0 {
 		contextSize = service.DefaultContextSize
 	}
 
-	// 执行搜索
-	notes, total, err := h.repo.Search(keyword, page, pageSize, isPublic, includeArchived)
+	notes, total, err := h.repo.Search(keyword, page, pageSize, nil, includeArchived, userIDPtr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

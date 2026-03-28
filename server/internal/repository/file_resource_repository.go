@@ -108,20 +108,25 @@ func (r *FileResourceRepository) CountFileResourcesByIDs(fileIDs []string) (int6
  * @param offset 偏移量
  * @param limit 限制数量
  */
-func (r *FileResourceRepository) GetAllFileResourcesWithPagination(offset, limit int) ([]*models.FileResource, error) {
+func (r *FileResourceRepository) GetAllFileResourcesWithPagination(offset, limit int, userID *uint) ([]*models.FileResource, error) {
 	var resources []*models.FileResource
-	err := db.DB.Order("created_at DESC").
-		Offset(offset).
-		Limit(limit).
-		Find(&resources).Error
+	query := db.DB.Model(&models.FileResource{})
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+	err := query.Order("created_at DESC").Offset(offset).Limit(limit).Find(&resources).Error
 	return resources, err
 }
 
 /**
- * CountAllFileResources 统计所有文件资源数量
+ * CountAllFileResources 统计文件资源数量
  */
-func (r *FileResourceRepository) CountAllFileResources() (int64, error) {
+func (r *FileResourceRepository) CountAllFileResources(userID *uint) (int64, error) {
 	var count int64
-	err := db.DB.Model(&models.FileResource{}).Count(&count).Error
+	query := db.DB.Model(&models.FileResource{})
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+	err := query.Count(&count).Error
 	return count, err
 }
