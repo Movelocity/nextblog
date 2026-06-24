@@ -79,6 +79,8 @@ export type GetNotesParams = {
   /** 标签过滤（可选） */
   tag?: string,
   /** 公开状态过滤（可选） */
-  isPublic?: boolean
+  isPublic?: boolean,
+  /** 全文搜索关键词（可选，匹配笔记内容，大小写不敏感） */
+  query?: string
 }
 
