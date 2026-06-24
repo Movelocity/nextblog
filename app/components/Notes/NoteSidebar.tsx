@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import classNames from 'classnames';
 import { FiTag, FiCalendar, FiFilter } from 'react-icons/fi';
 import { useAuth } from '@/app/hooks/useAuth';
+import { useNoteStats } from '@/app/hooks/useNoteStats';
 import cn from 'classnames';
 
 interface NoteSidebarProps {
@@ -17,59 +17,18 @@ interface NoteSidebarProps {
   onTogglePublicFilter: () => void;
 }
 
-type TagStats = Record<string, number>;
-type DateStats = Record<string, number>;
-
 /**
  * 笔记侧边栏组件
- * 显示日历和标签统计
+ * 显示日历和标签统计（桌面端专用，移动端由 NoteMobileFilter 承载）
  */
-const NoteSidebar = ({ 
-  selectedTag, 
+const NoteSidebar = ({
+  selectedTag,
   showPublicOnly,
-  onSelectTag, 
-  onTogglePublicFilter 
+  onSelectTag,
+  onTogglePublicFilter
 }: NoteSidebarProps) => {
-  const [tagStats, setTagStats] = useState<TagStats>({});
-  const [dateStats, setDateStats] = useState<DateStats>({});
-  const [loading, setLoading] = useState(true);
-  const { isAuthenticated } = useAuth(); 
-  
-
-  /**
-   * 加载统计数据
-   */
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        // 获取索引数据
-        const response = await fetch('/api/notes/stats');
-        if (response.ok) {
-          const data = await response.json();
-          setTagStats(data.tagged || {});
-          
-          // 计算日期统计
-          const dates: DateStats = {};
-          Object.keys(data.files || {}).forEach(dateFile => {
-            const date = dateFile.replace('.json', '');
-            dates[date] = data.files[dateFile].length;
-          });
-          setDateStats(dates);
-        }
-      } catch (error) {
-        console.error('Failed to load stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStats();
-    
-    // 定期刷新统计
-    const interval = setInterval(loadStats, 30000); // 30秒刷新一次
-    
-    return () => clearInterval(interval);
-  }, []);
+  const { tagStats, dateStats, loading } = useNoteStats();
+  const { isAuthenticated } = useAuth();
 
   /**
    * 获取当前月份的日期列表

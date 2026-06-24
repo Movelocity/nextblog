@@ -231,51 +231,90 @@ const getNote = (id: string): NoteData | null => {
 }
 
 /**
- * 获取笔记列表（支持分页和标签过滤）
+ * 获取笔记列表（支持分页、标签过滤、全文搜索）
+ *
+ * 性能优化：优先基于 index.json 的轻量元数据（id/isPublic/tags）做过滤、排序和分页，
+ * 只在最后阶段读取命中的日期文件以获取完整内容，避免把所有笔记读入内存。
+ *
+ * @param publicOnly 三态语义：
+ *   - true：仅公开笔记
+ *   - false：仅私密笔记
+ *   - undefined：全部（登录用户默认）
  */
 const getNotes = (options: {
   page?: number,
   pageSize?: number,
   tag?: string,
-  publicOnly?: boolean
+  publicOnly?: boolean,
+  query?: string
 }): { notes: NoteData[], total: number, page: number, pageSize: number } => {
-  const { page = 1, pageSize = 20, tag, publicOnly = true } = options
+  const { page = 1, pageSize = 20, tag, publicOnly, query } = options
   const index = readIndex()
-  
-  let allNotes: NoteData[] = []
-  
-  // 按日期倒序读取笔记
-  const dateFiles = Object.keys(index.files).sort().reverse()
-  
-  for (const dateFile of dateFiles) {
+
+  // 1. 展平索引为 [meta + 所属日期] 列表（不读取日期文件，纯基于索引）
+  type IndexedMeta = NoteMeta & { date: string }
+  const allMetas: IndexedMeta[] = []
+  for (const dateFile of Object.keys(index.files)) {
     const date = dateFile.replace('.json', '')
-    const notes = readDateFile(date)
-    allNotes = allNotes.concat(notes)
+    for (const meta of index.files[dateFile]) {
+      allMetas.push({ ...meta, date })
+    }
   }
-  
-  // 按创建时间倒序排序
-  allNotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  
-  // 过滤
-  let filteredNotes = allNotes
-  
+
+  // 2. 基于元数据过滤：标签 + 公开状态（无需读取文件内容）
+  let filteredMetas = allMetas
   if (tag) {
-    filteredNotes = filteredNotes.filter(note => note.tags.includes(tag))
+    filteredMetas = filteredMetas.filter(m => m.tags.includes(tag))
   }
-  
-  filteredNotes = filteredNotes.filter(note => note.isPublic === publicOnly)
-  
-  const total = filteredNotes.length
-  const start = (page - 1) * pageSize
-  const end = start + pageSize
-  const paginatedNotes = filteredNotes.slice(start, end)
-  
-  return {
-    notes: paginatedNotes,
-    total,
-    page,
-    pageSize
+  if (publicOnly === true) {
+    filteredMetas = filteredMetas.filter(m => m.isPublic)
+  } else if (publicOnly === false) {
+    filteredMetas = filteredMetas.filter(m => !m.isPublic)
   }
+
+  // 3. 按 id 倒序排序（id = YYYYMMDDHHMMSSXXXXXX，天然等价于按创建时间倒序）
+  filteredMetas.sort((a, b) => (a.id < b.id ? 1 : a.id > b.id ? -1 : 0))
+
+  // 4. 按日期分组读取：同一个日期文件只读一次，提升 IO 效率
+  const readNotesByMeta = (metas: IndexedMeta[]): NoteData[] => {
+    const byDate = new Map<string, Set<string>>()
+    for (const m of metas) {
+      if (!byDate.has(m.date)) byDate.set(m.date, new Set())
+      byDate.get(m.date)!.add(m.id)
+    }
+    const result: NoteData[] = []
+    for (const [date, idSet] of byDate) {
+      const dateNotes = readDateFile(date)
+      for (const note of dateNotes) {
+        if (idSet.has(note.id)) result.push(note)
+      }
+    }
+    // 重新按 id 倒序排（readDateFile 的顺序不保证）
+    result.sort((a, b) => (a.id < b.id ? 1 : a.id > b.id ? -1 : 0))
+    return result
+  }
+
+  let notes: NoteData[]
+  let total: number
+
+  if (query) {
+    // 搜索模式：需要读取内容做匹配，因此先读取全部候选笔记，再过滤关键词
+    // （搜索是低频操作，读取候选文件可接受；无 query 时走纯索引分页保持高效）
+    const queryLower = query.toLowerCase()
+    const candidates = readNotesByMeta(filteredMetas)
+    const matched = candidates.filter(n => n.data.toLowerCase().includes(queryLower))
+    total = matched.length
+    const start = (page - 1) * pageSize
+    notes = matched.slice(start, start + pageSize)
+  } else {
+    // 普通模式：纯索引分页，只读取本页对应的日期文件
+    total = filteredMetas.length
+    const start = (page - 1) * pageSize
+    const pageMetas = filteredMetas.slice(start, start + pageSize)
+    notes = readNotesByMeta(pageMetas)
+  }
+
+  return { notes, total, page, pageSize }
 }
 
 /**
@@ -285,7 +324,8 @@ const getNotes = (options: {
  * - page: 页码（默认1）
  * - pageSize: 每页数量（默认20）
  * - tag: 标签过滤
- * - isPublic: 是否公开过滤
+ * - isPublic: 公开状态过滤（true=仅公开，false=仅私密，缺省=全部）
+ * - query: 全文搜索关键词（匹配笔记内容，大小写不敏感）
  */
 export async function GET(request: NextRequest) {
   try {
@@ -293,7 +333,7 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id')
 
     const user = authenticateRequest(request);
-    
+
     // 获取单个笔记
     if (id) {
       const note = getNote(id)
@@ -303,27 +343,46 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         )
       }
-      if(!note.isPublic && user==null) {
+      // 私密笔记：未登录用户不可见（统一返回 404 避免泄露存在性）
+      if (!note.isPublic && user == null) {
         return NextResponse.json(
           { error: 'Note not found' },
           { status: 404 }
         )
       }
+      // 未登录用户访问公开笔记：剥离非必要字段（updatedAt/tags），仅返回展示所需内容
+      if (user == null) {
+        return NextResponse.json({
+          id: note.id,
+          createdAt: note.createdAt,
+          data: note.data,
+          isPublic: note.isPublic,
+        })
+      }
       return NextResponse.json(note)
     }
-    
+
     // 获取笔记列表
     const page = parseInt(searchParams.get('page') || '1')
     const pageSize = parseInt(searchParams.get('pageSize') || '20')
     const tag = searchParams.get('tag') || undefined
+    const query = searchParams.get('query') || undefined
     const isPublicParam = searchParams.get('isPublic')
-    // const isPublic = isPublicParam ? isPublicParam === 'true' : undefined
-    const publicOnly = isPublicParam ? isPublicParam === 'true' : true
-    
-    const result = getNotes({ page, pageSize, tag, publicOnly })
-    if(user==null) {
-      result.notes = result.notes.filter(note => note.isPublic)
+
+    // publicOnly 三态语义：
+    //   - 未传参：登录用户看全部(undefined)，未登录只看公开(true)
+    //   - 显式传参：按参数过滤；但未登录用户无论传什么，都强制只看公开
+    let publicOnly: boolean | undefined
+    if (isPublicParam == null) {
+      publicOnly = user ? undefined : true
+    } else {
+      publicOnly = isPublicParam === 'true'
     }
+    if (user == null && publicOnly !== true) {
+      publicOnly = true
+    }
+
+    const result = getNotes({ page, pageSize, tag, publicOnly, query })
     return NextResponse.json(result)
   } catch (error) {
     return NextResponse.json(

@@ -8,6 +8,7 @@ import type { NoteData } from '@/app/common/types.notes';
 import cn from 'classnames';
 import { useAuth } from '@/app/hooks/useAuth';
 import { copyToClipboard } from '@/app/services/utils';
+import { Markdown } from '@/app/components/Editor/Markdown';
 
 interface NoteCardProps {
   /** 笔记数据 */
@@ -20,7 +21,7 @@ interface NoteCardProps {
 
 /**
  * 笔记卡片组件
- * 支持查看和编辑笔记
+ * 支持查看（Markdown 渲染）和编辑（纯文本）笔记
  */
 const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
   const { isAuthenticated } = useAuth();
@@ -36,14 +37,25 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
 
   /**
    * 检测内容高度，判断是否需要折叠
+   *
+   * Markdown 渲染（含代码高亮等 rehype 插件）是异步完成的，DOM 高度会在
+   * 渲染完成后才稳定。因此除了立即测量一次，还安排一次延迟测量兜底，
+   * 确保含代码块/表格的长笔记也能正确显示"展开"按钮。
    */
-  useEffect(() => {
+  const measureContentHeight = () => {
     if (contentRef.current && !isEditing) {
       const contentHeight = contentRef.current.scrollHeight;
       setShouldCollapse(contentHeight > MAX_HEIGHT);
-      // 内容变化时重置展开状态
       setIsExpanded(false);
     }
+  };
+
+  useEffect(() => {
+    measureContentHeight();
+    // Markdown 渲染完成后复测一次（覆盖异步渲染导致的高度变化）
+    const timer = setTimeout(measureContentHeight, 150);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note.data, isEditing, MAX_HEIGHT]);
 
   /**
@@ -265,10 +277,10 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
 
           {/* 笔记内容 */}
           <div className="relative">
-            <div 
+            <div
               ref={contentRef}
               className={cn(
-                "prose prose-base dark:prose-invert max-w-none transition-all duration-300 overflow-hidden",
+                "max-w-none transition-all duration-300 overflow-hidden",
                 shouldCollapse && !isExpanded && "max-h-[280px]",
                 note.tags.length > 0 && "pb-6"
               )}
@@ -277,9 +289,8 @@ const NoteCard = ({ note, onUpdate, onDelete }: NoteCardProps) => {
                 WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)'
               } : undefined}
             >
-              <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
-                {note.data}
-              </p>
+              {/* Markdown 渲染：支持代码高亮、表格、列表、公式等；编辑态使用 textarea */}
+              <Markdown content={note.data} />
             </div>
             
             {/* 展开/折叠按钮 */}

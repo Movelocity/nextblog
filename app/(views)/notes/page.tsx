@@ -4,14 +4,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { fetchNotes, createNote, updateNote, deleteNote } from '@/app/services/notes';
 import type { NoteData } from '@/app/common/types.notes';
 import NoteCard from '@/app/components/Notes/NoteCard';
-import {NoteEditor, NoteSidebar} from '@/app/components/Notes';
+import {NoteEditor, NoteSidebar, NoteMobileFilter} from '@/app/components/Notes';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 import { useToast } from '@/app/components/layout/ToastHook';
 import { useAuth } from '@/app/hooks/useAuth';
+import { FiSearch, FiX } from 'react-icons/fi';
+import { useDebouncedCallback } from 'use-debounce';
 
 /**
  * 笔记管理页面
- * 支持创建、查看、编辑笔记，按时间倒序显示，支持分页加载
+ * 支持创建、查看、编辑笔记，按时间倒序显示，支持分页加载、标签筛选和全文搜索
  */
 const NotesPage = () => {
   const [notes, setNotes] = useState<NoteData[]>([]);
@@ -21,18 +23,33 @@ const NotesPage = () => {
   const [creating, setCreating] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
   const [showPublicOnly, setShowPublicOnly] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const { showToast } = useToast();
   const isMobile = useIsMobile();
   const pageSize = 10;
   const hasMore = notes.length < total;
-  const { isAuthenticated } = useAuth(); 
+  const { isAuthenticated } = useAuth();
+
+  /**
+   * 搜索输入防抖：输入停顿 300ms 后才真正触发查询，避免每次按键都请求
+   */
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setSearchQuery(value);
+    setPage(1);
+  }, 300);
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    debouncedSearch(value);
+  };
 
   /**
    * 加载笔记列表
    */
   const loadNotes = useCallback(async (pageNum: number, append = false) => {
     if (loading) return;
-    
+
     setLoading(true);
     try {
       const result = await fetchNotes({
@@ -40,8 +57,9 @@ const NotesPage = () => {
         pageSize,
         tag: selectedTag,
         isPublic: showPublicOnly,
+        query: searchQuery.trim() || undefined,
       });
-      
+
       setNotes(prev => append ? [...prev, ...result.notes] : result.notes);
       setTotal(result.total);
       setPage(pageNum);
@@ -51,14 +69,14 @@ const NotesPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, selectedTag, showPublicOnly, showToast]);
+  }, [loading, selectedTag, showPublicOnly, searchQuery, showToast]);
 
   /**
-   * 初始加载
+   * 初始加载 / 筛选条件变化时重新加载
    */
   useEffect(() => {
     loadNotes(1, false);
-  }, [selectedTag, showPublicOnly]);
+  }, [selectedTag, showPublicOnly, searchQuery]);
 
   /**
    * 加载更多
@@ -158,7 +176,39 @@ const NotesPage = () => {
     <div className="w-full flex flex-col lg:flex-row gap-4">
       {/* 主内容区 */}
       <div className="flex-1 min-w-0 space-y-3 pt-6 xl:max-w-3xl xl:mx-auto">
-        {/* 不需要页面标题 */}
+        {/* 移动端筛选条（含搜索、标签、公开过滤） */}
+        {isMobile && (
+          <NoteMobileFilter
+            selectedTag={selectedTag}
+            showPublicOnly={showPublicOnly}
+            searchQuery={searchInput}
+            onSelectTag={handleSelectTag}
+            onTogglePublicFilter={handleTogglePublicFilter}
+            onSearchChange={handleSearchChange}
+          />
+        )}
+
+        {/* 桌面端搜索框 */}
+        {!isMobile && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-lg shadow-sm border border-card">
+            <FiSearch className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="搜索笔记内容..."
+              className="flex-1 bg-transparent outline-none text-sm dark:text-white"
+            />
+            {searchInput && (
+              <button
+                onClick={() => handleSearchChange('')}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* 创建笔记区域 */}
         {isAuthenticated && (
@@ -179,7 +229,10 @@ const NotesPage = () => {
           ) : notes.length === 0 ? (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
               <p className="text-gray-500 dark:text-gray-400">
-                {selectedTag ? '没有找到相关笔记' : isAuthenticated ? '还没有笔记，开始创建第一条吧！' : '还没有公开笔记可查看'}
+                {searchQuery ? `没有找到包含「${searchQuery}」的笔记`
+                  : selectedTag ? '没有找到相关笔记'
+                  : isAuthenticated ? '还没有笔记，开始创建第一条吧！'
+                  : '还没有公开笔记可查看'}
               </p>
             </div>
           ) : (
@@ -214,7 +267,7 @@ const NotesPage = () => {
         )}
       </div>
 
-      {/* 侧边栏 */}
+      {/* 桌面端侧边栏 */}
       {!isMobile && (
         <NoteSidebar
           selectedTag={selectedTag}
